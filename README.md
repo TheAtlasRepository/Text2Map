@@ -31,7 +31,9 @@
 
    yarn add mapbox-gl
 
-   npx v0@latest init  
+   npx v0@latest init 
+
+   npm install react-map-gl
 
    npm install @radix-ui/react-slot
 
