@@ -15,10 +15,6 @@
 
     conda install yarn
 
-    yarn create next-app frontend
-        - Name it something usefull like front    
-        - Press enter all over
-
     conda install pip
 
     pip install fastapi
@@ -36,6 +32,8 @@
    yarn add mapbox-gl
 
    npx v0@latest init  
+
+   npm install @radix-ui/react-slot
 
    yarn dev
 
