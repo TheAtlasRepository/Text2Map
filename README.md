@@ -28,6 +28,7 @@
 
 
 3. **To Run Frontend**
+   ```bash
    cd frontend
 
    yarn add next
@@ -38,7 +39,8 @@
 
    yarn dev
 
-4. **To run Backend**
+5. **To run Backend**
+   ```bash
    cd backend
 
    uvicorn main:app --reload
