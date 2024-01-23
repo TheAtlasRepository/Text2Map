@@ -17,6 +17,8 @@
 
     conda install pip
 
+    pip install --upgrade openai
+
     pip install fastapi
 
     pip install "uvicorn[standard]"

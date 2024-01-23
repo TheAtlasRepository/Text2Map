@@ -16,7 +16,14 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
 
     useEffect(() => {
       // Fetch JSON data from your backend API
-      fetch('https://catfact.ninja/breeds') // TODO Replace with your actual backend API endpoint
+      fetch('http://127.0.0.1:8000/askchat?question='+ editedText, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+            body: JSON.stringify({ editedText: editedText }),
+        }
+      )
         .then(response => response.json())
         .then(data => {
           setJsonData(data);
@@ -37,19 +44,13 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
     // Save the edited text to the parent component
     const handleSaveText = () => {
       setLoading(true);
-      fetch('https://catfact.ninja/breeds', { // TODO Replace with your actual backend API endpoint
+      fetch('http://127.0.0.1:8000/askchat?question='+ editedText, { // TODO Replace with your actual backend API endpoint
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ editedText: localEditedText }),
       })
-        .then(response => response.json())
-        .then(data => {
-          console.log('Save successful:', data);
-          // Fetch JSON data from your backend API
-          return fetch('https://catfact.ninja/breeds');
-        })
         .then(response => response.json())
         .then(data => {
           setJsonData(data);
@@ -70,19 +71,13 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
       if (inputText.trim() !== '') {
         setLoading(true);
         // Assuming inputText is the data you want to send to the backend
-        fetch('/api/sendText', {
+        fetch('http://127.0.0.1:8000/sendchat?message=' + inputText, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ inputText }), // Adjust the payload as needed
         })
-          .then(response => response.json())
-          .then(data => {
-            console.log('Send successful:', data);
-            // Optionally, you can fetch updated data after sending
-            return fetch('/api/getJsonData');
-          })
           .then(response => response.json())
           .then(data => {
             setJsonData(data);
