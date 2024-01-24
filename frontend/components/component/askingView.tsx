@@ -2,7 +2,7 @@ import Map, { NavigationControl, GeolocateControl } from "react-map-gl";
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Button, } from "@/components/ui/button";
 import { Input } from "@/components/ui/input"
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ScrollArea } from "../ui/scroll-area";
 
 export default function AskingView({ onEditSave, editedText }: { onEditSave: (text: string) => void, editedText: string }) {
@@ -14,18 +14,59 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
     const [loading, setLoading] = useState(true);
     const [inputText, setInputText] = useState('');
 
+    const isInitialRender = useRef(true);
+    const prevEditedTextRef = useRef<string | undefined>();
+
     useEffect(() => {
-      // Fetch JSON data from your backend API
-      fetch('http://127.0.0.1:8000/askchat?question='+ editedText, {
+      if (isInitialRender.current) {
+        isInitialRender.current = false;
+        return;
+      }
+  
+      // Rest of your useEffect logic...
+      console.log('useEffect running. editedText:', editedText);
+  
+      if (editedText !== prevEditedTextRef.current) {
+        // Fetch JSON data from your backend API
+        fetch('http://127.0.0.1:8000/askchat?question=' + editedText, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-            body: JSON.stringify({ editedText: editedText }),
-        }
-      )
+          body: JSON.stringify({ editedText: editedText }),
+        })
+          .then(response => response.json())
+          .then(data => {
+            console.log('JSON data from the backend:', data);
+            setJsonData(data);
+            setLoading(false);
+            setLocalEditedText(editedText);
+          })
+          .catch(error => {
+            console.error('Error fetching JSON data:', error);
+            setLocalEditedText(editedText);
+            setLoading(false);
+          });
+      }
+    }, [editedText]);
+  
+    const handleEditClick = () => {
+      setEditingText(true);
+    };
+  
+    const handleSaveText = () => {
+      console.log('handleSaveText called. editedText:', editedText);
+      setLoading(true);
+      fetch('http://127.0.0.1:8000/askchat?question=' + editedText, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ editedText: editedText }),
+      })
         .then(response => response.json())
         .then(data => {
+          console.log('JSON data from the backend:', data);
           setJsonData(data);
           setLoading(false);
           setLocalEditedText(editedText);
@@ -35,41 +76,13 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
           setLocalEditedText(editedText);
           setLoading(false);
         });
-    }, [editedText]);
-
-    const handleEditClick = () => {
-      setEditingText(true);
-    };
-
-    // Save the edited text to the parent component
-    const handleSaveText = () => {
-      setLoading(true);
-      fetch('http://127.0.0.1:8000/askchat?question='+ editedText, { // TODO Replace with your actual backend API endpoint
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ editedText: localEditedText }),
-      })
-        .then(response => response.json())
-        .then(data => {
-          setJsonData(data);
-          setLoading(false);
-          onEditSave(localEditedText);
-          setEditingText(false);
-        })
-        .catch(error => {
-          console.error('Error saving data:', error);
-          setJsonData(error);
-          setLocalEditedText(localEditedText);
-          setLoading(false);
-        });
     };
 
     // Send the edited text to the backend
-    const handleSendText = () => {
+    const handleSendText = async () => {
       if (inputText.trim() !== '') {
         setLoading(true);
+
         // Assuming inputText is the data you want to send to the backend
         fetch('http://127.0.0.1:8000/sendchat?message=' + inputText, {
           method: 'POST',
@@ -80,12 +93,19 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
         })
           .then(response => response.json())
           .then(data => {
+            console.log('JSON data from the backend after sending text:', data);
+
+            // Fetch chat history after sending the message
+            return fetch('http://127.0.0.1:8000/getJsonData')
+          })
+          .then(response => response.json())
+          .then(data => {
+            console.log('Updated JSON data from the backend:', data);
             setJsonData(data);
             setLoading(false);
           })
           .catch(error => {
-            console.error('Error sending text:', error);
-            console.log('Sending text failed. Trying to fetch JSON data from the backend.');
+            console.error('Error sending or fetching JSON data:', error);
             setLoading(false);
           });
       } else {
@@ -94,7 +114,6 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
       }
     };
 
-    // TEST STUFF BELOW, DELETE WHEN DONE
 
     const renderJsonData = () => {
       if (jsonData) {
@@ -110,17 +129,12 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
   
     const renderArray = (array: any[]) => {
       return array.map((item, index) => (
-        <div key={index} className="ml-4">
-          {Object.entries(item).map(([subKey, subValue], subIndex) => (
-            <div key={subIndex}>
-              <strong>{subKey}:</strong> {subValue as React.ReactNode}
-            </div>
-          ))}
+        <div key={index} className={`ml-4 text-${item.role === 'user' ? 'blue' : 'green'}-600`}>
+          {item.role === 'user' ? 'User: ' : 'Assistant: '}
+          {item.content}
         </div>
       ));
     };
-
-    // TEST STUFF ABOVE, DELETE WHEN DONE
 
     return (
       <div className="bg-white min-h-screen overflow-y-auto">
@@ -168,7 +182,9 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
             {loading ? (
               <div>Thinking...</div>
             ) : (
-              renderJsonData()
+              <>
+                {renderJsonData()}
+              </>
             )}
           </ScrollArea>
           <div className="flex justify-center space-x-2 mt-auto">
@@ -221,27 +237,6 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
         <path d="M4 13.5V4a2 2 0 0 1 2-2h8.5L20 7.5V20a2 2 0 0 1-2 2h-5.5" />
         <polyline points="14 2 14 8 20 8" />
         <path d="M10.42 12.61a2.1 2.1 0 1 1 2.97 2.97L7.95 21 4 22l.99-3.95 5.43-5.44Z" />
-      </svg>
-    )
-  }
-
-
-  function PencilIcon(props: any) {
-    return (
-      <svg
-        {...props}
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M17 3a2.85 2.83 0 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-        <path d="m15 5 4" />
       </svg>
     )
   }

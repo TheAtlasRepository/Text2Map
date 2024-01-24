@@ -1,12 +1,9 @@
 from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from routers import askchat
-import os
-import uvicorn
 
 app = FastAPI()
 router = APIRouter()
-os.environ["OPENAI_API_KEY"] = "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"
 
 origins = [
     "http://localhost",

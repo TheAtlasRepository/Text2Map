@@ -1,30 +1,42 @@
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useReducer } from "react"; // Import the useReducer hook
 import AskingView from "./askingView";
 
+const initialState = { asking: false, editedText: '', textareaValue: '' };
+
+function reducer(state: any, action: any) {
+  switch (action.type) {
+    case 'SET_TEXTAREA_VALUE':
+      return { ...state, textareaValue: action.value };
+    case 'ASK':
+      return { ...state, asking: true, editedText: action.value };
+    default:
+      throw new Error();
+  }
+}
+
 export default function StartChatGPt() {
-    const [asking, setAsking] = useState(false);
-    const [editedText, setEditedText] = useState(''); // State to store the edited text
+  const [state, dispatch] = useReducer(reducer, initialState); // Use the useReducer hook
 
-    const handleEditSave = (text: string) => {
-      setEditedText(text);
-    };
+  const handleEditSave = (text: string) => {
+    console.log('handleEditSave called. text:', text);
+    dispatch({ type: 'ASK', value: text }); // Update editedText using dispatch
+  };
+  
+  const handleTextareaChange = (e: any) => {
+    dispatch({ type: 'SET_TEXTAREA_VALUE', value: e.target.value });
+  };
 
-    const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        // Update the state with the content of the textarea
-        setEditedText(e.target.value);
-    };
-
-    const handleAskButtonClick = () => {
-        if (editedText.trim() !== "") {
-            setAsking(true);
-        }
-    };
+  const handleAskButtonClick = () => {
+    if (state.textareaValue.trim() !== "") {
+      dispatch({ type: 'ASK', value: state.textareaValue });
+    }
+  };
 
     return (
         <div>
-            {asking ? (
-                <AskingView onEditSave={handleEditSave} editedText={editedText} />
+            {state.asking ? (
+                <AskingView onEditSave={handleEditSave} editedText={state.editedText} />
             ) : (
                 <>
                     <div className="max-w-4xl mx-auto my-12 p-8 bg-white rounded-lg">
@@ -53,14 +65,14 @@ export default function StartChatGPt() {
                                 <textarea
                                     className="w-full p-4 border rounded-lg mb-4"
                                     placeholder="Ask a question"
-                                    value={editedText}
+                                    value={state.textareaValue}
                                     onChange={handleTextareaChange}
                                 />
                                 <Button
-                                    className={`w-full ${editedText.trim() === "" ? "bg-gray-300 cursor-not-allowed" : ""}`}
+                                    className={`w-full ${state.textareaValue.trim() === "" ? "bg-gray-300 cursor-not-allowed" : ""}`}
                                     variant={"secondary"}
                                     onClick={handleAskButtonClick}
-                                    disabled={editedText.trim() === ""}
+                                    disabled={state.textareaValue.trim() === ""}
                                 >
                                     Ask ChatGPT
                                 </Button>
