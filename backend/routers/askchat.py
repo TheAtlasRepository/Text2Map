@@ -1,5 +1,6 @@
 from fastapi import FastAPI, APIRouter
 from openai import OpenAI
+import spacy
 
 router = APIRouter()
 
@@ -7,9 +8,7 @@ client = OpenAI()
 
 chat_history = []
 
-@router.get("/askchat")
-def getAskChat():
-    return "GET method is not allowed for this endpoint. Please use the POST method."
+nlp = spacy.load("en_core_web_lg")
 
 @router.post("/askchat", response_model=dict)
 def postAskChat(question):
@@ -35,14 +34,22 @@ def postAskChat(question):
     
     chat_history.append({"role": "user", "content": question})  # Add current question to chat history
     
-    return {"Atlas GPT": content}
-
-
-# Handle send message to chat
-@router.get("/sendchat")
-def getSendChat():
-    print("GET method is not allowed for this endpoint. Please use the POST method.")
-    return
+    # Check if you asnwer has a country, city or state
+    doc = nlp(content)
+    
+    # Put all entities in a list
+    entities = []
+    
+    for ent in doc.ents:
+        # Should also check if the label and text are already in the list and in the right order. And dont repeat the same entity
+        if ent.label_ == "GPE" or ent.label_ == "LOC" or ent.label_ == "FAC":
+            # Check if the entity is already in the list
+            entity = ent.label_ + ": " + ent.text
+            if entity not in entities:
+                entities.append(entity)
+           
+    
+    return {"GPT": content, "entities": entities}
 
 @router.post("/sendchat", response_model=dict)
 def postSendChat(message):
@@ -65,7 +72,22 @@ def postSendChat(message):
     chat_history.append({"role": "user", "content": message})  # Add current message to chat history
     chat_history.append({"role": "assistant", "content": content})  # Add assistant's response to chat history
     
-    return {"Atlas GPT": content}
+    # Check if you asnwer has a country, city or state
+    doc = nlp(content)
+    
+    # Put all entities in a list
+    entities = []
+    
+    for ent in doc.ents:
+        # Should also check if the label and text are already in the list and in the right order. And dont repeat the same entity
+        if ent.label_ == "GPE" or ent.label_ == "LOC" or ent.label_ == "FAC":
+            # Check if the entity is already in the list
+            entity = ent.label_ + ": " + ent.text
+            if entity not in entities:
+                entities.append(entity)
+           
+    
+    return {"GPT": content, "entities": entities}
 
 # Get the chat history
 @router.get("/getJsonData")
@@ -88,4 +110,4 @@ def getJsonData():
     
     content = response.choices[0].message.content
     
-    return {"Atlas GPT": content, "chat_history": chat_history}
+    return {"GPT": content, "chat_history": chat_history}
