@@ -19,10 +19,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@router.get("/askchat")
-def askchat_route():
-    return askchat.askChat()
-
 app.include_router(askchat.router)
 
 if __name__ == "__main__":
