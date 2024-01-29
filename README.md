@@ -19,6 +19,10 @@
 
     pip install --upgrade openai
 
+    pip install Geocoder
+
+    pip install mapbox
+
     pip install fastapi
 
     pip install "uvicorn[standard]"
@@ -34,6 +38,8 @@
    yarn add mapbox-gl
 
    npx v0@latest init 
+
+   npm install socket.io-client
 
    npm install react-map-gl
 

@@ -13,6 +13,13 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
     const [jsonData, setJsonData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [inputText, setInputText] = useState('');
+    const [entities, setEntities] = useState<any>({});
+    const [centerCoordinates, setCenterCoordinates] = useState<[number, number] | null>(null);
+    const [initialViewState, setInitialViewState] = useState<any>({
+      latitude: 35.668641,
+      longitude: 139.750567,
+      zoom: 1,
+    });
 
     const isInitialRender = useRef(true);
     const prevEditedTextRef = useRef<string | undefined>();
@@ -28,7 +35,7 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
   
       if (editedText !== prevEditedTextRef.current) {
         // Fetch JSON data from your backend API
-        fetch('http://127.0.0.1:8000/askchat?question=' + editedText, {
+        fetch('http://127.0.0.1:8000/sendchat?message=' + editedText, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -49,7 +56,18 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
           });
       }
     }, [editedText]);
-  
+
+    useEffect(() => {
+      // Update the initial view state when centerCoordinates change
+      if (centerCoordinates) {
+        setInitialViewState({
+          latitude: centerCoordinates[1],
+          longitude: centerCoordinates[0],
+          zoom: 1,
+        });
+      }
+    }, [centerCoordinates]);
+
     const handleEditClick = () => {
       setEditingText(true);
     };
@@ -57,7 +75,7 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
     const handleSaveText = () => {
       console.log('handleSaveText called. editedText:', editedText);
       setLoading(true);
-      fetch('http://127.0.0.1:8000/askchat?question=' + editedText, {
+      fetch('http://127.0.0.1:8000/sendchat?message=' + editedText, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -66,10 +84,9 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
       })
         .then(response => response.json())
         .then(data => {
+          // only set the data to whats inside the GPT part of the json
           console.log('JSON data from the backend:', data);
           setJsonData(data);
-          setLoading(false);
-          setLocalEditedText(editedText);
         })
         .catch(error => {
           console.error('Error fetching JSON data:', error);
@@ -93,15 +110,10 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
         })
           .then(response => response.json())
           .then(data => {
-            console.log('JSON data from the backend after sending text:', data);
-
-            // Fetch chat history after sending the message
-            return fetch('http://127.0.0.1:8000/getJsonData')
-          })
-          .then(response => response.json())
-          .then(data => {
             console.log('Updated JSON data from the backend:', data);
             setJsonData(data);
+            // set the input text to empty
+            setInputText('');
             setLoading(false);
           })
           .catch(error => {
@@ -114,24 +126,32 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
       }
     };
 
-
     const renderJsonData = () => {
       if (jsonData) {
-        const formattedData = Object.entries(jsonData).map(([key, value], index) => (
-          <div key={index}>
-            <strong>{key}:</strong> {Array.isArray(value) ? renderArray(value) : value as React.ReactNode}
+        const gptContent = jsonData.GPT ? (
+          <div key="gpt">
+            <strong>GPT:</strong> {jsonData.GPT}
           </div>
-        ));
-        return formattedData;
+        ) : null;
+    
+        const chatHistoryContent = jsonData.chat_history && jsonData.chat_history.length > 0 ? (
+          <div key="chat_history">
+            {renderArray(jsonData.chat_history)}
+          </div>
+        ) : null;
+    
+        return [gptContent, chatHistoryContent];
       }
+    
       return null;
     };
-  
+    
     const renderArray = (array: any[]) => {
       return array.map((item, index) => (
-        <div key={index} className={`ml-4 text-${item.role === 'user' ? 'blue' : 'green'}-600`}>
-          {item.role === 'user' ? 'User: ' : 'Assistant: '}
-          {item.content}
+        <div key={index}>
+          <strong>{item.role === 'user' && 'User: '}</strong>
+          <strong>{item.role === 'assistant' && 'Assistant: '}</strong>
+          {typeof item.content === 'object' ? item.content.content : item.content}
         </div>
       ));
     };
@@ -201,16 +221,16 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
           </aside>
           <main className="flex-auto relative w-2/3">
             <div style={{ height: 'calc(100vh - 73px)' }}>
-              <Map
-                mapboxAccessToken={mapboxToken}
-                mapStyle="mapbox://styles/mapbox/standard"
-                initialViewState={{ latitude: 35.668641, longitude: 139.750567, zoom: 10 }}
-                maxZoom={20}
-                minZoom={3}
-              >
-                <GeolocateControl position="bottom-right" />
-                <NavigationControl position="bottom-right" />
-              </Map>
+            <Map
+              mapboxAccessToken={mapboxToken}
+              mapStyle="mapbox://styles/mapbox/standard"
+              initialViewState={initialViewState}
+              maxZoom={20}
+              minZoom={3}
+            >
+              <GeolocateControl position="bottom-right" />
+              <NavigationControl position="bottom-right" />
+            </Map>
             </div>
           </main>
         </div>
