@@ -7,12 +7,12 @@ export default function Home() {
 
   return (
     <div className="flex justify-center py-10">
-      <div className="max-w-4xl space-y-8">
+      <div className="max-w-4xl space-y-8 p-8">
         <h1 className="text-center text-3xl font-bold">Create a map</h1>
         <p className="text-center text-lg">Use your own text and data or a ChatGPT prompt</p>
         <div className="grid grid-cols-2 gap-8">
-          <div className="flex flex-col items-center space-y-4" onClick={() => router.push("/askChat")}>
-              <Card className="w-full max-w-[400px] bg-white border border-gray-200 border-blue-500 rounded-lg shadow-sm hover:shadow-md transition-shadow dark:border-gray-800" onClick={() => router.push("#")}>
+          <div className="flex flex-col items-center space-y-4" onClick={() => router.push("/textsource")}>
+              <Card className="w-full max-w-[400px] bg-white border border-blue-500 rounded-lg shadow-sm hover:shadow-md transition-shadow dark:border-gray-800" onClick={() => router.push("#")}>
                 <CardHeader>
                   <div className="flex items-center space-x-2">
                     <TextIcon className="h-5 w-5 text-blue-600" />
@@ -28,7 +28,7 @@ export default function Home() {
               </Card>
           </div>
           <div className="flex flex-col items-center space-y-4" onClick={() => router.push("/askChat")}>
-            <Card className="w-full max-w-[400px] bg-white border border-gray-200 border-blue-500 rounded-lg shadow-sm hover:shadow-md transition-shadow dark:border-gray-800" onClick={() => router.push("#")}>
+            <Card className="w-full max-w-[400px] bg-white border border-blue-500 rounded-lg shadow-sm hover:shadow-md transition-shadow dark:border-gray-800" onClick={() => router.push("#")}>
               <CardHeader>
                 <div className="flex items-center space-x-2">
                   <BarChart2Icon className="h-5 w-5 text-blue-600" />
