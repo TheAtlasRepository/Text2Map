@@ -41,6 +41,8 @@
 
    npm install socket.io-client
 
+   npm install remark-gfm
+
    npm install react-map-gl
 
    npm install @radix-ui/react-slot

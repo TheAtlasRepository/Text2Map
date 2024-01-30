@@ -17,8 +17,19 @@ def geocode(address):
     response = requests.get("https://api.mapbox.com/search/geocode/v6/forward?q="+address+"&access_token=pk.eyJ1IjoiZWlyaWtzYiIsImEiOiJjbHJjMTlqd28wbnF5MmtzMHpnbHZ5Nmx6In0.CGZFHEdOICWywo5B5Kzl9g")
     return response.json()
 
+@router.post("/resetchat", response_model=dict)
+def postResetChat(message: str):
+    global chat_history
+    chat_history = [{"role": "user", "content": message}]
+    # Run postSendChat to get the first response from the assistant
+    response = postSendChat(message)
+    
+    # Return the chat history but without the first message
+    return {"entities": response["entities"], "chat_history": response["chat_history"][1:]}
+
 @router.post("/sendchat", response_model=dict)
 def postSendChat(message):
+    print("Sending message: " + message)
     messages = chat_history.copy()  # Include chat history in messages
     
     messages.append({"role": "user", "content": message})
@@ -34,6 +45,8 @@ def postSendChat(message):
     )
     
     content = response.choices[0].message.content
+    
+    print("Received response: " + content)
     
     chat_history.append({"role": "user", "content": message})  # Add current message to chat history
     chat_history.append({"role": "assistant", "content": content})  # Add assistant's response to chat history

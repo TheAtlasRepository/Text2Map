@@ -4,6 +4,8 @@ import { Button, } from "@/components/ui/button";
 import { Input } from "@/components/ui/input"
 import { useState, useEffect, useRef } from "react";
 import { ScrollArea } from "../ui/scroll-area";
+import Markdown from "../ui/markdown";
+import ReactMarkdown from "react-markdown";
 
 export default function AskingView({ onEditSave, editedText }: { onEditSave: (text: string) => void, editedText: string }) {
 
@@ -35,7 +37,7 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
   
       if (editedText !== prevEditedTextRef.current) {
         // Fetch JSON data from your backend API
-        fetch('http://127.0.0.1:8000/sendchat?message=' + editedText, {
+        fetch('http://127.0.0.1:8000/sendchat?message='+ 'You are a helpful GIS expert and History major. You will answer the given prompts in a short (500 words max) but informative way. Format as if its in JSX Markdown. Here is what you will answer: ' + editedText, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -73,26 +75,26 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
     };
   
     const handleSaveText = () => {
-      console.log('handleSaveText called. editedText:', editedText);
-      setLoading(true);
-      fetch('http://127.0.0.1:8000/sendchat?message=' + editedText, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ editedText: editedText }),
-      })
+      if (localEditedText !== prevEditedTextRef.current) {
+        setEditingText(false);
+        setLoading(true);
+        // First, reset the chat history
+        fetch('http://127.0.0.1:8000/resetchat?message='+ 'You are a helpful GIS expert and History major. You will answer the given prompts in a short (500 words max) but informative way. Format as if its in JSX Markdown. Here is what you will answer: ' + localEditedText, {
+          method: 'POST',
+        })
         .then(response => response.json())
         .then(data => {
-          // only set the data to whats inside the GPT part of the json
           console.log('JSON data from the backend:', data);
           setJsonData(data);
+          setLoading(false);
+          setLocalEditedText(localEditedText);
         })
         .catch(error => {
           console.error('Error fetching JSON data:', error);
-          setLocalEditedText(editedText);
+          setLocalEditedText(localEditedText);
           setLoading(false);
         });
+      }
     };
 
     // Send the edited text to the backend
@@ -128,32 +130,28 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
 
     const renderJsonData = () => {
       if (jsonData) {
-        const gptContent = jsonData.GPT ? (
-          <div key="gpt">
-            <strong>GPT:</strong> {jsonData.GPT}
-          </div>
-        ) : null;
+        const gptContent = jsonData.GPT ? `**GPT:** ${jsonData.GPT}\n\n` : '';
+        const chatHistory = jsonData.chat_history;
     
-        const chatHistoryContent = jsonData.chat_history && jsonData.chat_history.length > 0 ? (
-          <div key="chat_history">
-            {renderArray(jsonData.chat_history)}
-          </div>
-        ) : null;
+        if (Array.isArray(chatHistory) && chatHistory.length > 0) {
+          const initialContent = chatHistory[0].content || '';
+          const formattedContent = chatHistory.slice(1).map((item, index) => {
+            const role = item.role === 'user' ? 'User' : 'Assistant';
+            const content = typeof item.content === 'object' ? item.content.content : item.content;
+            return `**${role}:** ${content}\n\n`;
+          }).join('');
     
-        return [gptContent, chatHistoryContent];
+          const markdownContent = `${gptContent} ${initialContent}\n\n${formattedContent}`;
+          const formattedMarkdownContent = markdownContent.replaceAll('\n\n\n', '\n\n');
+    
+          // Remove '#' character
+          const contentWithoutHash = formattedMarkdownContent.replace(/#/g, '');
+    
+          return contentWithoutHash; // Return the string content directly
+        }
       }
     
-      return null;
-    };
-    
-    const renderArray = (array: any[]) => {
-      return array.map((item, index) => (
-        <div key={index}>
-          <strong>{item.role === 'user' && 'User: '}</strong>
-          <strong>{item.role === 'assistant' && 'Assistant: '}</strong>
-          {typeof item.content === 'object' ? item.content.content : item.content}
-        </div>
-      ));
+      return '';
     };
 
     return (
@@ -200,11 +198,11 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
           )}
           <ScrollArea>
             {loading ? (
-              <div>Thinking...</div>
+              <div className="justify-center">Thinking...</div>
             ) : (
-              <>
+              <ReactMarkdown>
                 {renderJsonData()}
-              </>
+              </ReactMarkdown>
             )}
           </ScrollArea>
           <div className="flex justify-center space-x-2 mt-auto">
