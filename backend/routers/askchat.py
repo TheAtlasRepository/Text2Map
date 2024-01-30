@@ -24,7 +24,7 @@ def postSendChat(message):
     messages.append({"role": "user", "content": message})
     
     response = client.chat.completions.create(
-        model="gpt-4-1106-preview",
+        model="gpt-4-turbo-preview",
         messages=messages,
         temperature=1,
         max_tokens=1000,
