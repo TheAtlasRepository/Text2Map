@@ -97,19 +97,6 @@ export default function StartDataSource() {
           <div className="px-4" >💡 Try an existing text ➡</div>
         </Button>
       </div>
-
-
-      <div className="mt-10 hidden">
-        <Button variant="default"> default </Button>
-        <Button variant="destructive"> destructive </Button>
-        <Button variant="outline"> outline </Button>
-        <Button variant="secondary"> secondary </Button>
-        <Button variant="toggle"> toggle </Button>
-        <Button variant="ghost"> ghost </Button>
-        <Button variant="link"> link </Button>
-        <Button variant="blue"> blue </Button>
-        <Button variant="fancy_blue"> fancy_blue </Button>
-      </div>
     </div>
   );
 }  
