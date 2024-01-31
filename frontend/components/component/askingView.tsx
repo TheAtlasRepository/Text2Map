@@ -1,4 +1,4 @@
-import Map, { NavigationControl, GeolocateControl } from "react-map-gl";
+import Map, { Marker, NavigationControl, GeolocateControl, LngLat } from "react-map-gl";
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Button, } from "@/components/ui/button";
 import { Input } from "@/components/ui/input"
@@ -9,13 +9,19 @@ import ReactMarkdown from "react-markdown";
 
 export default function AskingView({ onEditSave, editedText }: { onEditSave: (text: string) => void, editedText: string }) {
 
+    type Coordinate = {
+      latitude: number;
+      longitude: number;
+      type: string;
+    };
+
     const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
     const [editingText, setEditingText] = useState(false);  
     const [localEditedText, setLocalEditedText] = useState('');
     const [jsonData, setJsonData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [inputText, setInputText] = useState('');
-    const [entities, setEntities] = useState<any>({});
+    const [markers, setMarkers] = useState<{ latitude: number; longitude: number; type: string }[]>([]);
     const [centerCoordinates, setCenterCoordinates] = useState<[number, number] | null>(null);
     const [initialViewState, setInitialViewState] = useState<any>({
       latitude: 35.668641,
@@ -25,6 +31,16 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
 
     const isInitialRender = useRef(true);
     const prevEditedTextRef = useRef<string | undefined>();
+
+    useEffect(() => {
+      if (centerCoordinates) {
+        setInitialViewState({
+          latitude: centerCoordinates[1],
+          longitude: centerCoordinates[0],
+          zoom: 10,  // Adjust the zoom level as needed
+        });
+      }
+    }, [centerCoordinates]);
 
     useEffect(() => {
       if (isInitialRender.current) {
@@ -47,15 +63,43 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
           .then(response => response.json())
           .then(data => {
             console.log('JSON data from the backend:', data);
+
+            // Extract entities and filter out unnecessary strings
+            const filteredEntities = data.entities
+              .map((entry:any) => entry.filter((item:any) => Array.isArray(item) && item.length === 2))
+              .flat();
+
+            console.log('Filtered Entities:', filteredEntities);
+
+            const coordinates: Coordinate[] = extractCoordinates(filteredEntities);
+            console.log('Extracted Coordinates:', coordinates);
+            
+            // place the markers on the map
+            const coordinatesArray = coordinates.map((coordinate) => [coordinate.longitude, coordinate.latitude]);
+            console.log('Coordinates Array:', coordinatesArray);
+
+            // Calculate the center coordinates
+            const centerCoordinates = coordinatesArray.reduce(
+              (accumulator, currentValue) => {
+                return [
+                  accumulator[0] + currentValue[0],
+                  accumulator[1] + currentValue[1],
+                ];
+              },
+              [0, 0]
+            );
+            console.log('Center Coordinates:', centerCoordinates);
+
             setJsonData(data);
+            setMarkers(coordinates as { latitude: number; longitude: number; type: string }[]);
             setLoading(false);
             setLocalEditedText(editedText);
           })
-          .catch(error => {
-            console.error('Error fetching JSON data:', error);
-            setLocalEditedText(editedText);
-            setLoading(false);
-          });
+        .catch(error => {
+          console.error('Error fetching JSON data:', error);
+          setLocalEditedText(editedText);
+          setLoading(false);
+        });
       }
     }, [editedText]);
 
@@ -85,9 +129,36 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
         .then(response => response.json())
         .then(data => {
           console.log('JSON data from the backend:', data);
+          // Extract entities and filter out unnecessary strings
+          const filteredEntities = data.entities
+          .map((entry:any) => entry.filter((item:any) => Array.isArray(item) && item.length === 2))
+          .flat();
+
+          console.log('Filtered Entities:', filteredEntities);
+
+          const coordinates: Coordinate[] = extractCoordinates(filteredEntities);
+          console.log('Extracted Coordinates:', coordinates);
+          
+          // place the markers on the map
+          const coordinatesArray = coordinates.map((coordinate) => [coordinate.longitude, coordinate.latitude]);
+          console.log('Coordinates Array:', coordinatesArray);
+
+          // Calculate the center coordinates
+          const centerCoordinates = coordinatesArray.reduce(
+            (accumulator, currentValue) => {
+              return [
+                accumulator[0] + currentValue[0],
+                accumulator[1] + currentValue[1],
+              ];
+            },
+            [0, 0]
+          );
+          console.log('Center Coordinates:', centerCoordinates);
+
           setJsonData(data);
+          setMarkers(coordinates as { latitude: number; longitude: number; type: string }[]);
           setLoading(false);
-          setLocalEditedText(localEditedText);
+          setLocalEditedText(editedText);
         })
         .catch(error => {
           console.error('Error fetching JSON data:', error);
@@ -113,7 +184,35 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
           .then(response => response.json())
           .then(data => {
             console.log('Updated JSON data from the backend:', data);
+
+            // Extract entities and filter out unnecessary strings
+            const filteredEntities = data.entities
+            .map((entry:any) => entry.filter((item:any) => Array.isArray(item) && item.length === 2))
+            .flat();
+
+            console.log('Filtered Entities:', filteredEntities);
+
+            const coordinates: Coordinate[] = extractCoordinates(filteredEntities);
+            console.log('Extracted Coordinates:', coordinates);
+            
+            // place the markers on the map
+            const coordinatesArray = coordinates.map((coordinate) => [coordinate.longitude, coordinate.latitude]);
+            console.log('Coordinates Array:', coordinatesArray);
+
+            // Calculate the center coordinates
+            const centerCoordinates = coordinatesArray.reduce(
+              (accumulator, currentValue) => {
+                return [
+                  accumulator[0] + currentValue[0],
+                  accumulator[1] + currentValue[1],
+                ];
+              },
+              [0, 0]
+            );
+            console.log('Center Coordinates:', centerCoordinates);
+
             setJsonData(data);
+            setMarkers(coordinates as { latitude: number; longitude: number; type: string }[]);
             // set the input text to empty
             setInputText('');
             setLoading(false);
@@ -127,6 +226,27 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
         console.log('Input text is empty. Not sending the request.');
       }
     };
+
+    const extractCoordinates = (filteredEntities: [string, any][]): Coordinate[] => {
+      const coordinates: Coordinate[] = [];
+      let currentEntity: Coordinate | null = null;
+    
+      filteredEntities.forEach(([type, value]: [string, any]) => {
+        if (type.startsWith('Found entities:')) {
+          // If it's a new entity, create a new object to store its information
+          currentEntity = { type: value, latitude: 0, longitude: 0 };
+          coordinates.push(currentEntity);
+        } else if (type === 'Latitude:') {
+          // If it's latitude, assign the value to the current entity
+          if (currentEntity) currentEntity.latitude = parseFloat(value);
+        } else if (type === 'Longitude:') {
+          // If it's longitude, assign the value to the current entity
+          if (currentEntity) currentEntity.longitude = parseFloat(value);
+        }
+      });
+    
+      return coordinates;
+    };    
 
     const renderJsonData = () => {
       if (jsonData) {
@@ -228,6 +348,17 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
             >
               <GeolocateControl position="bottom-right" />
               <NavigationControl position="bottom-right" />
+
+              {/* Render markers */}
+              {markers.map((marker, index) => (
+                <Marker
+                  key={index}
+                  latitude={marker.latitude}
+                  longitude={marker.longitude}
+                >
+                  <div className="marker">{marker.type}</div>
+                </Marker>
+              ))}
             </Map>
             </div>
           </main>

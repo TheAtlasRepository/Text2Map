@@ -15,7 +15,26 @@ def geocode(address):
     """Geocode an address string to lat/long and bounding box"""
     
     response = requests.get("https://api.mapbox.com/search/geocode/v6/forward?q="+address+"&access_token=pk.eyJ1IjoiZWlyaWtzYiIsImEiOiJjbHJjMTlqd28wbnF5MmtzMHpnbHZ5Nmx6In0.CGZFHEdOICWywo5B5Kzl9g")
-    return response.json()
+    
+    json_data = response.json()
+
+    
+    try:
+        # Access the features array
+        features = json_data.get('features', [])
+
+        if features:
+            # Extract latitude and longitude from the first feature
+            coordinates = features[0]['geometry']['coordinates']
+            latitude, longitude = coordinates[1], coordinates[0]
+
+            return {"latitude": latitude, "longitude": longitude}
+        else:
+            print("No features found in the response.")
+            return {"error": "No features in the response"}
+    
+    except:
+        return {"latitude": None, "longitude": None, "bbox": None}
 
 @router.post("/resetchat", response_model=dict)
 def postResetChat(message: str):
@@ -64,7 +83,7 @@ def postSendChat(message):
             entity = ent.label_ + ": " + ent.text
             if entity not in entities:
                 geocode_data = geocode(ent.text)
-                entities.append((("Found entities:", entity),("GeoData:", geocode_data)))
+                entities.append((("Found entities:", entity), ("Latitude:", geocode_data["latitude"]), ("Longitude:", geocode_data["longitude"])))
            
     
     return {"entities": entities, "chat_history": chat_history[1:]}
