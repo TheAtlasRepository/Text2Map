@@ -78,7 +78,7 @@ def postSendChat(message):
     
     for ent in doc.ents:
         # Should also check if the label and text are already in the list and in the right order. And dont repeat the same entity
-        if ent.label_ == "GPE" or ent.label_ == "LOC" or ent.label_ == "FAC":
+        if ent.label_ == "GPE":
             # Check if the entity is already in the list
             entity = ent.label_ + ": " + ent.text
             if entity not in entities:

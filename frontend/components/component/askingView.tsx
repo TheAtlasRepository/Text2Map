@@ -2,9 +2,8 @@ import Map, { Marker, NavigationControl, GeolocateControl, LngLat } from "react-
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Button, } from "@/components/ui/button";
 import { Input } from "@/components/ui/input"
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, ReactNode } from "react";
 import { ScrollArea } from "../ui/scroll-area";
-import Markdown from "../ui/markdown";
 import ReactMarkdown from "react-markdown";
 
 export default function AskingView({ onEditSave, editedText }: { onEditSave: (text: string) => void, editedText: string }) {
@@ -53,7 +52,7 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
   
       if (editedText !== prevEditedTextRef.current) {
         // Fetch JSON data from your backend API
-        fetch('http://127.0.0.1:8000/sendchat?message='+ 'You are a helpful GIS expert and History major. You will answer the given prompts in a short (500 words max) but informative way. Format as if its in JSX Markdown. Here is what you will answer: ' + editedText, {
+        fetch('http://127.0.0.1:8000/sendchat?message='+ 'You are a helpful GIS expert and History major. You will answer the given prompts in a short (500 words max) but informative way. Format your response to be easy to read. Here is what you will answer: ' + editedText, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -123,7 +122,7 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
         setEditingText(false);
         setLoading(true);
         // First, reset the chat history
-        fetch('http://127.0.0.1:8000/resetchat?message='+ 'You are a helpful GIS expert and History major. You will answer the given prompts in a short (500 words max) but informative way. Format as if its in JSX Markdown. Here is what you will answer: ' + localEditedText, {
+        fetch('http://127.0.0.1:8000/resetchat?message='+ 'You are a helpful GIS expert and History major. You will answer the given prompts in a short (500 words max) but informative way. Format your response to be easy to read. Here is what you will answer: ' + localEditedText, {
           method: 'POST',
         })
         .then(response => response.json())
@@ -248,29 +247,27 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
       return coordinates;
     };    
 
-    const renderJsonData = () => {
+    const renderJsonData = (): string => {
       if (jsonData) {
-        const gptContent = jsonData.GPT ? `**GPT:** ${jsonData.GPT}\n\n` : '';
+        const gptContent = jsonData.GPT ? `<p><strong>GPT:</strong> ${jsonData.GPT}</p>` : '';
         const chatHistory = jsonData.chat_history;
-    
+
         if (Array.isArray(chatHistory) && chatHistory.length > 0) {
           const initialContent = chatHistory[0].content || '';
           const formattedContent = chatHistory.slice(1).map((item, index) => {
             const role = item.role === 'user' ? 'User' : 'Assistant';
             const content = typeof item.content === 'object' ? item.content.content : item.content;
-            return `**${role}:** ${content}\n\n`;
+            return `<p><strong>${role}:</strong> ${content}</p>`;
           }).join('');
-    
-          const markdownContent = `${gptContent} ${initialContent}\n\n${formattedContent}`;
-          const formattedMarkdownContent = markdownContent.replaceAll('\n\n\n', '\n\n');
-    
-          // Remove '#' character
-          const contentWithoutHash = formattedMarkdownContent.replace(/#/g, '');
-    
-          return contentWithoutHash; // Return the string content directly
+
+          // Combine all the HTML content
+          const htmlContent = `${gptContent} ${initialContent}${formattedContent}`;
+
+          // Use dangerouslySetInnerHTML to directly render HTML content
+          return htmlContent;
         }
       }
-    
+
       return '';
     };
 
@@ -320,9 +317,7 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
             {loading ? (
               <div className="justify-center">Thinking...</div>
             ) : (
-              <ReactMarkdown>
-                {renderJsonData()}
-              </ReactMarkdown>
+              <ReactMarkdown className="prose" children={renderJsonData()} /> // Use ReactMarkdown to
             )}
           </ScrollArea>
           <div className="flex justify-center space-x-2 mt-auto">
@@ -356,7 +351,9 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
                   latitude={marker.latitude}
                   longitude={marker.longitude}
                 >
-                  <div className="marker">{marker.type}</div>
+                  <div className="custom-marker">
+                    <span>{marker.type}</span>
+                  </div>
                 </Marker>
               ))}
             </Map>
