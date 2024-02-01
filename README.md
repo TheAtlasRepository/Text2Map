@@ -55,6 +55,8 @@
 
    pip install spacy
 
+   pip install pexels-api 
+
    python -m spacy download en_core_web_lg 560MB // python -m spacy download en_core_web_sm 12MB
 
    uvicorn main:app --reload
