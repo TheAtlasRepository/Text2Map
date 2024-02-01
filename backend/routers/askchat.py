@@ -80,7 +80,7 @@ def postSendChat(message):
         # Should also check if the label and text are already in the list and in the right order. And dont repeat the same entity
         if ent.label_ == "GPE":
             # Check if the entity is already in the list
-            entity = ent.label_ + ": " + ent.text
+            entity =  ent.text
             if entity not in entities:
                 geocode_data = geocode(ent.text)
                 entities.append((("Found entities:", entity), ("Latitude:", geocode_data["latitude"]), ("Longitude:", geocode_data["longitude"])))
