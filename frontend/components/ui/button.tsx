@@ -5,7 +5,9 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 dark:ring-offset-gray-950 dark:focus-visible:ring-gray-300",
+  // "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 dark:ring-offset-gray-950 dark:focus-visible:ring-gray-300",
+  "rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 dark:ring-offset-gray-950 dark:focus-visible:ring-gray-300",
+  
   {
     variants: {
       variant: {
@@ -20,9 +22,12 @@ const buttonVariants = cva(
         ghost: "hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-gray-50",
         link: "text-gray-900 underline-offset-4 hover:underline dark:text-gray-50",
         blue: "bg-blue-500 text-white hover:bg-blue-500/80",
+        
+        fancy_blue: "bg-white text-blue-500 border border-blue-500 shadow-sm hover:shadow-md shadow-blue-500 hover:shadow-blue-600 transition-shadow",
+        fancy_blue_select: "bg-white text-gray-500 hover:text-blue-500 border border-gray-500 hover:border-blue-500 shadow-sm hover:shadow-md shadow-gray-500 hover:shadow-blue-600 transition-shadow",
       },
       size: {
-        default: "h-10 px-4 py-2",
+        default: "px-4 py-2",
         sm: "h-9 rounded-md px-3",
         lg: "h-11 rounded-md px-8",
         icon: "h-10 w-10",
