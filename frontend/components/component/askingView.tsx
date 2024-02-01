@@ -372,6 +372,7 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
                         onClose={() => setSelectedMarkerIndex(null)}
                         className="custom-popup"
                         anchor="bottom"
+                        offset={[0, -30] as [number, number]}
                       >
                           <InfoPanel title={marker.type} />
                     </Popup>

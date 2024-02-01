@@ -63,5 +63,5 @@ body {
 }
 
 .custom-popup .mapboxgl-popup-tip {
-  border-top-color: #1F2937 !important;
+  display: none;
 }
