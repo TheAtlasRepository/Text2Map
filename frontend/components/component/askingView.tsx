@@ -161,7 +161,7 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
           setJsonData(data);
           setMarkers(coordinates as { latitude: number; longitude: number; type: string }[]);
           setLoading(false);
-          setLocalEditedText(editedText);
+          setLocalEditedText(localEditedText);
         })
         .catch(error => {
           console.error('Error fetching JSON data:', error);

@@ -6,12 +6,17 @@ export default function InfoPanel(props: any) {
 
     useEffect(() => {
       // Fetch data from API
-      fetch('http://127.0.0.1:8000/imagesearch?query=' + props.title)
+      try {
+        fetch('http://127.0.0.1:8000/imagesearch?query=' + props.title)
         .then(response => response.json())
         .then(data => {
           // Update the image link state variable
           setImageLink(data.url);
         });
+      } catch (error) {
+        console.log(error);
+      }
+      
     }, []);
 
   return (
