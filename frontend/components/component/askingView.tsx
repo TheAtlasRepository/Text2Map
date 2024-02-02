@@ -1,11 +1,14 @@
 import Map, { Marker, NavigationControl, GeolocateControl, Popup} from "react-map-gl";
 import 'mapbox-gl/dist/mapbox-gl.css';
+import type { MapRef } from "react-map-gl";
 import { Button, } from "@/components/ui/button";
 import { Input } from "@/components/ui/input"
 import { useState, useEffect, useRef, ReactNode } from "react";
 import { ScrollArea } from "../ui/scroll-area";
 import ReactMarkdown from "react-markdown";
 import InfoPanel from "./info-panel";
+import { Allotment } from "allotment";
+import "allotment/dist/style.css";
 
 export default function AskingView({ onEditSave, editedText }: { onEditSave: (text: string) => void, editedText: string }) {
 
@@ -15,7 +18,7 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
       type: string;
     };
 
-    const mapRef = useRef(null);
+    const mapRef = useRef<MapRef>(null);
     const [selectedMarkerPixelCoordinates, setSelectedMarkerPixelCoordinates] = useState<{ top: number; left: number } | null>(null);
     const [selectedMarkerIndex, setSelectedMarkerIndex] = useState<number | null>(null);
     const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
@@ -288,16 +291,16 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
             <Button variant="secondary">Save map</Button>
           </div>
         </header>
-        <div className="flex">
-        <aside className="w-1/3 p-4 space-y-4 border-r flex flex-col" style={{ flex: '0 0 auto', height: 'calc(100vh - 73px)' }}>
+        <div className="h-screen">
+        <Allotment onDragEnd={() => mapRef.current?.resize()}>
+          <Allotment.Pane minSize={200} preferredSize={"25%"}>
             <div className="flex items-center justify-between w-full">
             {editingText ? (
             <input
             type="text"
             value={localEditedText}
             onChange={(e) => setLocalEditedText(e.target.value)}
-            className="border border-gray-300 p-2 rounded text-lg font-semibold w-full"
-          />
+            className="border border-gray-300 p-2 rounded text-lg font-semibold w-full"/>
           ) : (
               <h1 className="p-2 rounded text-2xl font-semibold">{localEditedText}</h1>
           )}
@@ -335,8 +338,8 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
               Send
             </Button>
           </div>
-          </aside>
-          <main className="flex-auto relative w-2/3">
+          </Allotment.Pane>
+          <Allotment.Pane minSize={200}>
             <div style={{ height: 'calc(100vh - 73px)' }}>
             <Map
               mapboxAccessToken={mapboxToken}
@@ -382,7 +385,8 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
               ))}
             </Map>
             </div>
-          </main>
+          </Allotment.Pane>
+        </Allotment>
         </div>
       </div>
     )
