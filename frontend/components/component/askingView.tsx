@@ -1,21 +1,49 @@
-import Map, { NavigationControl, GeolocateControl } from "react-map-gl";
+import Map, { Marker, NavigationControl, GeolocateControl, Popup} from "react-map-gl";
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Button, } from "@/components/ui/button";
 import { Input } from "@/components/ui/input"
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, ReactNode } from "react";
 import { ScrollArea } from "../ui/scroll-area";
+import ReactMarkdown from "react-markdown";
+import InfoPanel from "./info-panel";
 
 export default function AskingView({ onEditSave, editedText }: { onEditSave: (text: string) => void, editedText: string }) {
 
+    type Coordinate = {
+      latitude: number;
+      longitude: number;
+      type: string;
+    };
+
+    const mapRef = useRef(null);
+    const [selectedMarkerPixelCoordinates, setSelectedMarkerPixelCoordinates] = useState<{ top: number; left: number } | null>(null);
+    const [selectedMarkerIndex, setSelectedMarkerIndex] = useState<number | null>(null);
     const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
     const [editingText, setEditingText] = useState(false);  
     const [localEditedText, setLocalEditedText] = useState('');
     const [jsonData, setJsonData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [inputText, setInputText] = useState('');
+    const [markers, setMarkers] = useState<{ latitude: number; longitude: number; type: string }[]>([]);
+    const [centerCoordinates, setCenterCoordinates] = useState<[number, number] | null>(null);
+    const [initialViewState, setInitialViewState] = useState<any>({
+      latitude: 35.668641,
+      longitude: 139.750567,
+      zoom: 1,
+    });
 
     const isInitialRender = useRef(true);
     const prevEditedTextRef = useRef<string | undefined>();
+
+    useEffect(() => {
+      if (centerCoordinates) {
+        setInitialViewState({
+          latitude: centerCoordinates[1],
+          longitude: centerCoordinates[0],
+          zoom: 10,  // Adjust the zoom level as needed
+        });
+      }
+    }, [centerCoordinates]);
 
     useEffect(() => {
       if (isInitialRender.current) {
@@ -28,7 +56,7 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
   
       if (editedText !== prevEditedTextRef.current) {
         // Fetch JSON data from your backend API
-        fetch('http://127.0.0.1:8000/askchat?question=' + editedText, {
+        fetch('http://127.0.0.1:8000/sendchat?message='+ 'You are a helpful GIS expert and History major. You will answer the given prompts in a short (500 words max) but informative way. Format your response to be easy to read. Here is what you will answer: ' + editedText, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -38,44 +66,109 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
           .then(response => response.json())
           .then(data => {
             console.log('JSON data from the backend:', data);
+
+            // Extract entities and filter out unnecessary strings
+            const filteredEntities = data.entities
+              .map((entry:any) => entry.filter((item:any) => Array.isArray(item) && item.length === 2))
+              .flat();
+
+            console.log('Filtered Entities:', filteredEntities);
+
+            const coordinates: Coordinate[] = extractCoordinates(filteredEntities);
+            console.log('Extracted Coordinates:', coordinates);
+            
+            // place the markers on the map
+            const coordinatesArray = coordinates.map((coordinate) => [coordinate.longitude, coordinate.latitude]);
+            console.log('Coordinates Array:', coordinatesArray);
+
+            // Calculate the center coordinates
+            const centerCoordinates = coordinatesArray.reduce(
+              (accumulator, currentValue) => {
+                return [
+                  accumulator[0] + currentValue[0],
+                  accumulator[1] + currentValue[1],
+                ];
+              },
+              [0, 0]
+            );
+            console.log('Center Coordinates:', centerCoordinates);
+
             setJsonData(data);
+            setMarkers(coordinates as { latitude: number; longitude: number; type: string }[]);
             setLoading(false);
             setLocalEditedText(editedText);
           })
-          .catch(error => {
-            console.error('Error fetching JSON data:', error);
-            setLocalEditedText(editedText);
-            setLoading(false);
-          });
-      }
-    }, [editedText]);
-  
-    const handleEditClick = () => {
-      setEditingText(true);
-    };
-  
-    const handleSaveText = () => {
-      console.log('handleSaveText called. editedText:', editedText);
-      setLoading(true);
-      fetch('http://127.0.0.1:8000/askchat?question=' + editedText, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ editedText: editedText }),
-      })
-        .then(response => response.json())
-        .then(data => {
-          console.log('JSON data from the backend:', data);
-          setJsonData(data);
-          setLoading(false);
-          setLocalEditedText(editedText);
-        })
         .catch(error => {
           console.error('Error fetching JSON data:', error);
           setLocalEditedText(editedText);
           setLoading(false);
         });
+      }
+    }, [editedText]);
+
+    useEffect(() => {
+      // Update the initial view state when centerCoordinates change
+      if (centerCoordinates) {
+        setInitialViewState({
+          latitude: centerCoordinates[1],
+          longitude: centerCoordinates[0],
+          zoom: 1,
+        });
+      }
+    }, [centerCoordinates]);
+
+    const handleEditClick = () => {
+      setEditingText(true);
+    };
+  
+    const handleSaveText = () => {
+      if (localEditedText !== prevEditedTextRef.current) {
+        setEditingText(false);
+        setLoading(true);
+        // First, reset the chat history
+        fetch('http://127.0.0.1:8000/resetchat?message='+ 'You are a helpful GIS expert and History major. You will answer the given prompts in a short (500 words max) but informative way. Format your response to be easy to read. Here is what you will answer: ' + localEditedText, {
+          method: 'POST',
+        })
+        .then(response => response.json())
+        .then(data => {
+          console.log('JSON data from the backend:', data);
+          // Extract entities and filter out unnecessary strings
+          const filteredEntities = data.entities
+          .map((entry:any) => entry.filter((item:any) => Array.isArray(item) && item.length === 2))
+          .flat();
+
+          console.log('Filtered Entities:', filteredEntities);
+
+          const coordinates: Coordinate[] = extractCoordinates(filteredEntities);
+          console.log('Extracted Coordinates:', coordinates);
+          
+          // place the markers on the map
+          const coordinatesArray = coordinates.map((coordinate) => [coordinate.longitude, coordinate.latitude]);
+          console.log('Coordinates Array:', coordinatesArray);
+
+          // Calculate the center coordinates
+          const centerCoordinates = coordinatesArray.reduce(
+            (accumulator, currentValue) => {
+              return [
+                accumulator[0] + currentValue[0],
+                accumulator[1] + currentValue[1],
+              ];
+            },
+            [0, 0]
+          );
+          console.log('Center Coordinates:', centerCoordinates);
+
+          setJsonData(data);
+          setMarkers(coordinates as { latitude: number; longitude: number; type: string }[]);
+          setLoading(false);
+          setLocalEditedText(localEditedText);
+        })
+        .catch(error => {
+          console.error('Error fetching JSON data:', error);
+          setLocalEditedText(localEditedText);
+          setLoading(false);
+        });
+      }
     };
 
     // Send the edited text to the backend
@@ -93,15 +186,38 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
         })
           .then(response => response.json())
           .then(data => {
-            console.log('JSON data from the backend after sending text:', data);
-
-            // Fetch chat history after sending the message
-            return fetch('http://127.0.0.1:8000/getJsonData')
-          })
-          .then(response => response.json())
-          .then(data => {
             console.log('Updated JSON data from the backend:', data);
+
+            // Extract entities and filter out unnecessary strings
+            const filteredEntities = data.entities
+            .map((entry:any) => entry.filter((item:any) => Array.isArray(item) && item.length === 2))
+            .flat();
+
+            console.log('Filtered Entities:', filteredEntities);
+
+            const coordinates: Coordinate[] = extractCoordinates(filteredEntities);
+            console.log('Extracted Coordinates:', coordinates);
+            
+            // place the markers on the map
+            const coordinatesArray = coordinates.map((coordinate) => [coordinate.longitude, coordinate.latitude]);
+            console.log('Coordinates Array:', coordinatesArray);
+
+            // Calculate the center coordinates
+            const centerCoordinates = coordinatesArray.reduce(
+              (accumulator, currentValue) => {
+                return [
+                  accumulator[0] + currentValue[0],
+                  accumulator[1] + currentValue[1],
+                ];
+              },
+              [0, 0]
+            );
+            console.log('Center Coordinates:', centerCoordinates);
+
             setJsonData(data);
+            setMarkers(coordinates as { latitude: number; longitude: number; type: string }[]);
+            // set the input text to empty
+            setInputText('');
             setLoading(false);
           })
           .catch(error => {
@@ -114,26 +230,49 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
       }
     };
 
+    const extractCoordinates = (filteredEntities: [string, any][]): Coordinate[] => {
+      const coordinates: Coordinate[] = [];
+      let currentEntity: Coordinate | null = null;
+    
+      filteredEntities.forEach(([type, value]: [string, any]) => {
+        if (type.startsWith('Found entities:')) {
+          // If it's a new entity, create a new object to store its information
+          currentEntity = { type: value, latitude: 0, longitude: 0 };
+          coordinates.push(currentEntity);
+        } else if (type === 'Latitude:') {
+          // If it's latitude, assign the value to the current entity
+          if (currentEntity) currentEntity.latitude = parseFloat(value);
+        } else if (type === 'Longitude:') {
+          // If it's longitude, assign the value to the current entity
+          if (currentEntity) currentEntity.longitude = parseFloat(value);
+        }
+      });
+    
+      return coordinates;
+    };    
 
-    const renderJsonData = () => {
+    const renderJsonData = (): string => {
       if (jsonData) {
-        const formattedData = Object.entries(jsonData).map(([key, value], index) => (
-          <div key={index}>
-            <strong>{key}:</strong> {Array.isArray(value) ? renderArray(value) : value as React.ReactNode}
-          </div>
-        ));
-        return formattedData;
+        const gptContent = jsonData.GPT ? `<p><strong>GPT:</strong> ${jsonData.GPT}</p>` : '';
+        const chatHistory = jsonData.chat_history;
+
+        if (Array.isArray(chatHistory) && chatHistory.length > 0) {
+          const initialContent = chatHistory[0].content || '';
+          const formattedContent = chatHistory.slice(1).map((item, index) => {
+            const role = item.role === 'user' ? 'User' : 'Assistant';
+            const content = typeof item.content === 'object' ? item.content.content : item.content;
+            return `<p><strong>${role}:</strong> ${content}</p>`;
+          }).join('');
+
+          // Combine all the HTML content
+          const htmlContent = `${gptContent} ${initialContent}${formattedContent}`;
+
+          // Use dangerouslySetInnerHTML to directly render HTML content
+          return htmlContent;
+        }
       }
-      return null;
-    };
-  
-    const renderArray = (array: any[]) => {
-      return array.map((item, index) => (
-        <div key={index} className={`ml-4 text-${item.role === 'user' ? 'blue' : 'green'}-600`}>
-          {item.role === 'user' ? 'User: ' : 'Assistant: '}
-          {item.content}
-        </div>
-      ));
+
+      return '';
     };
 
     return (
@@ -180,11 +319,9 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
           )}
           <ScrollArea>
             {loading ? (
-              <div>Thinking...</div>
+              <div className="justify-center">Thinking...</div>
             ) : (
-              <>
-                {renderJsonData()}
-              </>
+              <ReactMarkdown className="prose" children={renderJsonData()} /> // Use ReactMarkdown to
             )}
           </ScrollArea>
           <div className="flex justify-center space-x-2 mt-auto">
@@ -201,16 +338,49 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
           </aside>
           <main className="flex-auto relative w-2/3">
             <div style={{ height: 'calc(100vh - 73px)' }}>
-              <Map
-                mapboxAccessToken={mapboxToken}
-                mapStyle="mapbox://styles/mapbox/standard"
-                initialViewState={{ latitude: 35.668641, longitude: 139.750567, zoom: 10 }}
-                maxZoom={20}
-                minZoom={3}
-              >
-                <GeolocateControl position="bottom-right" />
-                <NavigationControl position="bottom-right" />
-              </Map>
+            <Map
+              mapboxAccessToken={mapboxToken}
+              mapStyle="mapbox://styles/mapbox/standard"
+              initialViewState={initialViewState}
+              maxZoom={20}
+              minZoom={3}
+              ref={mapRef}
+            >
+              <GeolocateControl position="bottom-right" />
+              <NavigationControl position="bottom-right" />
+
+              {/* Render markers */}
+              {markers.map((marker, index) => (
+                <Marker
+                  key={index}
+                  latitude={marker.latitude}
+                  longitude={marker.longitude}
+                >
+                  <div
+                    className={`custom-marker custom-marker-${index}`}
+                    onClick={() => {
+                      setSelectedMarkerIndex((prevIndex) => (prevIndex === index ? null : index));
+                    }}
+                  >
+                    <span>{marker.type}</span>
+                    {selectedMarkerIndex === index && (
+                      <Popup
+                        latitude={marker.latitude}
+                        longitude={marker.longitude}
+                        closeButton={false}
+                        closeOnClick={false}
+                        onClose={() => setSelectedMarkerIndex(null)}
+                        className="custom-popup"
+                        anchor="bottom"
+                        offset={[0, -30] as [number, number]}
+                      >
+                          <InfoPanel title={marker.type} />
+                    </Popup>
+                    )}
+                  </div>
+                </Marker>
+              ))}
+            </Map>
             </div>
           </main>
         </div>

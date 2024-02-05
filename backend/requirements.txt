@@ -1,0 +1,10 @@
+###### Requirements without Version Specifiers ######
+fastapi
+mapbox
+Geocoder
+openai
+spacy
+pexels-api
+uvicorn[standard]
+
+###### Requirements with Version Specifiers ######
