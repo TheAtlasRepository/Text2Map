@@ -1,22 +1,16 @@
-import Map, { Marker, NavigationControl, GeolocateControl, Popup} from "react-map-gl";
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Button, } from "@/components/ui/button";
 import { Input } from "@/components/ui/input"
-import { useState, useEffect, useRef, ReactNode } from "react";
+import { useState, useEffect, useRef} from "react";
 import { ScrollArea } from "../ui/scroll-area";
 import ReactMarkdown from "react-markdown";
 import MapComponent from "./mapComponent";
+import JsonRenderer from "../functions/JsonRenderer";
+import ReactDOMServer from 'react-dom/server';
+import { handleSaveText, handleSendText } from '../functions/ApiUtils';
 
 export default function AskingView({ onEditSave, editedText }: { onEditSave: (text: string) => void, editedText: string }) {
-
-    type Coordinate = {
-      latitude: number;
-      longitude: number;
-      type: string;
-    };
-
     const mapRef = useRef(null);
-    const [selectedMarkerPixelCoordinates, setSelectedMarkerPixelCoordinates] = useState<{ top: number; left: number } | null>(null);
     const [selectedMarkerIndex, setSelectedMarkerIndex] = useState<number | null>(null);
     const [editingText, setEditingText] = useState(false);  
     const [localEditedText, setLocalEditedText] = useState('');
@@ -32,7 +26,11 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
     });
 
     const isInitialRender = useRef(true);
-    const prevEditedTextRef = useRef<string | undefined>();
+    const prevEditedTextRef = useRef<string | undefined>('');
+
+    const renderJsonData = (): string | null => {
+      return jsonData ? ReactDOMServer.renderToStaticMarkup(<JsonRenderer jsonData={jsonData} />) : null;
+    };
 
     useEffect(() => {
       if (centerCoordinates) {
@@ -45,63 +43,11 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
     }, [centerCoordinates]);
 
     useEffect(() => {
-      if (isInitialRender.current) {
+      if (!isInitialRender.current) {
+        handleSaveText( editedText, setEditingText, setLoading, setJsonData, setMarkers, setLocalEditedText, prevEditedTextRef
+        );
+      } else {
         isInitialRender.current = false;
-        return;
-      }
-  
-      // Rest of your useEffect logic...
-      console.log('useEffect running. editedText:', editedText);
-  
-      if (editedText !== prevEditedTextRef.current) {
-        // Fetch JSON data from your backend API
-        fetch('http://127.0.0.1:8000/sendchat?message='+ 'You are a helpful GIS expert and History major. You will answer the given prompts in a short (500 words max) but informative way. Format your response to be easy to read. Here is what you will answer: ' + editedText, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ editedText: editedText }),
-        })
-          .then(response => response.json())
-          .then(data => {
-            console.log('JSON data from the backend:', data);
-
-            // Extract entities and filter out unnecessary strings
-            const filteredEntities = data.entities
-              .map((entry:any) => entry.filter((item:any) => Array.isArray(item) && item.length === 2))
-              .flat();
-
-            console.log('Filtered Entities:', filteredEntities);
-
-            const coordinates: Coordinate[] = extractCoordinates(filteredEntities);
-            console.log('Extracted Coordinates:', coordinates);
-            
-            // place the markers on the map
-            const coordinatesArray = coordinates.map((coordinate) => [coordinate.longitude, coordinate.latitude]);
-            console.log('Coordinates Array:', coordinatesArray);
-
-            // Calculate the center coordinates
-            const centerCoordinates = coordinatesArray.reduce(
-              (accumulator, currentValue) => {
-                return [
-                  accumulator[0] + currentValue[0],
-                  accumulator[1] + currentValue[1],
-                ];
-              },
-              [0, 0]
-            );
-            console.log('Center Coordinates:', centerCoordinates);
-
-            setJsonData(data);
-            setMarkers(coordinates as { latitude: number; longitude: number; type: string }[]);
-            setLoading(false);
-            setLocalEditedText(editedText);
-          })
-        .catch(error => {
-          console.error('Error fetching JSON data:', error);
-          setLocalEditedText(editedText);
-          setLoading(false);
-        });
       }
     }, [editedText]);
 
@@ -120,159 +66,20 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
       setEditingText(true);
     };
   
-    const handleSaveText = () => {
-      if (localEditedText !== prevEditedTextRef.current) {
-        setEditingText(false);
-        setLoading(true);
-        // First, reset the chat history
-        fetch('http://127.0.0.1:8000/resetchat?message='+ 'You are a helpful GIS expert and History major. You will answer the given prompts in a short (500 words max) but informative way. Format your response to be easy to read. Here is what you will answer: ' + localEditedText, {
-          method: 'POST',
-        })
-        .then(response => response.json())
-        .then(data => {
-          console.log('JSON data from the backend:', data);
-          // Extract entities and filter out unnecessary strings
-          const filteredEntities = data.entities
-          .map((entry:any) => entry.filter((item:any) => Array.isArray(item) && item.length === 2))
-          .flat();
-
-          console.log('Filtered Entities:', filteredEntities);
-
-          const coordinates: Coordinate[] = extractCoordinates(filteredEntities);
-          console.log('Extracted Coordinates:', coordinates);
-          
-          // place the markers on the map
-          const coordinatesArray = coordinates.map((coordinate) => [coordinate.longitude, coordinate.latitude]);
-          console.log('Coordinates Array:', coordinatesArray);
-
-          // Calculate the center coordinates
-          const centerCoordinates = coordinatesArray.reduce(
-            (accumulator, currentValue) => {
-              return [
-                accumulator[0] + currentValue[0],
-                accumulator[1] + currentValue[1],
-              ];
-            },
-            [0, 0]
-          );
-          console.log('Center Coordinates:', centerCoordinates);
-
-          setJsonData(data);
-          setMarkers(coordinates as { latitude: number; longitude: number; type: string }[]);
-          setLoading(false);
-          setLocalEditedText(localEditedText);
-        })
-        .catch(error => {
-          console.error('Error fetching JSON data:', error);
-          setLocalEditedText(localEditedText);
-          setLoading(false);
-        });
-      }
+    const handleSaveTextWrapper = () => {
+      handleSaveText(localEditedText, setEditingText, setLoading, setJsonData, setMarkers, setLocalEditedText, prevEditedTextRef);
     };
 
-    // Send the edited text to the backend
-    const handleSendText = async () => {
-      if (inputText.trim() !== '') {
-        setLoading(true);
-
-        // Assuming inputText is the data you want to send to the backend
-        fetch('http://127.0.0.1:8000/sendchat?message=' + inputText, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ inputText }), // Adjust the payload as needed
-        })
-          .then(response => response.json())
-          .then(data => {
-            console.log('Updated JSON data from the backend:', data);
-
-            // Extract entities and filter out unnecessary strings
-            const filteredEntities = data.entities
-            .map((entry:any) => entry.filter((item:any) => Array.isArray(item) && item.length === 2))
-            .flat();
-
-            console.log('Filtered Entities:', filteredEntities);
-
-            const coordinates: Coordinate[] = extractCoordinates(filteredEntities);
-            console.log('Extracted Coordinates:', coordinates);
-            
-            // place the markers on the map
-            const coordinatesArray = coordinates.map((coordinate) => [coordinate.longitude, coordinate.latitude]);
-            console.log('Coordinates Array:', coordinatesArray);
-
-            // Calculate the center coordinates
-            const centerCoordinates = coordinatesArray.reduce(
-              (accumulator, currentValue) => {
-                return [
-                  accumulator[0] + currentValue[0],
-                  accumulator[1] + currentValue[1],
-                ];
-              },
-              [0, 0]
-            );
-            console.log('Center Coordinates:', centerCoordinates);
-
-            setJsonData(data);
-            setMarkers(coordinates as { latitude: number; longitude: number; type: string }[]);
-            // set the input text to empty
-            setInputText('');
-            setLoading(false);
-          })
-          .catch(error => {
-            console.error('Error sending or fetching JSON data:', error);
-            setLoading(false);
-          });
+    const handleSendTextWrapper = () => {
+      if (typeof inputText === 'string' && inputText.trim() !== "") {
+        handleSendText(inputText, setJsonData, setMarkers, setInputText, setLoading);
+        // Set the inputText to an empty string after sending the request
+        setInputText("");
       } else {
-        // Handle case where inputText is empty
-        console.log('Input text is empty. Not sending the request.');
+        // Handle case where inputText is not a string or is empty
+        console.log('Input text is not a string or is empty. Not sending the request.');
       }
-    };
-
-    const extractCoordinates = (filteredEntities: [string, any][]): Coordinate[] => {
-      const coordinates: Coordinate[] = [];
-      let currentEntity: Coordinate | null = null;
-    
-      filteredEntities.forEach(([type, value]: [string, any]) => {
-        if (type.startsWith('Found entities:')) {
-          // If it's a new entity, create a new object to store its information
-          currentEntity = { type: value, latitude: 0, longitude: 0 };
-          coordinates.push(currentEntity);
-        } else if (type === 'Latitude:') {
-          // If it's latitude, assign the value to the current entity
-          if (currentEntity) currentEntity.latitude = parseFloat(value);
-        } else if (type === 'Longitude:') {
-          // If it's longitude, assign the value to the current entity
-          if (currentEntity) currentEntity.longitude = parseFloat(value);
-        }
-      });
-    
-      return coordinates;
     };    
-
-    const renderJsonData = (): string => {
-      if (jsonData) {
-        const gptContent = jsonData.GPT ? `<p><strong>GPT:</strong> ${jsonData.GPT}</p>` : '';
-        const chatHistory = jsonData.chat_history;
-
-        if (Array.isArray(chatHistory) && chatHistory.length > 0) {
-          const initialContent = chatHistory[0].content || '';
-          const formattedContent = chatHistory.slice(1).map((item, index) => {
-            const role = item.role === 'user' ? 'User' : 'Assistant';
-            const content = typeof item.content === 'object' ? item.content.content : item.content;
-            return `<p><strong>${role}:</strong> ${content}</p>`;
-          }).join('');
-
-          // Combine all the HTML content
-          const htmlContent = `${gptContent} ${initialContent}${formattedContent}`;
-
-          // Use dangerouslySetInnerHTML to directly render HTML content
-          return htmlContent;
-        }
-      }
-
-      return '';
-    };
 
     return (
       <div className="bg-white min-h-screen overflow-y-auto">
@@ -303,7 +110,7 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
             </div>
             {editingText && (
             <div className="flex items-center justify-center space-x-2 mt-auto">
-              <Button onClick={handleSaveText} variant="secondary">
+              <Button onClick={handleSaveTextWrapper} variant="secondary">
                 Save
               </Button>
             </div>
@@ -311,7 +118,6 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
           {!editingText && (
             <div className="flex justify-center space-x-2 mt-auto self-center">
               <Button onClick={handleEditClick} className="flex items-center justify-center space-x-2" variant="secondary">
-                <FileEditIcon className="h-5 w-5" />
                 <span>Edit & add text</span>
               </Button>
             </div>
@@ -320,7 +126,7 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
             {loading ? (
               <div className="justify-center">Thinking...</div>
             ) : (
-              <ReactMarkdown className="prose" children={renderJsonData()} /> // Use ReactMarkdown to
+              <ReactMarkdown className="prose" children={renderJsonData()} /> // Use ReactMarkdown to render the string
             )}
           </ScrollArea>
           <div className="flex justify-center space-x-2 mt-auto">
@@ -330,7 +136,7 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
             />
-            <Button onClick={handleSendText} variant="secondary" disabled={inputText.trim() === ""}>
+            <Button onClick={handleSendTextWrapper} variant="secondary" disabled={inputText?.trim() === ""}>
               Send
             </Button>
           </div>
@@ -349,28 +155,5 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
           </main>
         </div>
       </div>
-    )
-  }
-
-  
-  
-  function FileEditIcon(props: any) {
-    return (
-      <svg
-        {...props}
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M4 13.5V4a2 2 0 0 1 2-2h8.5L20 7.5V20a2 2 0 0 1-2 2h-5.5" />
-        <polyline points="14 2 14 8 20 8" />
-        <path d="M10.42 12.61a2.1 2.1 0 1 1 2.97 2.97L7.95 21 4 22l.99-3.95 5.43-5.44Z" />
-      </svg>
     )
   }
