@@ -57,20 +57,28 @@ export default function StartDataSource() {
 
 
     return (
-        <div className="max-w-4xl mx-auto my-12 p-8 bg-white rounded-lg">
+        <div className="max-w-4xl mx-auto my-12 p-8 bg-white">
+
+            <div className="bg-gray-100 rounded-lg p-1 inline-flex gap-1">
+                <button
+                    className={`rounded-lg border ${state.textSource ? "bg-white border-blue-500 text-blue-500 border-underline-blue" : "text-gray-500 border-gray-100"}`}
+                    disabled={state.textSource}
+                    onClick={handleInputToggle}
+                >
+                    <div className="px-6 py-1">Text</div>
+                </button>
+                <button
+                    className={`rounded-lg border ${!state.textSource ? "bg-white border-blue-500 text-blue-500 border-underline-blue" : "text-gray-500 border-gray-100"}`}
+                    disabled={!state.textSource}
+                    onClick={handleInputToggle}
+                >
+                    <div className="px-6 py-1">Spreadsheet</div>
+                </button>
+            </div>
 
             {state.textSource ? (
                 <>
-                    <div className="flex flex-row gap-8 mb-10">
-                        <div className="text-blue-500 bg-white border border-blue-500 rounded-lg shadow-md shadow-blue-500 transition-shadow">
-                            <div className="p-6 py-2">Text</div>
-                        </div>
-
-                        <Button variant="fancy_blue_select" onClick={handleInputToggle}>
-                            <div>Spreadsheet</div>
-                        </Button>
-                    </div>
-                    <div className="flex">
+                    <div className="flex mt-5">
                         <div className="text-gray-500 pb-10">
                             <h2 className="text-xl font-semibold mb-4">Type or paste in your text here to generate a map. <br /> For best results:</h2>
                             <ul className="list-disc pl-5 space-y-2 ">
@@ -112,16 +120,7 @@ export default function StartDataSource() {
                 </>
             ) : (
                 <>
-                    <div className="flex flex-row gap-8 mb-10">
-                        <Button variant="fancy_blue_select" onClick={handleInputToggle}>
-                            <div className="px-2">Text</div>
-                        </Button>
-
-                        <div className="text-blue-500 bg-white border border-blue-500 rounded-lg shadow-md shadow-blue-500 transition-shadow">
-                            <div className="p-4 py-2">Spreadsheet</div>
-                        </div>
-                    </div>
-                    <div className="flex">
+                    <div className="flex mt-5">
                         <div className="text-gray-500 pb-10">
                             <h2 className="text-xl font-semibold mb-4">Upload a CSV file here to generate a map.<br /> For best results:</h2>
                             <ul className="list-disc pl-5 space-y-2 ">
@@ -144,7 +143,7 @@ export default function StartDataSource() {
 
                         <div className="flex gap-2 justify-end">
                             <Button
-                                className={`w-full transition ${state.fileUploaded ? "bg-gray-500 cursor-not-allowed" : ""}`}
+                                className={`w-full transition ${!state.fileUploaded ? "bg-gray-500 cursor-not-allowed" : ""}`}
                                 variant={"blue"}
                                 onClick={handleCSVButtonClick}
                                 disabled={!state.fileUploaded}
