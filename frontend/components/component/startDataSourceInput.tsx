@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import { useReducer } from "react"; // Import the useReducer hook
 
 const initialState = { asking: false, textSource: true, editedText: '', textareaValue: '', fileUploaded: false };
@@ -94,6 +93,7 @@ export default function StartDataSource() {
                                 name="TextAreaInput"
                                 className="mb-4"
                                 placeholder="Aa"
+                                maxLength={3000}
                                 value={state.textareaValue}
                                 onChange={handleTextareaChange}
                             />
