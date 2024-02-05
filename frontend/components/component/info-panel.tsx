@@ -1,7 +1,10 @@
 
 import { useState, useEffect } from "react";
 
-export default function InfoPanel(props: any) {
+export default function InfoPanel(props: { 
+  title: string;
+  onClosed: () => void;
+  }) {
     const [imageLink, setImageLink] = useState("");
 
     useEffect(() => {
@@ -35,7 +38,7 @@ export default function InfoPanel(props: any) {
         </button>
       </div>
       <div className="absolute top-0 right-0 mt-2 mr-2">
-        <button className="bg-gray-100 hover:bg-gray-200 rounded-full p-2 focus:outline-none">
+        <button className="bg-gray-100 hover:bg-gray-200 rounded-full p-2 focus:outline-none" onClick={props.onClosed}>
           <XIcon className="h-6 w-6 text-black" />
         </button>
       </div>

@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input"
 import { useState, useEffect, useRef, ReactNode } from "react";
 import { ScrollArea } from "../ui/scroll-area";
 import ReactMarkdown from "react-markdown";
-import InfoPanel from "./info-panel";
+import MapComponent from "./mapComponent";
 
 export default function AskingView({ onEditSave, editedText }: { onEditSave: (text: string) => void, editedText: string }) {
 
@@ -18,7 +18,6 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
     const mapRef = useRef(null);
     const [selectedMarkerPixelCoordinates, setSelectedMarkerPixelCoordinates] = useState<{ top: number; left: number } | null>(null);
     const [selectedMarkerIndex, setSelectedMarkerIndex] = useState<number | null>(null);
-    const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
     const [editingText, setEditingText] = useState(false);  
     const [localEditedText, setLocalEditedText] = useState('');
     const [jsonData, setJsonData] = useState<any>(null);
@@ -338,49 +337,14 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
           </aside>
           <main className="flex-auto relative w-2/3">
             <div style={{ height: 'calc(100vh - 73px)' }}>
-            <Map
-              mapboxAccessToken={mapboxToken}
-              mapStyle="mapbox://styles/mapbox/standard"
+            <MapComponent
+              markers={markers}
+              centerCoordinates={centerCoordinates}
               initialViewState={initialViewState}
-              maxZoom={20}
-              minZoom={3}
-              ref={mapRef}
-            >
-              <GeolocateControl position="bottom-right" />
-              <NavigationControl position="bottom-right" />
-
-              {/* Render markers */}
-              {markers.map((marker, index) => (
-                <Marker
-                  key={index}
-                  latitude={marker.latitude}
-                  longitude={marker.longitude}
-                >
-                  <div
-                    className={`custom-marker custom-marker-${index}`}
-                    onClick={() => {
-                      setSelectedMarkerIndex((prevIndex) => (prevIndex === index ? null : index));
-                    }}
-                  >
-                    <span>{marker.type}</span>
-                    {selectedMarkerIndex === index && (
-                      <Popup
-                        latitude={marker.latitude}
-                        longitude={marker.longitude}
-                        closeButton={false}
-                        closeOnClick={false}
-                        onClose={() => setSelectedMarkerIndex(null)}
-                        className="custom-popup"
-                        anchor="bottom"
-                        offset={[0, -30] as [number, number]}
-                      >
-                          <InfoPanel title={marker.type} />
-                    </Popup>
-                    )}
-                  </div>
-                </Marker>
-              ))}
-            </Map>
+              mapRef={mapRef}
+              selectedMarkerIndex={selectedMarkerIndex}
+              setSelectedMarkerIndex={setSelectedMarkerIndex}
+            />
             </div>
           </main>
         </div>
