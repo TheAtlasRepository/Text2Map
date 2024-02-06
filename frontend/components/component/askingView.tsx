@@ -126,7 +126,9 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
             {loading ? (
               <div className="justify-center">Thinking...</div>
             ) : (
-              <ReactMarkdown className="prose" children={renderJsonData()} /> // Use ReactMarkdown to render the string
+              <div className="prose">
+                <JsonRenderer jsonData={jsonData} />
+              </div>
             )}
           </ScrollArea>
           <div className="flex justify-center space-x-2 mt-auto">

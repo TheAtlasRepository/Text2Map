@@ -1,6 +1,6 @@
 import { extractCoordinates, Coordinate } from '../functions/CoordinateExtractor'; // Adjust the import path
 
-export const handleDataFetching = (
+export const handleDataFetching = async (
     url: string,
     payload: any,
     setJsonData: React.Dispatch<React.SetStateAction<any>>,
@@ -11,7 +11,7 @@ export const handleDataFetching = (
   ) => {
     setLoading(true);
   
-    fetch(url, {
+    await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -70,7 +70,7 @@ export const handleDataFetching = (
       });
   };
 
-export const handleSaveText = (
+export const handleSaveText = async (
     localEditedText: string,
     setEditingText: React.Dispatch<React.SetStateAction<boolean>>,
     setLoading: React.Dispatch<React.SetStateAction<boolean>>,
@@ -81,7 +81,7 @@ export const handleSaveText = (
   ) => {
     if (localEditedText !== prevEditedTextRef.current) {
         setEditingText(false);
-        handleDataFetching(
+        await handleDataFetching(
           `http://127.0.0.1:8000/resetchat?message=${localEditedText}`,
           { editedText: localEditedText },
           setJsonData,
@@ -101,7 +101,7 @@ export const handleSendText = async (
     setLoading: React.Dispatch<React.SetStateAction<boolean>>
   ) => {
     if (inputText.trim() !== '') {
-      handleDataFetching(
+      await handleDataFetching(
         'http://127.0.0.1:8000/sendchat?message=' + inputText,
         { inputText },
         setJsonData,

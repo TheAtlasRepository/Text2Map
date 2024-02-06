@@ -9,7 +9,7 @@ const JsonRenderer: React.FC<JsonRendererProps> = ({ jsonData }) => {
     return null;
   }
 
-  const gptContent = jsonData.GPT ? `<p><strong>GPT:</strong> ${jsonData.GPT}</p>` : '';
+  const gptContent = jsonData.GPT ? <p><strong>GPT:</strong> {jsonData.GPT}</p> : '';
   const chatHistory = jsonData.chat_history;
 
   if (Array.isArray(chatHistory) && chatHistory.length > 0) {
@@ -20,15 +20,13 @@ const JsonRenderer: React.FC<JsonRendererProps> = ({ jsonData }) => {
         const role = item.role === 'user' ? 'User' : 'Assistant';
         const content =
           typeof item.content === 'object' ? item.content.content : item.content;
-        return `<p><strong>${role}:</strong> ${content}</p>`;
-      })
-      .join('');
+        return <p key={index}><strong>{role}:</strong> {content}</p>;
+      });
 
-    // Combine all the HTML content
-    const htmlContent = `${gptContent} ${initialContent}${formattedContent}`;
+    // Combine all the React components
+    const reactContent = [gptContent, initialContent, ...formattedContent];
 
-    // Use dangerouslySetInnerHTML to directly render HTML content
-    return <div dangerouslySetInnerHTML={{ __html: htmlContent }} />;
+    return <>{reactContent}</>;
   }
 
   return null;
