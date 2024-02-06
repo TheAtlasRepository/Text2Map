@@ -21,6 +21,7 @@ function reducer(state: any, action: any) {
 
 export default function StartDataSource() {
     const [state, dispatch] = useReducer(reducer, initialState); // Use the useReducer hook
+    const maxLengthInput = 3000; // Max length for input
 
     // const handleEditSave = (text: string) => {
     //   console.log('handleEditSave called. text:', text);
@@ -93,20 +94,21 @@ export default function StartDataSource() {
                                 name="TextAreaInput"
                                 className="mb-4"
                                 placeholder="Aa"
-                                maxLength={3000}
                                 value={state.textareaValue}
                                 onChange={handleTextareaChange}
                             />
                             <div className="flex w-full center justify-between">
                                 <div className="text-sm text-gray-600">
-                                    {state.textareaValue.trim().length}/3000 Characters used
+                                    <span className={`${state.textareaValue.trim().length > maxLengthInput ? "text-red-500" : ""}`}>
+                                        {state.textareaValue.trim().length}/{maxLengthInput} Characters used
+                                    </span>
                                 </div>
                                 <div>
                                     <Button
-                                        className={`w-full transition ${state.textareaValue.trim() === "" ? "bg-gray-500 cursor-not-allowed" : ""}`}
+                                        className={`w-full transition ${state.textareaValue.trim() === "" || state.textareaValue.trim().length > maxLengthInput ? "bg-gray-500 cursor-not-allowed" : ""}`}
                                         variant={"blue"}
                                         onClick={handleInputButtonClick}
-                                        disabled={state.textareaValue.trim() === ""}
+                                        disabled={state.textareaValue.trim() === "" || state.textareaValue.trim().length > maxLengthInput}
                                     >
                                         Generate Map
                                     </Button>
