@@ -53,11 +53,11 @@ def geocode(address):
 
             # Check if the country is valid
             country_name = features[0]['properties']['name']
-            if get_invalid_country(country_name):
-                return {"latitude": latitude, "longitude": longitude}
+            if country_name in [country['name'] for country in COUNTRIES_DATA]:
+                print(f"Skipping country in exclusion list: {country_name}")
+                return {"error": "Excluded country"}
             else:
-                print(f"Invalid country: {country_name}")
-                return {"error": "Invalid country"}
+                return {"latitude": latitude, "longitude": longitude}
         else:
             print("No features found in the response.")
             return {"error": "No features in the response"}
@@ -94,7 +94,7 @@ def postSendChat(message):
             },
             {
                 "role": "user",
-                "content": message
+                "content": messages[-2]["content"]
             }
         ],
         temperature=1,
@@ -104,14 +104,29 @@ def postSendChat(message):
         presence_penalty=0
     )
     
-    content = response.choices[0].message.content
+    # Filter out the user's message from being added after the assistant's response
+    filtered_messages = [message for message in messages if message["role"] == "assistant"] + [{"role": "user", "content": message}]
+    
+    content = response.choices[0].message.content 
+    
+    # Find the index where the assistant's response is located in the chat history
+    assistant_response_index = next((i for i, message in enumerate(messages) if message["role"] == "assistant"), None)
+
+    # Add the chat history to the content
+    if assistant_response_index is not None:
+        content += "\n".join([f"{message['role']}: {message['content']}" for message in filtered_messages[assistant_response_index + 1:]])
+    else:
+        content  # Add a default message if assistant response is not found
+
+
     
     print("Received response: " + content)
     
     chat_history.append({"role": "user", "content": message})  # Add current message to chat history
     chat_history.append({"role": "assistant", "content": content})  # Add assistant's response to chat history
+
     
-    # Check if you asnwer has a country, city or state
+    # Check if you asnwer + chat history has a country, city or state
     doc = nlp(content)
     
     # Put all entities in a list

@@ -3,7 +3,6 @@ import { Button, } from "@/components/ui/button";
 import { Input } from "@/components/ui/input"
 import { useState, useEffect, useRef} from "react";
 import { ScrollArea } from "../ui/scroll-area";
-import ReactMarkdown from "react-markdown";
 import MapComponent from "./mapComponent";
 import JsonRenderer from "../functions/JsonRenderer";
 import ReactDOMServer from 'react-dom/server';
