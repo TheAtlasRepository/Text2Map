@@ -9,10 +9,8 @@
 set condapath=C:\%homepath%\miniconda3\Scripts\activate.bat
 set envname=Text2Map
 set repopath=.
-set test=false
 
 if exist %condapath% (
-    set test=true
     echo Conda found in user directory
 ) else if exist C:\programdata\miniconda3 (
     set condapath=C:\programdata\miniconda3\Scripts\activate.bat
