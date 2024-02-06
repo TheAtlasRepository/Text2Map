@@ -55,3 +55,17 @@ body {
 .border-underline-blue {
     box-shadow: 0 2px 0 0 rgb(59, 130, 246);
 }
+
+/*Cropper CSS*/
+.cropped {
+  height: 200px; /* height of container */
+  object-fit: cover;
+}
+
+.custom-popup .mapboxgl-popup-content {
+  padding: 0px;
+}
+
+.custom-popup .mapboxgl-popup-tip {
+  display: none;
+}
