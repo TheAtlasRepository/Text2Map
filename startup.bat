@@ -1,11 +1,15 @@
 @echo off
 ::Place this file in the root folder of the project
 
+:: sends contents from logo.txt to the console
+type boot_utilities\logo.txt
+echo:
+
 set condapath=C:\%homepath%\miniconda3\Scripts\activate.bat
 set envname=Text2Map
 set repopath=.
 
-::Check if conda is system installation or user installation
+rem Check if conda is system installation or user installation
 if exist %condapath% (
     echo Conda found in user directory
 ) else if exist C:\programdata\miniconda3 (
@@ -19,6 +23,10 @@ if exist %condapath% (
 rem Check if front and backend folders exists
 if not exist %repopath%\frontend (
     echo Frontend folder not found
+    exit /b
+)
+if not exist %repopath%\backend (
+    echo Backend folder not found
     exit /b
 )
 
@@ -52,11 +60,11 @@ if %errorlevel% equ 0 (
 )
 echo Conda environment %envname% is now active.
 
-:: Enter path to local installation 
+rem Starts the frontend and backend in separate cmd windows 
 start cmd /k "cd %repopath%\frontend && yarn install -s && yarn dev"
 start cmd /k "cd %repopath%\backend && pip install --quiet -r requirements.txt && uvicorn main:app --reload"
 
-:: check if server is running every second if not successfull after 20 seconds exit, if successfull open browser
+rem check if server is running every second if not successfull after 20 seconds exit, if successfull open browser
 setlocal
 set /a count=0
 :loop
