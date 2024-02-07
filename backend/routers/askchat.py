@@ -88,7 +88,7 @@ def postSendChat(message):
     print("Received response: " + assistant_response)
 
     # Check if your answer + chat history has a country, city, or state
-    doc = nlp(assistant_response)
+    doc = nlp(' '.join([msg["content"] for msg in messages]))
     
     # Put all entities in a list
     entities = []
