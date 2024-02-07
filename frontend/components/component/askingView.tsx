@@ -3,7 +3,6 @@ import { Button, } from "@/components/ui/button";
 import { Input } from "@/components/ui/input"
 import { useState, useEffect, useRef} from "react";
 import { ScrollArea } from "../ui/scroll-area";
-import ReactMarkdown from "react-markdown";
 import MapComponent from "./mapComponent";
 import JsonRenderer from "../functions/JsonRenderer";
 import ReactDOMServer from 'react-dom/server';
@@ -126,7 +125,9 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
             {loading ? (
               <div className="justify-center">Thinking...</div>
             ) : (
-              <ReactMarkdown className="prose" children={renderJsonData()} /> // Use ReactMarkdown to render the string
+              <div className="prose">
+                <JsonRenderer jsonData={jsonData} />
+              </div>
             )}
           </ScrollArea>
           <div className="flex justify-center space-x-2 mt-auto">
