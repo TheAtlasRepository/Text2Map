@@ -1,7 +1,8 @@
 import requests
 from fastapi import APIRouter
 from openai import OpenAI
-import spacy 
+import spacy
+import geocoder 
 
 router = APIRouter()
 
@@ -14,24 +15,20 @@ nlp = spacy.load("en_core_web_lg")
 def geocode(address):
     """Geocode an address string to lat/long and bounding box"""
     
-    response = requests.get("https://api.mapbox.com/search/geocode/v6/forward?q="+address+"&access_token=pk.eyJ1IjoiZWlyaWtzYiIsImEiOiJjbHJjMTlqd28wbnF5MmtzMHpnbHZ5Nmx6In0.CGZFHEdOICWywo5B5Kzl9g")
-    
-    json_data = response.json()
-
-    
     try:
-        # Access the features array
-        features = json_data.get('features', [])
+        # Use the geocode method and specify the provider (in this case, Google)
+        response = geocoder.arcgis(address)
 
-        if features:
-            # Extract latitude and longitude from the first feature
-            coordinates = features[0]['geometry']['coordinates']
-            latitude, longitude = coordinates[1], coordinates[0]
-            # Extract the bounding box
+        # Check if the geocoding was successful
+        if response.ok:
+            # Extract latitude and longitude from the first result
+            coordinates = response.latlng
+            latitude, longitude = coordinates[0], coordinates[1]
+
             return {"latitude": latitude, "longitude": longitude}
         else:
-            print("No features found in the response.")
-            return {"error": "No features in the response"}
+            print(f"Geocoding failed with status code: {response.status}")
+            return {"error": "Geocoding failed"}
     
     except Exception as e:
         print(f"Error: {e}")
