@@ -1,8 +1,11 @@
-import requests
 from fastapi import APIRouter
 from openai import OpenAI
-import spacy
+from shapely.geometry import shape, mapping
+from shapely.ops import unary_union
+import pycountry
 import geocoder 
+import json
+import os
 
 router = APIRouter()
 
@@ -10,7 +13,12 @@ client = OpenAI()
 
 chat_history = []
 
-nlp = spacy.load("en_core_web_lg")
+# Get the absolute path to the GeoJSON file with country borders
+geojson_file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'jsonFiles', 'countries.geojson'))
+
+# Load GeoJSON file with country borders
+with open(geojson_file_path) as geojson_file:
+    countries_geojson = json.load(geojson_file)
 
 def geocode(address):
     """Geocode an address string to lat/long and bounding box"""
@@ -33,6 +41,15 @@ def geocode(address):
     except Exception as e:
         print(f"Error: {e}")
         return {"latitude": None, "longitude": None, "bbox": None}
+    
+def get_country_geometry(iso_code):
+    for feature in countries_geojson['features']:
+        geo_iso_code = feature['properties']['ISO_A3'].strip().upper()  # Handle case sensitivity and whitespace
+        if geo_iso_code == iso_code:
+            print(f"Found geometry for ISO code {iso_code}")
+            return shape(feature['geometry'])
+    print(f"Geometry not found for ISO code {iso_code}")
+    return None
 
 @router.post("/resetchat", response_model=dict)
 def postResetChat(message: str):
@@ -42,7 +59,7 @@ def postResetChat(message: str):
     response = postSendChat(message)
     
     # Return the chat history but without the first message
-    return {"entities": response["entities"], "chat_history": response["chat_history"][1:]}
+    return {"entities": response["entities"], "chat_history": response["chat_history"][1:], "selected_countries_geojson_path": response["selected_countries_geojson_path"]}
 
 @router.post("/sendchat", response_model=dict)
 def postSendChat(message):
@@ -88,19 +105,41 @@ def postSendChat(message):
     print("Received response: " + assistant_response)
 
     # Check if your answer + chat history has a country, city, or state
-    doc = nlp(' '.join([msg["content"] for msg in messages]))
+    doc = ' '.join([msg["content"] for msg in messages])
     
     # Put all entities in a list
     entities = []
     
-    for ent in doc.ents:
-        if ent.label_ == "GPE":
-            entity = ent.text
-            if entity not in entities:
-                geocode_data = geocode(ent.text)
+    for ent in pycountry.countries:
+        if ent.name in doc:
+            if ent.name not in entities:
+                # Get ISO code for the country
+                iso_code = ent.alpha_3
+                geocode_data = geocode(ent.name)
                 if "error" in geocode_data:
-                    print(f"Skipping invalid country: {entity}")
+                    print(f"Skipping invalid country: {ent.name}")
                 else:
-                    entities.append((("Found entities:", entity), ("Latitude:", geocode_data["latitude"]), ("Longitude:", geocode_data["longitude"])))
+                    print(f"Found country: {ent.name}, ISO Code: {iso_code}")
+                    entities.append((("Found entities:", ent.name), ("ISO Code:", iso_code), ("Latitude:", geocode_data["latitude"]), ("Longitude:", geocode_data["longitude"])))
     
-    return {"entities": entities, "chat_history": chat_history}
+    # Extract ISO codes of countries from the entities
+    iso_codes = [ent[1][1] for ent in entities]  # Adjust the index to get the ISO code directly
+
+    # Look up country geometries from GeoJSON file
+    country_geometries = [get_country_geometry(iso_code) for iso_code in iso_codes]
+
+    # Create a new GeoJSON file with only the borders of the identified countries
+    new_geojson = {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "properties": {"ISO_A3": iso_code},
+                "geometry": mapping(geometry) if geometry else None
+            }
+            for iso_code, geometry in zip(iso_codes, country_geometries)
+        ]
+    }
+    
+    # Return the new GeoJSON file path to the frontend
+    return {"entities": entities, "chat_history": chat_history, "selected_countries_geojson_path": new_geojson}

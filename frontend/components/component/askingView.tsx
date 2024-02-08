@@ -151,6 +151,7 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
               mapRef={mapRef}
               selectedMarkerIndex={selectedMarkerIndex}
               setSelectedMarkerIndex={setSelectedMarkerIndex}
+              geojsonData={jsonData?.selected_countries_geojson_path}
             />
             </div>
           </main>
