@@ -12,7 +12,7 @@ export default function Home() {
         <p className="text-center text-lg">Use your own text and data or a ChatGPT prompt</p>
         <div className="grid grid-cols-2 gap-8">
           <div className="flex flex-col items-center space-y-4" onClick={() => router.push("/datasource")}>
-              <Card className="w-full max-w-[400px] bg-white border border-blue-500 rounded-lg shadow-sm hover:shadow-md transition-shadow dark:border-gray-800" onClick={() => router.push("#")}>
+              <Card className="w-full max-w-[400px] bg-white border border-blue-500 rounded-lg shadow-sm hover:shadow-md transition-shadow" onClick={() => router.push("#")}>
                 <CardHeader>
                   <div className="flex items-center space-x-2">
                     <TextIcon className="h-5 w-5 text-blue-600" />
@@ -28,7 +28,7 @@ export default function Home() {
               </Card>
           </div>
           <div className="flex flex-col items-center space-y-4" onClick={() => router.push("/askChat")}>
-            <Card className="w-full max-w-[400px] bg-white border border-blue-500 rounded-lg shadow-sm hover:shadow-md transition-shadow dark:border-gray-800" onClick={() => router.push("#")}>
+            <Card className="w-full max-w-[400px] bg-white border border-blue-500 rounded-lg shadow-sm hover:shadow-md transition-shadow" onClick={() => router.push("#")}>
               <CardHeader>
                 <div className="flex items-center space-x-2">
                   <BarChart2Icon className="h-5 w-5 text-blue-600" />
