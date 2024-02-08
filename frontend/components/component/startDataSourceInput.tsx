@@ -1,35 +1,34 @@
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { useReducer, useState, useRef } from "react"; // Import the useReducer hook
+import { useReducer, useState, useRef, useEffect } from "react";
 import { useRouter } from 'next/navigation';
-import { handleSaveText, handleSendText } from '../functions/ApiUtils';
+import { handleSaveChat, handleSendTextInput } from '../functions/ApiUtils';
 import { ScrollArea } from "../ui/scroll-area";
 import { Input } from "../ui/input";
 import MapComponent from "./mapComponent";
 
 
-const initialState = { mapView: false, textSource: true, editedText: '', textareaValue: '', fileUploaded: false };
-
-function reducer(state: any, action: any) {
-    switch (action.type) {
-        case 'SET_TEXTAREA_VALUE': return { ...state, textareaValue: action.value };
-        case 'INPUT': return { ...state, mapView: true, editedText: action.value };
-        case 'TOGGLE_INPUT': return { ...state, textSource: !state.textSource };
-        case 'TOGGLE_MAPVIEW': return { ...state, mapView: !state.mapView };
-        case 'UPLOAD': return { ...state, fileUploaded: !state.fileUploaded };
-        default: throw new Error();
-    }
-}
-
 export default function StartDataSource() {
-    const [state, dispatch] = useReducer(reducer, initialState); // Use the useReducer hook
+    //const [state, dispatch] = useReducer(reducer, initialState); // Use the useReducer hook
     const maxLengthInput = 3000; // Max length for input
     const router = useRouter();
     const mapRef = useRef(null);
 
+    const [mapView, setMapView] = useState(false);
+    const [textSource, toggleTextSource] = useState(true);
+    const [inputText, setInputText] = useState('');
+    const [newInputText, setNewInputText] = useState('');
+    const [textareaValue, setTextareaValue] = useState('');
+    // const [textareaValue, setTextareaValue] = useState(() => {
+    //     const savedText = localStorage.getItem('textValue');
+    //     return savedText || '';
+    // });
+    const [uploadedFile, setUploadedFile] = useState(false);
+
+    const [jsonData, setJsonData] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
     const [editingText, setEditingText] = useState(false);
     const [localEditedText, setLocalEditedText] = useState('');
-    const [inputText, setInputText] = useState('');
     const [markers, setMarkers] = useState<{ latitude: number; longitude: number; type: string }[]>([]);
     const [selectedMarkerIndex, setSelectedMarkerIndex] = useState<number | null>(null);
     const [centerCoordinates, setCenterCoordinates] = useState<[number, number] | null>(null);
@@ -40,39 +39,70 @@ export default function StartDataSource() {
     });
 
     const handleTextareaChange = (e: any) => {
-        dispatch({ type: 'SET_TEXTAREA_VALUE', value: e.target.value });
+        setTextareaValue(e.target.value);
+        //localStorage.setItem('textValue', e.target.value);
     };
 
     const handleInputButtonClick = () => {
-        if (state.textSource && state.textareaValue.trim() !== "") {
+        if (textSource && textareaValue.trim() !== "") {
             console.log('Trimmed input is not empty, so create map!');
-            dispatch({ type: 'INPUT', value: state.textareaValue });
+            setInputText(textareaValue);
+            handlePostText(textareaValue);
         }
-        else if (!state.textSource && state.fileUploaded) {
+        else if (!textSource && uploadedFile) {
             console.log("File uploaded. Generate map!");
         }
     };
 
-
-
     const handleExampleText = () => {
         console.log('Example text was pressed! Send something.');
-        dispatch({ type: 'INPUT', value: "Where is Big Ben?" });
+        let text = 'Where can i find London?';
+        setInputText(text);
+        handlePostText(text);
     }
 
     const handleInputToggle = () => {
-        dispatch({ type: 'TOGGLE_INPUT' });
+        toggleTextSource(!textSource);
     }
 
-    const handleMapViewToggle = () => {
-        dispatch
+    // const handleReturnMainpage = () => {
+    //     localStorage.removeItem('textValue')
+    // }
+
+    const handleDiscard = () => {
+        setInputText(''); // Remove the text for the map so it reverts to input page
     }
 
+    const handlePostText = (text: string) => {
+        handleSendTextInput(text, setJsonData, setMarkers, setLoading);
 
+        //setInputText("");
+    }
+
+    const handleEditClick = () => {
+        setEditingText(true);
+    };
+
+    
+    // const handleSaveTextWrapper = () => {
+    //     handleSaveChat(localEditedText, setEditingText, setLoading, setJsonData, setMarkers, setLocalEditedText, prevEditedTextRef);
+    // };
+    
+
+
+    useEffect(() => {
+        if (centerCoordinates) {
+            setInitialViewState({
+                latitude: centerCoordinates[1],
+                longitude: centerCoordinates[0],
+                zoom: 10,  // Adjust the zoom level as needed
+            });
+        }
+    }, [centerCoordinates]);
 
     return (
         <div>
-            {!state.mapView ? (
+            {!inputText ? (
                 <div>
                     <header className="flex items-center justify-between p-2 px-4 border-b">
                         <div className="flex items-center space-x-4">
@@ -84,22 +114,22 @@ export default function StartDataSource() {
 
                         <div className="bg-gray-100 rounded-lg p-1 inline-flex gap-1">
                             <button
-                                className={`rounded-lg border ${state.textSource ? "bg-white border-blue-500 text-blue-500 border-underline-blue" : "text-gray-500 border-gray-100"}`}
-                                disabled={state.textSource}
+                                className={`rounded-lg border ${textSource ? "bg-white border-blue-500 text-blue-500 border-underline-blue" : "text-gray-500 border-gray-100"}`}
+                                disabled={textSource}
                                 onClick={handleInputToggle}
                             >
                                 <div className="px-6 py-1">Text</div>
                             </button>
                             <button
-                                className={`rounded-lg border ${!state.textSource ? "bg-white border-blue-500 text-blue-500 border-underline-blue" : "text-gray-500 border-gray-100"}`}
-                                disabled={!state.textSource}
+                                className={`rounded-lg border ${!textSource ? "bg-white border-blue-500 text-blue-500 border-underline-blue" : "text-gray-500 border-gray-100"}`}
+                                disabled={!textSource}
                                 onClick={handleInputToggle}
                             >
                                 <div className="px-6 py-1">Spreadsheet</div>
                             </button>
                         </div>
 
-                        {state.textSource ? (
+                        {textSource ? (
                             <>
                                 <div className="flex mt-5">
                                     <div className="text-gray-500 pb-10">
@@ -112,32 +142,32 @@ export default function StartDataSource() {
                                     </div>
                                 </div>
                                 <div className="pb-10">
-                                    <form className="flex flex-col items-center">
-                                        <Textarea
-                                            name="TextAreaInput"
-                                            className="mb-4"
-                                            placeholder="Aa"
-                                            value={state.textareaValue}
-                                            onChange={handleTextareaChange}
-                                        />
-                                        <div className="flex w-full center justify-between">
-                                            <div className="text-sm text-gray-600">
-                                                <span className={`${state.textareaValue.trim().length > maxLengthInput ? "text-red-500" : ""}`}>
-                                                    {state.textareaValue.trim().length}/{maxLengthInput} Characters used
-                                                </span>
-                                            </div>
-                                            <div>
-                                                <Button
-                                                    className={`w-full transition ${state.textareaValue.trim() === "" || state.textareaValue.trim().length > maxLengthInput ? "bg-gray-500 cursor-not-allowed" : ""}`}
-                                                    variant={"blue"}
-                                                    onClick={handleInputButtonClick}
-                                                    disabled={state.textareaValue.trim() === "" || state.textareaValue.trim().length > maxLengthInput}
-                                                >
-                                                    Generate Map
-                                                </Button>
-                                            </div>
+                                    {/* <form className="flex flex-col items-center"> */}
+                                    <Textarea
+                                        name="TextAreaInput"
+                                        className="mb-4"
+                                        placeholder="Aa"
+                                        value={textareaValue}
+                                        onChange={handleTextareaChange}
+                                    />
+                                    <div className="flex w-full center justify-between">
+                                        <div className="text-sm text-gray-600">
+                                            <span className={`${textareaValue.trim().length > maxLengthInput ? "text-red-500" : ""}`}>
+                                                {textareaValue.trim().length}/{maxLengthInput} Characters used
+                                            </span>
                                         </div>
-                                    </form>
+                                        <div>
+                                            <Button
+                                                className={`w-full transition ${textareaValue.trim() === "" || textareaValue.trim().length > maxLengthInput ? "bg-gray-500 cursor-not-allowed" : ""}`}
+                                                variant={"blue"}
+                                                onClick={handleInputButtonClick}
+                                                disabled={textareaValue.trim() === "" || textareaValue.trim().length > maxLengthInput}
+                                            >
+                                                Generate Map
+                                            </Button>
+                                        </div>
+                                    </div>
+                                    {/* </form> */}
                                 </div>
                             </>
                         ) : (
@@ -165,10 +195,10 @@ export default function StartDataSource() {
 
                                     <div className="flex gap-2 justify-end">
                                         <Button
-                                            className={`w-full transition ${!state.fileUploaded ? "bg-gray-500 cursor-not-allowed" : ""}`}
+                                            className={`w-full transition ${!uploadedFile ? "bg-gray-500 cursor-not-allowed" : ""}`}
                                             variant={"blue"}
                                             onClick={handleInputButtonClick}
-                                            disabled={!state.fileUploaded}
+                                            disabled={!uploadedFile}
                                         >
                                             Generate Map
                                         </Button>
@@ -189,7 +219,7 @@ export default function StartDataSource() {
                 <div className="bg-white min-h-screen overflow-y-auto">
                     <header className="flex items-center justify-between p-2 px-4 border-b">
                         <div className="flex items-center space-x-4">
-                            <Button variant="ghost" className=" text-lg font-semibold">Discard</Button>
+                            <Button variant="ghost" className=" text-lg font-semibold" onClick={handleDiscard}>Discard</Button>
                             <h1 className="text-lg font-semibold">Unsaved map</h1>
                         </div>
                         <div className="flex items-center space-x-4">
@@ -201,7 +231,7 @@ export default function StartDataSource() {
                     </header>
                     <div className="flex">
                         <aside className="w-1/3 p-4 space-y-4 border-r flex flex-col" style={{ flex: '0 0 auto', height: 'calc(100vh - 73px)' }}>
-                            <div className="flex items-center justify-between w-full">
+                            {/* <div className="flex items-center justify-between w-full">
                                 {editingText ? (
                                     <input
                                         type="text"
@@ -222,27 +252,27 @@ export default function StartDataSource() {
                             )}
                             {!editingText && (
                                 <div className="flex justify-center space-x-2 mt-auto self-center">
-                                    <Button onClick={() => console.log("handleEditClick")} className="flex items-center justify-center space-x-2" variant="secondary">
+                                    <Button onClick={handleEditClick} className="flex items-center justify-center space-x-2" variant="secondary">
                                         <span>Edit & add text</span>
                                     </Button>
                                 </div>
-                            )}
+                            )} */}
                             <ScrollArea>
                                 <div>
-                                    Input comes here, at some point...
+                                    {inputText}
                                 </div>
                             </ScrollArea>
-                            <div className="flex justify-center space-x-2 mt-auto">
+                            {/* <div className="flex justify-center space-x-2 mt-auto">
                                 <Input
                                     placeholder="Type your message here..."
                                     type="text"
-                                    value={inputText}
-                                    onChange={(e) => setInputText(e.target.value)}
+                                    value={newInputText}
+                                    onChange={(e) => setNewInputText(e.target.value)}
                                 />
                                 <Button onClick={() => console.log("handleSendTextWrapper")} variant="secondary" disabled={inputText?.trim() === ""}>
                                     Send
                                 </Button>
-                            </div>
+                            </div> */}
                         </aside>
                         <main className="flex-auto relative w-2/3">
                             <div style={{ height: 'calc(100vh - 73px)' }}>

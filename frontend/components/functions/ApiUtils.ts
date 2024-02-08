@@ -47,10 +47,6 @@ export const handleDataFetching = async (
     setJsonData(data);
     setMarkers(coordinates as { latitude: number; longitude: number; type: string }[]);
 
-    if (setLocalEditedText) {
-      setLocalEditedText(payload.editedText);
-    }
-
     if (additionalLogic) {
       additionalLogic(data);
     }
@@ -67,7 +63,7 @@ export const handleDataFetching = async (
   }
 };
 
-export const handleSaveText = async (
+export const handleSaveChat = async (
     localEditedText: string,
     setEditingText: React.Dispatch<React.SetStateAction<boolean>>,
     setLoading: React.Dispatch<React.SetStateAction<boolean>>,
@@ -90,7 +86,7 @@ export const handleSaveText = async (
   };
 
 
-export const handleSendText = async (
+export const handleSendChat = async (
     inputText: string,
     setJsonData: React.Dispatch<React.SetStateAction<any>>,
     setMarkers: React.Dispatch<React.SetStateAction<{ latitude: number; longitude: number; type: string }[]>>,
@@ -106,6 +102,26 @@ export const handleSendText = async (
         setLoading,
         // Set the input text to empty after sending the request
         setInputText
+      );
+    } else {
+      // Handle case where inputText is empty
+      console.log('Input text is empty. Not sending the request.');
+    }
+  };
+
+  export const handleSendTextInput = async (
+    inputText: string,
+    setJsonData: React.Dispatch<React.SetStateAction<any>>,
+    setMarkers: React.Dispatch<React.SetStateAction<{ latitude: number; longitude: number; type: string }[]>>,
+    setLoading: React.Dispatch<React.SetStateAction<boolean>>
+  ) => {
+    if (inputText.trim() !== '') {
+      await handleDataFetching(
+        'http://127.0.0.1:8000/newText?text=' + inputText,
+        { inputText },
+        setJsonData,
+        setMarkers,
+        setLoading
       );
     } else {
       // Handle case where inputText is empty

@@ -9,6 +9,7 @@ router = APIRouter()
 client = OpenAI()
 
 chat_history = []
+text_history = []
 
 nlp = spacy.load("en_core_web_lg")
 
@@ -104,3 +105,50 @@ def postSendChat(message):
                     entities.append((("Found entities:", entity), ("Latitude:", geocode_data["latitude"]), ("Longitude:", geocode_data["longitude"])))
     
     return {"entities": entities, "chat_history": chat_history}
+
+@router.post("/newText", response_model=dict)
+def postNewText(text: str):
+    print("Sending text: " + text)
+    global text_history
+    
+    text_history = [text]
+
+    # Run postSendChat to get the first response from the assistant
+    response = postSendMoreText(text)
+    
+    # Return the chat history but without the first message
+    return {"entities": response["entities"], "text_history": response["text_history"][1:]}
+
+
+@router.post("/sendMoreText", response_model=dict)
+def postSendMoreText(text):
+    print("Sending text: " + text)
+    global text_history
+    
+    # Include chat history in textEntities
+    textEntities = text_history.copy()
+
+    # Append the text only if it's not the same as the last one
+    if not textEntities or (textEntities[-1] != text):
+        textEntities.append(text)
+
+    # Update the chat history
+    text_history = textEntities
+
+    # Check if your answer + chat history has a country, city, or state
+    doc = nlp(' '.join([textEnt for textEnt in textEntities]))
+
+    # Put all entities in a list
+    entities = []
+
+    for ent in doc.ents:
+        if ent.label_ == "GPE":
+            entity = ent.text
+            if entity not in entities:
+                geocode_data = geocode(ent.text)
+                if "error" in geocode_data:
+                    print(f"Skipping invalid country: {entity}")
+                else:
+                    entities.append((("Found entities:", entity), ("Latitude:", geocode_data["latitude"]), ("Longitude:", geocode_data["longitude"])))
+
+    return {"entities": entities, "text_history": text_history}

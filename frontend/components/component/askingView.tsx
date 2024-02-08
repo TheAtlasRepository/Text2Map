@@ -6,7 +6,7 @@ import { ScrollArea } from "../ui/scroll-area";
 import MapComponent from "./mapComponent";
 import JsonRenderer from "../functions/JsonRenderer";
 import ReactDOMServer from 'react-dom/server';
-import { handleSaveText, handleSendText } from '../functions/ApiUtils';
+import { handleSaveChat, handleSendChat } from '../functions/ApiUtils';
 
 export default function AskingView({ onEditSave, editedText }: { onEditSave: (text: string) => void, editedText: string }) {
     const mapRef = useRef(null);
@@ -43,7 +43,7 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
 
     useEffect(() => {
       if (!isInitialRender.current) {
-        handleSaveText( editedText, setEditingText, setLoading, setJsonData, setMarkers, setLocalEditedText, prevEditedTextRef
+        handleSaveChat( editedText, setEditingText, setLoading, setJsonData, setMarkers, setLocalEditedText, prevEditedTextRef
         );
       } else {
         isInitialRender.current = false;
@@ -66,12 +66,12 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
     };
   
     const handleSaveTextWrapper = () => {
-      handleSaveText(localEditedText, setEditingText, setLoading, setJsonData, setMarkers, setLocalEditedText, prevEditedTextRef);
+      handleSaveChat(localEditedText, setEditingText, setLoading, setJsonData, setMarkers, setLocalEditedText, prevEditedTextRef);
     };
 
     const handleSendTextWrapper = () => {
       if (typeof inputText === 'string' && inputText.trim() !== "") {
-        handleSendText(inputText, setJsonData, setMarkers, setInputText, setLoading);
+        handleSendChat(inputText, setJsonData, setMarkers, setInputText, setLoading);
         // Set the inputText to an empty string after sending the request
         setInputText("");
       } else {
