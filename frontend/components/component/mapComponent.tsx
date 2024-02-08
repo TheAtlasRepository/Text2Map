@@ -1,6 +1,6 @@
 // MapComponent.tsx
 import React from 'react';
-import ReactMapGL, { Marker, Popup } from 'react-map-gl';
+import ReactMapGL, { Marker, Popup, Source, Layer } from 'react-map-gl';
 import Coordinate from '../functions/Coordinates';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import InfoPanel from '../component/info-panel';
@@ -12,6 +12,7 @@ type MapComponentProps = {
   mapRef: React.MutableRefObject<null>;
   selectedMarkerIndex: number | null;
   setSelectedMarkerIndex: React.Dispatch<React.SetStateAction<number | null>>;
+  geojsonData: any;
 };
 
 const MapComponent: React.FC<MapComponentProps> = ({
@@ -21,6 +22,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
   mapRef,
   selectedMarkerIndex,
   setSelectedMarkerIndex,
+  geojsonData,
 }) => {
   return (
     <ReactMapGL
@@ -31,6 +33,18 @@ const MapComponent: React.FC<MapComponentProps> = ({
       minZoom={3}
       ref={mapRef}
     >
+
+      {/* Render GeoJSON */}
+      <Source id="selectedCountries" type="geojson" data={geojsonData}>
+        <Layer
+          id="selectedCountries"
+          type="fill"
+          paint={{
+            'fill-color': '#088',
+            'fill-opacity': 0.4,
+          }}
+        />
+      </Source>
       {/* Render markers */}
       {markers.map((marker, index) => (
         <Marker
