@@ -110,17 +110,32 @@ def postSendChat(message):
     # Put all entities in a list
     entities = []
     
+    # Extract countries with their ISO codes and search for cities within each country
     for ent in pycountry.countries:
         if ent.name in doc:
             if ent.name not in entities:
                 # Get ISO code for the country
                 iso_code = ent.alpha_3
-                geocode_data = geocode(ent.name)
-                if "error" in geocode_data:
+                geocode_data_country = geocode(ent.name)
+                if "error" in geocode_data_country:
                     print(f"Skipping invalid country: {ent.name}")
                 else:
                     print(f"Found country: {ent.name}, ISO Code: {iso_code}")
-                    entities.append((("Found entities:", ent.name), ("ISO Code:", iso_code), ("Latitude:", geocode_data["latitude"]), ("Longitude:", geocode_data["longitude"])))
+                    entities.append((("Found entities:", ent.name), ("ISO Code:", iso_code), ("Latitude:", geocode_data_country["latitude"]), ("Longitude:", geocode_data_country["longitude"])))
+
+                    # Search for cities within the country
+                    for city in pycountry.subdivisions.get(country_code=ent.alpha_2):
+                        if city.name in doc:
+                            if city.name not in entities:
+                                try:
+                                    geocode_data_city = geocode(city.name + ", " + ent.name)
+                                    if "error" in geocode_data_city:
+                                        print(f"Skipping invalid city: {city.name}")
+                                    else:
+                                        print(f"Found city: {city.name}, Country: {ent.name}")
+                                        entities.append((("Found entities:", city.name), ("Country:", ent.name), ("Latitude:", geocode_data_city["latitude"]), ("Longitude:", geocode_data_city["longitude"])))
+                                except AttributeError:
+                                    print(f"Skipping invalid city: {city.name}")
     
     # Extract ISO codes of countries from the entities
     iso_codes = [ent[1][1] for ent in entities]  # Adjust the index to get the ISO code directly
