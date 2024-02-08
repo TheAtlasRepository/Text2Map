@@ -114,11 +114,6 @@
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
-"@juggle/resize-observer@^3.3.1":
-  version "3.4.0"
-  resolved "https://registry.yarnpkg.com/@juggle/resize-observer/-/resize-observer-3.4.0.tgz#08d6c5e20cf7e4cc02fd181c4b0c225cd31dbb60"
-  integrity sha512-dfLbk+PwWvFzSxwk3n5ySL0hfBog779o8h68wK/7/APo/7cgyWp5jcXockbxdk5kFRkbeXWm4Fbi9FrdN381sA==
-
 "@mapbox/geojson-rewind@^0.5.2":
   version "0.5.2"
   resolved "https://registry.npmjs.org/@mapbox/geojson-rewind/-/geojson-rewind-0.5.2.tgz"
@@ -459,18 +454,6 @@ ajv@^6.12.4:
     fast-json-stable-stringify "^2.0.0"
     json-schema-traverse "^0.4.1"
     uri-js "^4.2.2"
-
-allotment@^1.20.0:
-  version "1.20.0"
-  resolved "https://registry.yarnpkg.com/allotment/-/allotment-1.20.0.tgz#a7926f611d957577c63e8c406c83de0984b28098"
-  integrity sha512-G02sKgkSCIMpQozuuEkBHblv4aWVGrHQJuOgfCZn3YtHrvmfzS5+mu1N5eWUkpucu/JMl/0FmeCta662RtyaAw==
-  dependencies:
-    classnames "^2.3.0"
-    eventemitter3 "^5.0.0"
-    lodash.clamp "^4.0.0"
-    lodash.debounce "^4.0.0"
-    lodash.isequal "^4.5.0"
-    use-resize-observer "^9.0.0"
 
 ansi-regex@^5.0.1:
   version "5.0.1"
@@ -825,11 +808,6 @@ class-variance-authority@^0.7.0:
   integrity sha512-jFI8IQw4hczaL4ALINxqLEXQbWcNjoSkloa4IaufXCJr6QawJyw7tuRysRsrE8w2p/4gGaxKIt/hX3qz/IbD1A==
   dependencies:
     clsx "2.0.0"
-
-classnames@^2.3.0:
-  version "2.5.1"
-  resolved "https://registry.yarnpkg.com/classnames/-/classnames-2.5.1.tgz#ba774c614be0f016da105c858e7159eae8e7687b"
-  integrity sha512-saHYOzhIQs6wy2sVxTM6bUDsQO4F50V9RQ22qBpEdCW+I+/Wmke2HOl6lS6dTpdxVhb88/I6+Hs+438c3lfUow==
 
 client-only@0.0.1:
   version "0.0.1"
@@ -1354,11 +1332,6 @@ esutils@^2.0.2:
   version "2.0.3"
   resolved "https://registry.npmjs.org/esutils/-/esutils-2.0.3.tgz"
   integrity sha512-kVscqXk4OCp68SZ0dkgEKVi6/8ij300KBWTJq32P/dYeWTSwK41WyTxalN1eRmA5Z9UU/LX9D7FWSmV9SAYx6g==
-
-eventemitter3@^5.0.0:
-  version "5.0.1"
-  resolved "https://registry.yarnpkg.com/eventemitter3/-/eventemitter3-5.0.1.tgz#53f5ffd0a492ac800721bb42c66b841de96423c4"
-  integrity sha512-GWkBvjiSZK87ELrYOSESUYeVIc9mvLLf/nXalMOS5dYrgZq9o5OVkbZAVM06CVxYsCwH9BDZFPlQTlPA1j4ahA==
 
 extend-shallow@^2.0.1:
   version "2.0.1"
@@ -2214,21 +2187,6 @@ locate-path@^6.0.0:
   dependencies:
     p-locate "^5.0.0"
 
-lodash.clamp@^4.0.0:
-  version "4.0.3"
-  resolved "https://registry.yarnpkg.com/lodash.clamp/-/lodash.clamp-4.0.3.tgz#5c24bedeeeef0753560dc2b4cb4671f90a6ddfaa"
-  integrity sha512-HvzRFWjtcguTW7yd8NJBshuNaCa8aqNFtnswdT7f/cMd/1YKy5Zzoq4W/Oxvnx9l7aeY258uSdDfM793+eLsVg==
-
-lodash.debounce@^4.0.0:
-  version "4.0.8"
-  resolved "https://registry.yarnpkg.com/lodash.debounce/-/lodash.debounce-4.0.8.tgz#82d79bff30a67c4005ffd5e2515300ad9ca4d7af"
-  integrity sha512-FT1yDzDYEoYWhnSGnpE/4Kj1fLZkDFyqRb7fNt6FdYOSxlUWAtp42Eh6Wb0rGIv/m9Bgo7x4GhQbm5Ys4SG5ow==
-
-lodash.isequal@^4.5.0:
-  version "4.5.0"
-  resolved "https://registry.yarnpkg.com/lodash.isequal/-/lodash.isequal-4.5.0.tgz#415c4478f2bcc30120c22ce10ed3226f7d3e18e0"
-  integrity sha512-pDo3lu8Jhfjqls6GkMgpahsF9kCyayhgykjyLMNFTKWrpVdAQtYyB4muAMWozBB4ig/dtWAmsMxLEI8wuz+DYQ==
-
 lodash.merge@^4.6.2:
   version "4.6.2"
   resolved "https://registry.npmjs.org/lodash.merge/-/lodash.merge-4.6.2.tgz"
@@ -2763,14 +2721,19 @@ micromatch@^4.0.4, micromatch@^4.0.5:
     braces "^3.0.2"
     picomatch "^2.3.1"
 
-minimatch@^3.0.4, minimatch@^3.0.5, minimatch@^3.1.1, minimatch@^3.1.2:
-  version "3.1.2"
-  resolved "https://registry.npmjs.org/minimatch/-/minimatch-3.1.2.tgz"
-  integrity sha512-J7p63hRiAjw1NDEww1W7i37+ByIrOWO5XQQAzZ3VOcL0PNybwpfmV/N05zFAzwQ9USyEcX6t3UO+K5aqBQOIHw==
-  dependencies:
-    brace-expansion "^1.1.7"
+mime-db@1.52.0:
+  version "1.52.0"
+  resolved "https://registry.yarnpkg.com/mime-db/-/mime-db-1.52.0.tgz#bbabcdc02859f4987301c856e3387ce5ec43bf70"
+  integrity sha512-sPU4uV7dYlvtWJxwwxHD0PuihVNiE7TyAbQ5SWxDCB9mUYvOgroQOwYQQOKPJ8CIbE+1ETVlOoK1UC2nU3gYvg==
 
-minimatch@^9.0.1:
+mime-types@^2.1.12:
+  version "2.1.35"
+  resolved "https://registry.yarnpkg.com/mime-types/-/mime-types-2.1.35.tgz#381a871b62a734450660ae3deee44813f70d959a"
+  integrity sha512-ZDY+bPm5zTTF+YpCrAU9nK0UgICYPT0QtT1NZWFv4s++TNkcgVaT0g6+4R2uI4MjQjzysHB1zxuWL50hzaeXiw==
+  dependencies:
+    mime-db "1.52.0"
+
+minimatch@9.0.3, minimatch@^9.0.1:
   version "9.0.3"
   resolved "https://registry.npmjs.org/minimatch/-/minimatch-9.0.3.tgz"
   integrity sha512-RHiac9mvaRw0x3AYRgDC1CxAP7HTcNrrECeA8YYJeWnpo+2Q5CegtZjaotWTWxDG3UeGA1coE05iH1mPjT/2mg==
@@ -3211,7 +3174,7 @@ react-markdown@^9.0.1:
     unist-util-visit "^5.0.0"
     vfile "^6.0.0"
 
-"react@^16.5.1 || ^17.0.0 || ^18.0.0", "react@^16.8 || ^17.0 || ^18.0", "react@^16.x || ^17.x || ^18.x", react@^18, react@^18.2.0, "react@>= 16.8.0 || 17.x.x || ^18.0.0-0", react@>=16.3.0, react@>=18:
+react@^18:
   version "18.2.0"
   resolved "https://registry.npmjs.org/react/-/react-18.2.0.tgz"
   integrity sha512-/3IjMdb2L9QbBdWiW5e3P2/npwMBaU9mHCSCUzNln0ZCYbcfTsGbTJrU/kGemdH2IWmB2ioZ+zkxtmq6g09fGQ==
@@ -3510,16 +3473,7 @@ streamsearch@^1.1.0:
   resolved "https://registry.npmjs.org/streamsearch/-/streamsearch-1.1.0.tgz"
   integrity sha512-Mcc5wHehp9aXz1ax6bZUyY5afg9u2rv5cqQI3mRrYkGC8rW2hM02jWuwjtL++LS5qinSyhj2QfLyNsuc+VsExg==
 
-"string-width-cjs@npm:string-width@^4.2.0":
-  version "4.2.3"
-  resolved "https://registry.npmjs.org/string-width/-/string-width-4.2.3.tgz"
-  integrity sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==
-  dependencies:
-    emoji-regex "^8.0.0"
-    is-fullwidth-code-point "^3.0.0"
-    strip-ansi "^6.0.1"
-
-string-width@^4.1.0:
+"string-width-cjs@npm:string-width@^4.2.0", string-width@^4.1.0:
   version "4.2.3"
   resolved "https://registry.npmjs.org/string-width/-/string-width-4.2.3.tgz"
   integrity sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==
@@ -3934,13 +3888,6 @@ uri-js@^4.2.2:
   integrity sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==
   dependencies:
     punycode "^2.1.0"
-
-use-resize-observer@^9.0.0:
-  version "9.1.0"
-  resolved "https://registry.yarnpkg.com/use-resize-observer/-/use-resize-observer-9.1.0.tgz#14735235cf3268569c1ea468f8a90c5789fc5c6c"
-  integrity sha512-R25VqO9Wb3asSD4eqtcxk8sJalvIOYBqS8MNZlpDSQ4l4xMQxC/J7Id9HoTqPq8FwULIn0PVW+OAqF2dyYbjow==
-  dependencies:
-    "@juggle/resize-observer" "^3.3.1"
 
 util-deprecate@^1.0.2:
   version "1.0.2"
