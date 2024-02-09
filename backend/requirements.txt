@@ -5,6 +5,8 @@ Geocoder
 openai
 spacy
 pexels-api
+pycountry
+shapely
 uvicorn[standard]
 
 ###### Requirements with Version Specifiers ######
