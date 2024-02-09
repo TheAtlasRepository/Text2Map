@@ -56,7 +56,8 @@ export default function StartDataSource() {
 
     const handleExampleText = () => {
         console.log('Example text was pressed! Send something.');
-        let text = 'Where can i find London?';
+        // let text = 'Where can i find London?';
+        let text = "Bananas are grown in many tropical regions around the world. Major banana-producing countries include India.";
         setInputText(text);
         handlePostText(text);
     }
@@ -283,6 +284,7 @@ export default function StartDataSource() {
                                     mapRef={mapRef}
                                     selectedMarkerIndex={selectedMarkerIndex}
                                     setSelectedMarkerIndex={setSelectedMarkerIndex}
+                                    geojsonData={jsonData?.selected_countries_geojson_path}
                                 />
                             </div>
                         </main>

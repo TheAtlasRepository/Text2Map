@@ -30,7 +30,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
       mapStyle="mapbox://styles/mapbox/standard"
       initialViewState={initialViewState}
       maxZoom={20}
-      minZoom={3}
+      minZoom={2}
       ref={mapRef}
     >
 
