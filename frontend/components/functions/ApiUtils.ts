@@ -23,45 +23,67 @@ export const handleDataFetching = async (
 
     console.log('JSON data from the backend:', data);
 
-    // Extract entities and filter out unnecessary strings
-    const filteredEntities = data.entities
-      .map((entry: any) => entry.filter((item: any) => Array.isArray(item) && item.length === 2))
-      .flat();
+    // If a GeoJSON path is provided, fetch the GeoJSON data
+    if (data.selected_countries_geojson_path) {
+      const geoJsonData = data.selected_countries_geojson_path;
 
-    console.log('Filtered Entities:', filteredEntities);
+      // Now you have the GeoJSON data
+      console.log('GeoJSON data:', geoJsonData);
 
-    const coordinates: Coordinate[] = extractCoordinates(filteredEntities);
-    console.log('Extracted Coordinates:', coordinates);
+      // Extract entities and filter out unnecessary strings
+      const filteredEntities = data.entities
+        .map((entry: any) => entry.filter((item: any) => Array.isArray(item) && item.length === 2))
+        .flat();
 
-    // place the markers on the map
-    const coordinatesArray = coordinates.map((coordinate) => [coordinate.longitude, coordinate.latitude]);
-    console.log('Coordinates Array:', coordinatesArray);
+      console.log('Filtered Entities:', filteredEntities);
 
-    // Calculate the center coordinates
-    const centerCoordinates = coordinatesArray.reduce(
-      (accumulator, currentValue) => [accumulator[0] + currentValue[0], accumulator[1] + currentValue[1]],
-      [0, 0]
-    );
-    console.log('Center Coordinates:', centerCoordinates);
+      const coordinates: Coordinate[] = extractCoordinates(filteredEntities);
+      console.log('Extracted Coordinates:', coordinates);
+
+      // place the markers on the map
+      const coordinatesArray = coordinates.map((coordinate) => [coordinate.longitude, coordinate.latitude]);
+      console.log('Coordinates Array:', coordinatesArray);
+
+      // Calculate the center coordinates
+      const centerCoordinates = coordinatesArray.reduce(
+        (accumulator, currentValue) => [accumulator[0] + currentValue[0], accumulator[1] + currentValue[1]],
+        [0, 0]
+      );
+      console.log('Center Coordinates:', centerCoordinates);
+
+      // Proceed with the rest of your logic, e.g., extracting coordinates, setting markers, etc.
 
     setJsonData(data);
     setMarkers(coordinates as { latitude: number; longitude: number; type: string }[]);
-
-    if (additionalLogic) {
-      additionalLogic(data);
-    }
-
-    setLoading(false);
-  } catch (error) {
-    console.error('Error fetching JSON data:', error);
 
     if (setLocalEditedText) {
       setLocalEditedText(payload.editedText);
     }
 
-    setLoading(false);
-  }
-};
+      if (additionalLogic) {
+        additionalLogic(data);
+      }
+
+      setLoading(false);
+    } else {
+      // Handle the case where no GeoJSON path is provided in the backend response
+      console.error('No GeoJSON path provided in the backend response.');
+
+      // Set loading to false
+      setLoading(false);
+    }
+
+   } 
+   catch (error) {
+      console.error('Error fetching JSON data:', error);
+
+      if (setLocalEditedText) {
+        setLocalEditedText(payload.editedText);
+      }
+
+      setLoading(false);
+    }
+  };
 
 export const handleSaveChat = async (
     localEditedText: string,
