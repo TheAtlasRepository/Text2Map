@@ -4,6 +4,7 @@ import AskingView from "./askingView";
 
 const initialState = { asking: false, editedText: '', textareaValue: '' };
 
+// Define the reducer function
 function reducer(state: any, action: any) {
   switch (action.type) {
     case 'SET_TEXTAREA_VALUE':
@@ -15,18 +16,22 @@ function reducer(state: any, action: any) {
   }
 }
 
+// Define the StartChatGPt component
 export default function StartChatGPt() {
   const [state, dispatch] = useReducer(reducer, initialState); // Use the useReducer hook
 
+  // Handler for the onEditSave prop
   const handleEditSave = (text: string) => {
     console.log('handleEditSave called. text:', text);
     dispatch({ type: 'ASK', value: text }); // Update editedText using dispatch
   };
   
+  // Handler for the textarea change event
   const handleTextareaChange = (e: any) => {
     dispatch({ type: 'SET_TEXTAREA_VALUE', value: e.target.value });
   };
 
+  // Handler for the Ask button click event
   const handleAskButtonClick = () => {
     if (state.textareaValue.trim() !== "") {
       dispatch({ type: 'ASK', value: state.textareaValue });
@@ -36,6 +41,7 @@ export default function StartChatGPt() {
     return (
         <div>
             {state.asking ? (
+                // Pass the handleEditSave function as the onEditSave prop
                 <AskingView onEditSave={handleEditSave} editedText={state.editedText} />
             ) : (
                 <>

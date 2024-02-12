@@ -31,6 +31,7 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
       return jsonData ? ReactDOMServer.renderToStaticMarkup(<JsonRenderer jsonData={jsonData} />) : null;
     };
 
+    // TODO: Set the initial view state when centerCoordinates change 
     useEffect(() => {
       if (centerCoordinates) {
         setInitialViewState({
@@ -41,6 +42,7 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
       }
     }, [centerCoordinates]);
 
+    // Save the text to the backend
     useEffect(() => {
       if (!isInitialRender.current) {
         handleSaveText( editedText, setEditingText, setLoading, setJsonData, setMarkers, setLocalEditedText, prevEditedTextRef
@@ -49,7 +51,7 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
         isInitialRender.current = false;
       }
     }, [editedText]);
-
+    
     useEffect(() => {
       // Update the initial view state when centerCoordinates change
       if (centerCoordinates) {
@@ -61,14 +63,17 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
       }
     }, [centerCoordinates]);
 
+    // Handle the case where the user clicks the "Edit & add text" button
     const handleEditClick = () => {
       setEditingText(true);
     };
-  
+    
+    // Save the text to the backend
     const handleSaveTextWrapper = () => {
       handleSaveText(localEditedText, setEditingText, setLoading, setJsonData, setMarkers, setLocalEditedText, prevEditedTextRef);
     };
 
+    // Send the text to the backend
     const handleSendTextWrapper = () => {
       if (typeof inputText === 'string' && inputText.trim() !== "") {
         handleSendText(inputText, setJsonData, setMarkers, setInputText, setLoading);

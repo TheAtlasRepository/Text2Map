@@ -4,21 +4,50 @@ from shapely.geometry import shape, mapping
 from shapely.ops import unary_union
 import pycountry
 import geocoder 
-import json
-import os
+import requests
 
 router = APIRouter()
 
 client = OpenAI()
 
 chat_history = []
+    
+# Function to fetch country geometry by ISO code from GeoBoundaries API
+def get_country_geometry_online(iso_code, adm_level, release_type="gbOpen"):
+    try:
+        # Construct the GeoBoundaries API endpoint URL
+        url = f"https://www.geoboundaries.org/api/current/{release_type}/{iso_code}/{adm_level}/"
 
-# Get the absolute path to the GeoJSON file with country borders
-geojson_file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'jsonFiles', 'countries.geojson'))
+        # Make a GET request to the API
+        response = requests.get(url)
+        data = response.json()
 
-# Load GeoJSON file with country borders
-with open(geojson_file_path) as geojson_file:
-    countries_geojson = json.load(geojson_file)
+        # Check if the request was successful
+        if response.status_code == 200:
+            # Check if the 'gjDownloadURL' key is present in the response
+            if 'gjDownloadURL' in data:
+                # Fetch GeoJSON data from the provided URL
+                geojson_url = data['gjDownloadURL']
+                geojson_response = requests.get(geojson_url)
+                
+                # Check if the GeoJSON request was successful
+                if geojson_response.status_code == 200:
+                    # Extract the geometry from the GeoJSON response
+                    geometry = shape(geojson_response.json()['features'][0]['geometry'])
+                    return geometry
+                else:
+                    print(f"Failed to fetch GeoJSON. Status code: {geojson_response.status_code}")
+                    return None
+            else:
+                print(f"Error: 'gjDownloadURL' key not found in the response.")
+                return None
+        else:
+            # Print an error message if the request was not successful
+            print(f"Failed to fetch country geometry. Status code: {response.status_code}")
+            return None
+    except Exception as e:
+        print(f"Error fetching country geometry: {e}")
+        return None
 
 def geocode(address):
     """Geocode an address string to lat/long and bounding box"""
@@ -42,14 +71,74 @@ def geocode(address):
         print(f"Error: {e}")
         return {"latitude": None, "longitude": None, "bbox": None}
     
+# Function to fetch country geometry by ISO code from GeoBoundaries API
 def get_country_geometry(iso_code):
-    for feature in countries_geojson['features']:
-        geo_iso_code = feature['properties']['ISO_A3'].strip().upper()  # Handle case sensitivity and whitespace
-        if geo_iso_code == iso_code:
-            print(f"Found geometry for ISO code {iso_code}")
-            return shape(feature['geometry'])
-    print(f"Geometry not found for ISO code {iso_code}")
-    return None
+    return get_country_geometry_online(iso_code, adm_level="ADM0")
+
+
+# Function to get ISO code for a country
+def get_country_iso_code(country_name):
+    try:
+        country = pycountry.countries.get(name=country_name)
+        if country:
+            return country.alpha_3
+        else:
+            print(f"ISO code not found for country: {country_name}")
+            return None
+    except Exception as e:
+        print(f"Error getting ISO code for country: {e}")
+        return None
+
+# Function to fetch state geometry by ISO code from GeoBoundaries API
+def get_state_geometry(iso_code):
+    return get_country_geometry_online(iso_code, adm_level="ADM1")
+
+# Function to get ISO code for a state within a country
+def get_state_iso_code(state_name, country_iso_code):
+    try:
+        # Use the pycountry library to get the subdivisions of the specified country
+        subdivisions = pycountry.subdivisions.get(country_code=country_iso_code)
+
+        # Iterate through subdivisions to find the ISO code for the given state name
+        for subdivision in subdivisions:
+            if subdivision.name == state_name:
+                return subdivision.code
+        print(f"ISO code not found for state: {state_name}, country: {country_iso_code}")
+        return None
+    except Exception as e:
+        print(f"Error getting ISO code for state: {e}")
+        return None
+
+# Function to fetch city geometry by ISO code from GeoBoundaries API
+def get_city_geometry(iso_code):
+    return get_country_geometry_online(iso_code, adm_level="ADM2")
+
+# Function to get ISO code for a city within a state within a country
+def get_city_iso_code(city_name, country_iso_code):
+    try:
+        # Construct the GeoBoundaries API endpoint URL for cities
+        url = f"https://www.geoboundaries.org/api/current/gbOpen/{country_iso_code}/ADM2/"
+
+        # Make a GET request to the API
+        response = requests.get(url)
+        data = response.json()
+
+        # Check if the request was successful
+        if response.status_code == 200:
+            # Check if the city name is present in the response
+            for feature in data.get('features', []):
+                if city_name.lower() in feature.get('properties', {}).get('boundaryName', '').lower():
+                    return feature.get('properties', {}).get('boundaryISO', None)
+            
+            print(f"City not found in GeoBoundaries data: {city_name}")
+            return None
+        else:
+            # Print an error message if the request was not successful
+            print(f"Failed to fetch city ISO code. Status code: {response.status_code}")
+            return None
+    except Exception as e:
+        print(f"Error fetching city ISO code: {e}")
+        return None
 
 @router.post("/resetchat", response_model=dict)
 def postResetChat(message: str):
@@ -123,19 +212,8 @@ def postSendChat(message):
                     print(f"Found country: {ent.name}, ISO Code: {iso_code}")
                     entities.append((("Found entities:", ent.name), ("ISO Code:", iso_code), ("Latitude:", geocode_data_country["latitude"]), ("Longitude:", geocode_data_country["longitude"])))
 
-                    # Search for cities within the country
-                    for city in pycountry.subdivisions.get(country_code=ent.alpha_2):
-                        if city.name in doc:
-                            if city.name not in entities:
-                                try:
-                                    geocode_data_city = geocode(city.name + ", " + ent.name)
-                                    if "error" in geocode_data_city:
-                                        print(f"Skipping invalid city: {city.name}")
-                                    else:
-                                        print(f"Found city: {city.name}, Country: {ent.name}")
-                                        entities.append((("Found entities:", city.name), ("Country:", ent.name), ("Latitude:", geocode_data_city["latitude"]), ("Longitude:", geocode_data_city["longitude"])))
-                                except AttributeError:
-                                    print(f"Skipping invalid city: {city.name}")
+                    # Search for states inside countries
+                    
     
     # Extract ISO codes of countries from the entities
     iso_codes = [ent[1][1] for ent in entities]  # Adjust the index to get the ISO code directly
