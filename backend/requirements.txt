@@ -4,6 +4,7 @@ mapbox
 Geocoder
 openai
 spacy
+aiohttp
 pexels-api
 uvicorn[standard]
 
