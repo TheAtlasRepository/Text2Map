@@ -53,40 +53,40 @@ async def get_geometry_online(iso_code: str, adm_level: str, release_type: str =
             async with session.get(url) as response:
                 data = await response.json()
 
-                # Check if the request was successful
-                if response.status ==  200 and 'gjDownloadURL' in data:
-                    geojson_url = data['gjDownloadURL']
-                    geojson_data = await fetch_geojson(session, geojson_url)
+            # Check if the request was successful
+            if response.status ==  200 and 'gjDownloadURL' in data:
+                geojson_url = data['gjDownloadURL']
+                geojson_data = await fetch_geojson(session, geojson_url)
 
-                    # Check if the GeoJSON request was successful
-                    if geojson_data and 'features' in geojson_data:
-                        geometry = shape(geojson_data['features'][0]['geometry'])
-                        # Cache the geometry for future use
-                        geometry_cache[iso_code] = geometry
-                        return geometry
-                else:
-                    print(f"Failed to fetch country geometry. Status code: {response.status}")
-                    return None
+                # Check if the GeoJSON request was successful
+                if geojson_data and 'features' in geojson_data:
+                    geometry = shape(geojson_data['features'][0]['geometry'])
+                    # Cache the geometry for future use
+                    geometry_cache[iso_code] = geometry
+                    return geometry
+            else:
+                print(f"Failed to fetch geometry. Status code: {response.status}")
+                return None
     except Exception as e:
-        print(f"Error fetching country geometry: {e}")
+        print(f"Error fetching geometry: {e}")
         return None
 
-# Function to geocode an address using the ArcGIS API
+# Function to geocode an address using the openstreetmap API
 async def geocode(address, iso_code):
     try:
         async with aiohttp.ClientSession() as session:
-            async with session.get(f"https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?f=json&singleLine={address}") as response:
+            async with session.get(f"https://nominatim.openstreetmap.org/search?format=json&q={address}") as response:
                 data = await response.json()
 
-                if 'candidates' in data and data['candidates']:
-                    location = data['candidates'][0]['location']
-                    return {"latitude": location['y'], "longitude": location['x'], "iso_code": iso_code}
+                if data:
+                    location = data[0]['lat'], data[0]['lon']
+                    return {"latitude": location[0], "longitude": location[1], "address": data[0]['display_name'], "iso_code": iso_code}
                 else:
                     print(f"Geocoding failed for address: {address}")
                     return {"error": "Geocoding failed"}
     except Exception as e:
         print(f"Error: {e}")
-        return {"latitude": None, "longitude": None, "iso_code": iso_code, "error": "Geocoding failed"}
+        return {"latitude": None, "longitude": None, "address": None, "error": "Geocoding failed"}
 
     
 # Function to fetch country geometry by ISO code from GeoBoundaries API
@@ -177,7 +177,7 @@ async def postSendChat(message):
     results = await asyncio.gather(*tasks)
 
     # Process the results
-    for i in range(0, len(results),   2):
+    for i in range(0, len(results),  2):
         geocode_result = results[i]
         geometry_result = results[i+1]
         if "error" not in geocode_result and geometry_result:
