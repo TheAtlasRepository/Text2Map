@@ -38,8 +38,8 @@ def create_chat_completion(model, messages, temperature, max_tokens, top_p, freq
 
     return client.chat.completions.create(**prompt)
     
-# Function to fetch country geometry by ISO code from GeoBoundaries API
-async def get_country_geometry_online(iso_code: str, adm_level: str = "ADM0", release_type: str = "gbOpen") -> shape:
+# Function to fetch geometry by ISO code from GeoBoundaries API
+async def get_geometry_online(iso_code: str, adm_level: str, release_type: str = "gbOpen") -> shape:
     # Check if the geometry is already cached
     if iso_code in geometry_cache:
         return geometry_cache[iso_code]
@@ -71,6 +71,7 @@ async def get_country_geometry_online(iso_code: str, adm_level: str = "ADM0", re
         print(f"Error fetching country geometry: {e}")
         return None
 
+# Function to geocode an address using the ArcGIS API
 async def geocode(address, iso_code):
     try:
         async with aiohttp.ClientSession() as session:
@@ -89,8 +90,8 @@ async def geocode(address, iso_code):
 
     
 # Function to fetch country geometry by ISO code from GeoBoundaries API
-async def get_country_geometry(iso_code):
-    geometry = await get_country_geometry_online(iso_code, adm_level="ADM0")
+async def get_geometry(iso_code, adm_level):
+    geometry = await get_geometry_online(iso_code, adm_level)
     return geometry
 
 
@@ -171,7 +172,7 @@ async def postSendChat(message):
         if ent.name in doc:
             iso_code = ent.alpha_3
             tasks.append(geocode(ent.name, iso_code))
-            tasks.append(get_country_geometry(iso_code))
+            tasks.append(get_geometry(iso_code, "ADM0"))
 
     results = await asyncio.gather(*tasks)
 
