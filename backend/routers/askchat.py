@@ -126,6 +126,12 @@ async def postSendChat(message):
 
     if not messages or (messages[-1]["role"] == "user" and messages[-1]["content"] != message):
         messages.append({"role": "user", "content": message})
+        
+    # Add a system message to prompt the assistant to mention city, state, and country
+    messages.append({"role": "system", "content": "Please mention the city, state, and countrys ISO3 ocde like this (city, state, country ISO3 Code) for all places mentioned."})
+    
+    # Add a system message to prompt the assistant to talk a bit about the places mentioned
+    messages.append({"role": "system", "content": "Can you tell me a bit about the places you mentioned?"})
 
     messages_for_openai = [
         {"role": msg["role"], "content": msg["content"]} for msg in messages
@@ -224,5 +230,11 @@ async def postSendChat(message):
     # Clear geometry_cache for entries not used recently
     geometry_cache = {iso_code: geometry for iso_code, geometry in geometry_cache.items() if iso_code in iso_codes}
 
-    return {"entities": entities, "chat_history": chat_history,
+    # Filter out system messages from the response
+    filtered_messages = [msg for msg in messages if msg["role"] != "system"]
+    
+    # filter out the first user message from the response
+    filtered_messages = filtered_messages[1:]
+
+    return {"entities": entities, "chat_history": filtered_messages,
             "selected_countries_geojson_path": new_geojson}
