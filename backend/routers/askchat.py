@@ -3,7 +3,7 @@ from openai import OpenAI
 from shapely.geometry import shape, mapping
 from shapely.ops import unary_union
 import pycountry
-import spacy
+import random
 import aiohttp
 from aiohttp import ClientSession
 import asyncio
@@ -13,11 +13,6 @@ router = APIRouter()
 client = OpenAI()
 
 chat_history = []
-
-# Download the spaCy English language model
-
-# Load the spaCy English language model
-nlp = spacy.load("en_core_web_trf")
 
 # Define a cache to store previously fetched geometries
 geometry_cache = {}
@@ -77,37 +72,26 @@ async def get_geometry_online(iso_code: str, adm_level: str, release_type: str =
         return None
 
 # Function to geocode an address using the openstreetmap API
-async def geocode(address, iso_code, subdivision_name=None):
+async def geocode(address, iso_code):
     try:
         async with aiohttp.ClientSession() as session:
-            if subdivision_name:
-                async with session.get(f"https://nominatim.openstreetmap.org/search?format=json&q={address}") as response:
-                    data = await response.json()
+            async with session.get(f"https://nominatim.openstreetmap.org/search?format=json&q={address}") as response:
+                data = await response.json()
 
-                    if data:
-                        location = data[0]['lat'], data[0]['lon']
-                        return {"latitude": location[0], "longitude": location[1], "address": data[0]['display_name'], "iso_code": iso_code}
-                    else:
-                        print(f"Geocoding failed for address: {address}")
-                        return {"error": "Geocoding failed"}
-            else:
-                async with session.get(f"https://nominatim.openstreetmap.org/search?format=json&q={address}, {iso_code}") as response:
-                    data = await response.json()
-
-                    if data:
-                        location = data[0]['lat'], data[0]['lon']
-                        return {"latitude": location[0], "longitude": location[1], "address": data[0]['display_name'], "iso_code": iso_code}
-                    else:
-                        print(f"Geocoding failed for address: {address}")
-                        return {"error": "Geocoding failed"}
+                if data:
+                    location = data[0]['lat'], data[0]['lon']
+                    return {"latitude": location[0], "longitude": location[1], "address": data[0]['display_name'], "iso_code": iso_code}
+                else:
+                    print(f"Geocoding failed for address: {address}")
+                    return {"error": "Geocoding failed"}
     except Exception as e:
         print(f"Error: {e}")
         return {"latitude": None, "longitude": None, "address": None, "error": "Geocoding failed"}
 
     
 # Function to fetch country geometry by ISO code from GeoBoundaries API
-async def get_geometry(iso_code, adm_level, subdivision_name=None):
-    geometry = await get_geometry_online(iso_code, adm_level, subdivision_name)
+async def get_geometry(iso_code, adm_level):
+    geometry = await get_geometry_online(iso_code, adm_level)
     return geometry
 
 
@@ -118,12 +102,8 @@ def get_country_iso_code(country_name):
         if country:
             return country.alpha_3
         else:
-            subdivision = pycountry.subdivisions.get(name=country_name)
-            if subdivision:
-                return subdivision.country.alpha_3
-            else:
-                print(f"ISO code not found for entity: {country_name}")
-                return None
+            print(f"ISO code not found for country: {country_name}")
+            return None
     except Exception as e:
         print(f"Error getting ISO code for country: {e}")
         return None
@@ -177,59 +157,54 @@ async def postSendChat(message):
     print("Received response: " + assistant_response)
 
     doc = ' '.join([msg["content"] for msg in messages])
-    
-    # Create a dictionary mapping country names to ISO codes
-    iso_to_country = {country.name: country.alpha_3 for country in pycountry.countries}
 
-    # Process the document with spaCy
-    doc = nlp(doc)
+    entities = []
 
-    # Extract named entities
-    entities = [(ent.text, ent.label_) for ent in doc.ents]
-
-    # Filter entities to get only country, state, and city names
-    country_names = [ent[0] for ent in entities if ent[1] == 'GPE' and ent[0] in iso_to_country]
-    state_names = [ent[0] for ent in entities if ent[1] == 'GPE' and ent[0] in pycountry.subdivisions]
-    city_names = [ent[0] for ent in entities if ent[1] == 'GPE' and ent[0] not in iso_to_country and ent[0] not in pycountry.subdivisions]
-
-    # Initialize lists to store geometries
+    # Initialize country_geometries as an empty list
     country_geometries = []
-    state_geometries = []
-    city_geometries = []
 
-    # Fetch geometries for countries
-    for country_name in country_names:
-        iso_code = get_country_iso_code(country_name)
-        if iso_code:
-            country_geometry = await get_geometry(iso_code, "ADM0")
-            if country_geometry:
-                country_geometries.append(country_geometry)
+    # Create a dictionary to map ISO codes to country names
+    iso_to_country = {ent.alpha_3: ent.name for ent in pycountry.countries}
 
-    # Fetch geometries for states
-    for state_name in state_names:
-        # You need to determine the ISO code and the subdivision level for states
-        # This may require additional logic or data sources
-        state_geometry = await get_geometry(iso_code, "ADM1", state_name)
-        if state_geometry:
-            state_geometries.append(state_geometry)
+    # Run geocoding and geometry fetching concurrently
+    tasks = []
+    for ent in pycountry.countries:
+        if ent.name in doc:
+            iso_code = ent.alpha_3
+            tasks.append(geocode(ent.name, iso_code))
+            tasks.append(get_geometry(iso_code, "ADM0"))
 
-    # Fetch geometries for cities
-    for city_name in city_names:
-        # Fetching geometries for cities can be more complex due to the large number of cities
-        # You may need to use a different API or data source that provides city boundaries
-        # This may also require additional logic to match city names to the correct boundaries
-        city_geometry = await get_geometry(iso_code, "ADM2", city_name)
-        if city_geometry:
-            city_geometries.append(city_geometry)
+    results = await asyncio.gather(*tasks)
 
-    # Combine all geometries into a single GeoJSON feature collection
+    # Process the results
+    for i in range(0, len(results),  2):
+        geocode_result = results[i]
+        geometry_result = results[i+1]
+        if "error" not in geocode_result and geometry_result:
+            # Get the current entity name using the ISO code
+            current_entity_name = iso_to_country.get(geocode_result['iso_code'])
+            if current_entity_name:
+                print(f"Found country: {current_entity_name}, ISO Code: {geocode_result['iso_code']}")
+                entities.append((
+                    ("Found entities:", current_entity_name),
+                    ("ISO Code:", geocode_result['iso_code']),
+                    ("Latitude:", geocode_result["latitude"]),
+                    ("Longitude:", geocode_result["longitude"])
+                ))
+                country_geometries.append(geometry_result)
+
+    iso_codes = [ent[1][1] for ent in entities]
+
+    country_geometries = [shape(geo) for geo in country_geometries]
+
+    # Ensure that the geometry objects are valid before mapping also set a color for each country
     features = []
-    for geometry in country_geometries + state_geometries + city_geometries:
+    for i, geometry in enumerate(country_geometries):
         if geometry.is_valid:
             feature = {
                 "type": "Feature",
                 "properties": {
-                    "name": geometry.name,  # You may need to adjust this to get the correct name
+                    "iso_code": iso_codes[i],
                     "style": {
                         "fillColor": "#000000",
                         "strokeColor": "#000000",  # Black outline
@@ -245,7 +220,7 @@ async def postSendChat(message):
         "type": "FeatureCollection",
         "features": features
     }
-
+    
     # Clear geometry_cache for entries not used recently
     geometry_cache = {iso_code: geometry for iso_code, geometry in geometry_cache.items() if iso_code in iso_codes}
 
