@@ -128,7 +128,7 @@ async def postSendChat(message):
         messages.append({"role": "user", "content": message})
         
     # Add a system message to prompt the assistant to mention city, state, and country
-    messages.append({"role": "system", "content": "Please mention the city, state, and countrys ISO3 ocde like this (city, state, country ISO3 Code) for all places mentioned."})
+    messages.append({"role": "system", "content": "Please mention the city, state, and countrys ISO3 code like this (city, state, country ISO3 Code) for all places mentioned."})
     
     # Add a system message to prompt the assistant to talk a bit about the places mentioned
     messages.append({"role": "system", "content": "Can you tell me a bit about the places you mentioned?"})
