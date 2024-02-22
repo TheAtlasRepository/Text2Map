@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { handleSaveChat, handleSendTextInput } from '../functions/ApiUtils';
 import { ScrollArea } from "../ui/scroll-area";
 import { Input } from "../ui/input";
-import { Toolbar } from "./toolbar";
+import { Toolbar } from "../ui/toolbar";
 import MapComponent from "./mapComponent";
 
 

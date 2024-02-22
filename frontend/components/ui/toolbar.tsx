@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import { useRouter } from 'next/navigation';
-import { Button } from "../ui/button";
+import { Button } from "./button";
 
 
 /**
@@ -16,7 +16,7 @@ import { Button } from "../ui/button";
  * @returns Toolbar
  */
 
-export function Toolbar(props: any) {
+const Toolbar = (props: any) => {
     const router = useRouter();
 
     //console.log(props);
@@ -44,3 +44,5 @@ export function Toolbar(props: any) {
         </header>
     );
 }
+
+export {Toolbar}

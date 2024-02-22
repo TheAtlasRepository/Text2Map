@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useReducer } from "react"; // Import the useReducer hook
 import AskingView from "./askingView";
-import { Toolbar } from "./toolbar";
+import { Toolbar } from "../ui/toolbar";
 
 const initialState = { asking: false, editedText: '', textareaValue: '' };
 
