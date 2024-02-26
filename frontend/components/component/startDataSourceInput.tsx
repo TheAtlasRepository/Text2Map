@@ -4,7 +4,7 @@ import { useReducer, useState, useRef, useEffect } from "react";
 import { useRouter } from 'next/navigation';
 import { handleSaveChat, handleSendTextInput } from '../functions/ApiUtils';
 import { ScrollArea } from "../ui/scroll-area";
-import { Input } from "../ui/input";
+import { ArrowLongIcon, ChevronArrowIcon, FatArrowIcon, UploadIcon } from "../ui/icons";
 import MapComponent from "./mapComponent";
 
 
@@ -107,7 +107,10 @@ export default function StartDataSource() {
                 <div>
                     <header className="flex items-center justify-between p-2 px-4 border-b">
                         <div className="flex items-center space-x-4">
-                            <Button variant="ghost" onClick={() => router.push("/")}>⬅ Back</Button>
+                            <Button variant="ghost" onClick={() => router.push("/")}>
+                            <div className="flex items-center space-x-2">
+                                <ChevronArrowIcon className="inline-flex h-4 w-4" left={true}/>Back
+                                </div></Button>
                         </div>
                     </header>
 
@@ -210,7 +213,7 @@ export default function StartDataSource() {
                         <div className="flex">
                             <Button variant="fancy_blue"
                                 onClick={handleExampleText}>
-                                <div className="px-4" >💡 Try an existing text ➡</div>
+                                <div className="px-4" >💡 Try an existing text <ArrowLongIcon/></div>
                             </Button>
                         </div>
                     </div>
@@ -293,20 +296,4 @@ export default function StartDataSource() {
             )}
         </div>
     );
-}
-
-function UploadIcon(props: any) {
-    return (
-        <svg
-            {...props}
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 20 16"
-            aria-hidden="true"
-            fill="none"
-        >
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2" />
-        </svg>
-    )
 }
