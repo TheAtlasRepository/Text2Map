@@ -33,14 +33,46 @@ const DownloadIcon = (props: any) => {
 }
 
 const ChevronArrowIcon = (props: any) => {
+    if (props.left == true) {
+        return (
+            <svg
+                {...props}
+                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+            </svg>
+        )
+    } else {
+        return (
+            <svg
+                {...props}
+                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/>
+            </svg>
+        )
+    }
+}
+
+const FatArrowIcon = (props: any) => {
     return (
         <svg
-            {...props} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-            <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+            {...props}
+            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 inline-flex">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+        </svg>
+    )
+}
+
+const ArrowLongIcon = (props: any) => {
+    return (
+        <svg
+            {...props}
+            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 inline-flex">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25 21 12m0 0-3.75 3.75M21 12H3" />
         </svg>
 
     )
 }
+
 
 const TextDocumentIcon = (props: any) => {
     return (
@@ -104,4 +136,4 @@ const BarChart2Icon = (props: any) => {
     )
 }
 
-export { UploadIcon, TextIcon, BarChart2Icon, DownloadIcon, TextDocumentIcon, DoubleBubbleIcon, ChevronArrowIcon }
+export { UploadIcon, TextIcon, BarChart2Icon, DownloadIcon, TextDocumentIcon, DoubleBubbleIcon, ChevronArrowIcon, FatArrowIcon, ArrowLongIcon }
