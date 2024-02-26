@@ -49,6 +49,7 @@ export default function StartDataSource() {
             console.log('Trimmed input is not empty, so create map!');
             setInputText(textareaValue);
             handlePostText(textareaValue);
+            setMapView(true);
         }
         else if (!textSource && uploadedFile) {
             console.log("File uploaded. Generate map!");
