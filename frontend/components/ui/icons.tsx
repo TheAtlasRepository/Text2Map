@@ -1,5 +1,6 @@
 import React from "react";
 
+// Manipulation
 const UploadIcon = (props: any) => {
     return (
         <svg
@@ -32,7 +33,7 @@ const DownloadIcon = (props: any) => {
     )
 }
 
-const TrashIcon = (props: any) => {
+const TrashHeroIcon = (props: any) => {
     return (
         <svg
         {...props}
@@ -42,7 +43,7 @@ const TrashIcon = (props: any) => {
     )
 }
 
-const CrossIcon = (props: any) => {
+const CloseIcon = (props: any) => {
     return (
         <svg
         {...props}
@@ -51,7 +52,7 @@ const CrossIcon = (props: any) => {
         </svg>
     )
 }
-
+// Navigation
 const ChevronArrowIcon = (props: any) => {
     if (props.left == true) {
         return (
@@ -93,7 +94,7 @@ const ArrowLongIcon = (props: any) => {
     )
 }
 
-
+// Information
 const TextDocumentIcon = (props: any) => {
     return (
         <svg
@@ -103,7 +104,6 @@ const TextDocumentIcon = (props: any) => {
         </svg>
     )
 }
-
 const DoubleBubbleIcon = (props: any) => {
     return (
         <svg
@@ -113,8 +113,6 @@ const DoubleBubbleIcon = (props: any) => {
 
     )
 }
-
-
 const TextIcon = (props: any) => {
     return (
         <svg
@@ -156,4 +154,4 @@ const BarChart2Icon = (props: any) => {
     )
 }
 
-export { UploadIcon, TextIcon, BarChart2Icon, DownloadIcon, TextDocumentIcon, DoubleBubbleIcon, ChevronArrowIcon, FatArrowIcon, ArrowLongIcon, TrashIcon, CrossIcon }
+export { UploadIcon, TextIcon, BarChart2Icon, DownloadIcon, TextDocumentIcon, DoubleBubbleIcon, ChevronArrowIcon, FatArrowIcon, ArrowLongIcon, TrashHeroIcon, CloseIcon }

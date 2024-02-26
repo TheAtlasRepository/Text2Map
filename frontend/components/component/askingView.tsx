@@ -7,6 +7,7 @@ import MapComponent from "./mapComponent";
 import JsonRenderer from "../functions/JsonRenderer";
 import ReactDOMServer from 'react-dom/server';
 import { handleSaveChat, handleSendChat } from '../functions/ApiUtils';
+import { ChevronArrowIcon } from '../ui/icons';
 
 export default function AskingView({ onEditSave, editedText }: { onEditSave: (text: string) => void, editedText: string }) {
     const mapRef = useRef(null);
