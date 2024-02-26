@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { handleSaveChat, handleSendTextInput } from '../functions/ApiUtils';
 import { ScrollArea } from "../ui/scroll-area";
 import { Input } from "../ui/input";
+import { Toolbar } from "../ui/toolbar";
 import MapComponent from "./mapComponent";
 
 
@@ -59,6 +60,7 @@ export default function StartDataSource() {
         // let text = 'Where can i find London?';
         let text = "Bananas are grown in many tropical regions around the world. Major banana-producing countries include India.";
         setInputText(text);
+        setMapView(true);
         handlePostText(text);
     }
 
@@ -66,12 +68,18 @@ export default function StartDataSource() {
         toggleTextSource(!textSource);
     }
 
+    //const handleViewstateChange = (inputText?: string | null) => {
+
+    //} 
+
     // const handleReturnMainpage = () => {
     //     localStorage.removeItem('textValue')
     // }
 
     const handleDiscard = () => {
-        setInputText(''); // Remove the text for the map so it reverts to input page
+        console.log('Discarded was activated');
+        //setInputText(''); // Remove the text for the map so it reverts to input page
+        setMapView(false);
     }
 
     const handlePostText = (text: string) => {
@@ -84,11 +92,11 @@ export default function StartDataSource() {
         setEditingText(true);
     };
 
-    
+
     // const handleSaveTextWrapper = () => {
     //     handleSaveChat(localEditedText, setEditingText, setLoading, setJsonData, setMarkers, setLocalEditedText, prevEditedTextRef);
     // };
-    
+
 
 
     useEffect(() => {
@@ -101,18 +109,19 @@ export default function StartDataSource() {
         }
     }, [centerCoordinates]);
 
+    const handleTestClicked = () => {
+        console.log('Test Registered');
+    }
+
     return (
         <div>
-            {!inputText ? (
-                <div>
-                    <header className="flex items-center justify-between p-2 px-4 border-b">
-                        <div className="flex items-center space-x-4">
-                            <Button variant="ghost" onClick={() => router.push("/")}>⬅ Back</Button>
-                        </div>
-                    </header>
-
+            <Toolbar
+                viewAllOptions={mapView}
+                onDiscardClick={handleDiscard}
+            />
+            {!mapView ? (
+                <>
                     <div className="max-w-4xl mx-auto mb-12 mt-4 p-8 bg-white">
-
                         <div className="bg-gray-100 rounded-lg p-1 inline-flex gap-1">
                             <button
                                 className={`rounded-lg border ${textSource ? "bg-white border-blue-500 text-blue-500 border-underline-blue" : "text-gray-500 border-gray-100"}`}
@@ -214,22 +223,10 @@ export default function StartDataSource() {
                             </Button>
                         </div>
                     </div>
-                </div>
+                </>
 
             ) : (
                 <div className="bg-white min-h-screen overflow-y-auto">
-                    <header className="flex items-center justify-between p-2 px-4 border-b">
-                        <div className="flex items-center space-x-4">
-                            <Button variant="ghost" className=" text-lg font-semibold" onClick={handleDiscard}>Discard</Button>
-                            <h1 className="text-lg font-semibold">Unsaved map</h1>
-                        </div>
-                        <div className="flex items-center space-x-4">
-                            <Button variant="ghost">Export map</Button>
-                            <Button variant="ghost">Share</Button>
-                            <Button variant="ghost">Embed</Button>
-                            <Button variant="secondary">Save map</Button>
-                        </div>
-                    </header>
                     <div className="flex">
                         <aside className="w-1/3 p-4 space-y-4 border-r flex flex-col" style={{ flex: '0 0 auto', height: 'calc(100vh - 73px)' }}>
                             {/* <div className="flex items-center justify-between w-full">
@@ -306,7 +303,7 @@ function UploadIcon(props: any) {
             aria-hidden="true"
             fill="none"
         >
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2" />
+            <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2" />
         </svg>
     )
 }

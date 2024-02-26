@@ -83,8 +83,8 @@ function XIcon(props:any) {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <path xmlns="http://www.w3.org/2000/svg" d="M3 21.32L21 3.32001" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-      <path xmlns="http://www.w3.org/2000/svg" d="M3 3.32001L21 21.32" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <path xmlns="http://www.w3.org/2000/svg" d="M3 21.32L21 3.32001" stroke="#000000"/>
+      <path xmlns="http://www.w3.org/2000/svg" d="M3 3.32001L21 21.32" stroke="#000000"/>
     </svg>
   )
 }
