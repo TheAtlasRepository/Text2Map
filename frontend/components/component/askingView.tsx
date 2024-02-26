@@ -83,7 +83,7 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
 
     return (
       <div className="bg-white min-h-screen overflow-y-auto">
-        <header className="flex items-center justify-between p-4 border-b">
+        {/* <header className="flex items-center justify-between p-4 border-b">
           <div className="flex items-center space-x-4">
             <h1 className="text-lg font-semibold">Unsaved map</h1>
           </div>
@@ -93,7 +93,7 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
             <Button variant="ghost">Embed</Button>
             <Button variant="secondary">Save map</Button>
           </div>
-        </header>
+        </header> */}
         <div className="flex">
         <aside className="w-1/3 p-4 space-y-4 border-r flex flex-col" style={{ flex: '0 0 auto', height: 'calc(100vh - 73px)' }}>
             <div className="flex items-center justify-between w-full">
