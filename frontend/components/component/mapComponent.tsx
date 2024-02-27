@@ -40,7 +40,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
     setSelectedMarkerIndex,
     geojsonData,
 }) => {
-    const [isLoaded, setIsLoaded] = useState(true);
+    const [isLoaded, setIsLoaded] = useState(false);
     const handleOnLoad = () => {
         setIsLoaded(true);
         console.log('GeoJson: ', geojsonData);
