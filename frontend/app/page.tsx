@@ -1,7 +1,7 @@
 'use client';
 import { CardTitle, CardHeader, CardDescription, CardContent, CardFooter, Card } from "@/components/ui/card"
 import { useRouter } from 'next/navigation';
-import { BarChart2Icon, TextIcon, DownloadIcon, TextDocumentIcon, DoubleBubbleIcon } from '@/components/ui/icons';
+import { TextDocumentIcon, DoubleBubbleIcon } from '@/components/ui/icons';
 
 export default function Home() {
   const router = useRouter();
