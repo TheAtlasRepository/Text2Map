@@ -1,10 +1,12 @@
-// MapComponent.tsx
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import ReactMapGL, { Marker, Popup, Source, Layer } from 'react-map-gl';
 import Coordinate from '../functions/Coordinates';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import InfoPanel from '../component/info-panel';
 
+/**
+ * Input props for the map component
+ */
 type MapComponentProps = {
   markers: { latitude: number; longitude: number; type: string }[];
   centerCoordinates: [number, number] | null;
@@ -15,6 +17,19 @@ type MapComponentProps = {
   geojsonData: any;
 };
 
+
+/**
+ * Map Component for displaying map with added formatting
+ * 
+ * @param markers 
+ * @param centerCoordinates 
+ * @param initialViewState 
+ * @param mapRef 
+ * @param selectedMarkerIndex 
+ * @param setSelectedMarkerIndex 
+ * @param geojsonData 
+ * @returns 
+ */
 const MapComponent: React.FC<MapComponentProps> = ({
   markers,
   centerCoordinates,
@@ -24,6 +39,15 @@ const MapComponent: React.FC<MapComponentProps> = ({
   setSelectedMarkerIndex,
   geojsonData,
 }) => {
+    const [isLoaded, setIsLoaded] = useState(true);
+    const handleOnLoad = () => {
+        setIsLoaded(true);
+        console.log('GeoJson: ', geojsonData);
+
+
+        console.log('Map loading-state: ', isLoaded);
+    };
+
   return (
     <ReactMapGL
       mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
@@ -32,8 +56,12 @@ const MapComponent: React.FC<MapComponentProps> = ({
       maxZoom={20}
       minZoom={2}
       ref={mapRef}
+            onLoad={handleOnLoad}
     >
 
+
+            {isLoaded &&
+                <>
       {/* Render GeoJSON */}
       <Source id="selectedCountries" type="geojson" data={geojsonData}>
         <Layer
@@ -45,6 +73,8 @@ const MapComponent: React.FC<MapComponentProps> = ({
           }}
         />
       </Source>
+
+
       {/* Render markers */}
       {markers.map((marker, index) => (
         <Marker
@@ -74,6 +104,8 @@ const MapComponent: React.FC<MapComponentProps> = ({
           )}
         </Marker>
       ))}
+                </>
+            }
     </ReactMapGL>
   );
 };
