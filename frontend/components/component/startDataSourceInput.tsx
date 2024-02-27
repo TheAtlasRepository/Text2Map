@@ -4,7 +4,7 @@ import { useReducer, useState, useRef, useEffect } from "react";
 import { useRouter } from 'next/navigation';
 import { handleSaveChat, handleSendTextInput } from '../functions/ApiUtils';
 import { ScrollArea } from "../ui/scroll-area";
-import { Input } from "../ui/input";
+import { ArrowLongIcon, ChevronArrowIcon, FatArrowIcon, UploadIcon } from "../ui/icons";
 import { Toolbar } from "../ui/toolbar";
 import MapComponent from "./mapComponent";
 
@@ -49,6 +49,7 @@ export default function StartDataSource() {
             console.log('Trimmed input is not empty, so create map!');
             setInputText(textareaValue);
             handlePostText(textareaValue);
+            setMapView(true);
         }
         else if (!textSource && uploadedFile) {
             console.log("File uploaded. Generate map!");
@@ -219,7 +220,7 @@ export default function StartDataSource() {
                         <div className="flex">
                             <Button variant="fancy_blue"
                                 onClick={handleExampleText}>
-                                <div className="px-4" >💡 Try an existing text ➡</div>
+                                <div className="px-4" >💡 Try an existing text <ArrowLongIcon/></div>
                             </Button>
                         </div>
                     </div>
@@ -290,20 +291,4 @@ export default function StartDataSource() {
             )}
         </div>
     );
-}
-
-function UploadIcon(props: any) {
-    return (
-        <svg
-            {...props}
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 20 16"
-            aria-hidden="true"
-            fill="none"
-        >
-            <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2" />
-        </svg>
-    )
 }

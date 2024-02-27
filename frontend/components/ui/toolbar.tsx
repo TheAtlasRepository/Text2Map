@@ -1,6 +1,8 @@
 import React, { useRef, useState } from "react";
 import { useRouter } from 'next/navigation';
 import { Button } from "./button";
+import { ChevronArrowIcon } from "./icons";
+
 
 
 /**
@@ -38,11 +40,15 @@ const Toolbar = (props: any) => {
                 </>
             ) : (
                 <div className="flex items-center space-x-4">
-                    <Button variant="ghost" onClick={() => router.push("/")}>⬅ Back</Button>
+                    <Button variant="ghost" onClick={() => router.push("/")}>
+                        <div className="flex items-center space-x-2">
+                            <ChevronArrowIcon className="inline-flex h-4 w-4" left={true} />Back
+                        </div>
+                    </Button>
                 </div>
             )}
         </header>
     );
 }
 
-export {Toolbar}
+export { Toolbar }
