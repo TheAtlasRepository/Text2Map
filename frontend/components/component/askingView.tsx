@@ -6,7 +6,8 @@ import { ScrollArea } from "../ui/scroll-area";
 import MapComponent from "./mapComponent";
 import JsonRenderer from "../functions/JsonRenderer";
 import ReactDOMServer from 'react-dom/server';
-import { handleSaveText, handleSendText } from '../functions/ApiUtils';
+import { handleSaveChat, handleSendChat } from '../functions/ApiUtils';
+import { ChevronArrowIcon } from '../ui/icons';
 
 export default function AskingView({ onEditSave, editedText }: { onEditSave: (text: string) => void, editedText: string }) {
     const mapRef = useRef(null);
@@ -45,7 +46,7 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
     // Save the text to the backend
     useEffect(() => {
       if (!isInitialRender.current) {
-        handleSaveText( editedText, setEditingText, setLoading, setJsonData, setMarkers, setLocalEditedText, prevEditedTextRef
+        handleSaveChat( editedText, setEditingText, setLoading, setJsonData, setMarkers, setLocalEditedText, prevEditedTextRef
         );
       } else {
         isInitialRender.current = false;
@@ -70,13 +71,13 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
     
     // Save the text to the backend
     const handleSaveTextWrapper = () => {
-      handleSaveText(localEditedText, setEditingText, setLoading, setJsonData, setMarkers, setLocalEditedText, prevEditedTextRef);
+      handleSaveChat(localEditedText, setEditingText, setLoading, setJsonData, setMarkers, setLocalEditedText, prevEditedTextRef);
     };
 
     // Send the text to the backend
     const handleSendTextWrapper = () => {
       if (typeof inputText === 'string' && inputText.trim() !== "") {
-        handleSendText(inputText, setJsonData, setMarkers, setInputText, setLoading);
+        handleSendChat(inputText, setJsonData, setMarkers, setInputText, setLoading);
         // Set the inputText to an empty string after sending the request
         setInputText("");
       } else {
@@ -87,7 +88,7 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
 
     return (
       <div className="bg-white min-h-screen overflow-y-auto">
-        <header className="flex items-center justify-between p-4 border-b">
+        {/* <header className="flex items-center justify-between p-4 border-b">
           <div className="flex items-center space-x-4">
             <h1 className="text-lg font-semibold">Unsaved map</h1>
           </div>
@@ -97,7 +98,7 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
             <Button variant="ghost">Embed</Button>
             <Button variant="secondary">Save map</Button>
           </div>
-        </header>
+        </header> */}
         <div className="flex">
         <aside className="w-1/3 p-4 space-y-4 border-r flex flex-col" style={{ flex: '0 0 auto', height: 'calc(100vh - 73px)' }}>
             <div className="flex items-center justify-between w-full">

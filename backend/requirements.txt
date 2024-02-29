@@ -6,6 +6,8 @@ openai
 spacy
 aiohttp
 pexels-api
+pycountry
+shapely
 uvicorn[standard]
 shapely
 pycountry

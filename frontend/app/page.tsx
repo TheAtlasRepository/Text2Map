@@ -1,6 +1,7 @@
 'use client';
 import { CardTitle, CardHeader, CardDescription, CardContent, CardFooter, Card } from "@/components/ui/card"
 import { useRouter } from 'next/navigation';
+import { TextDocumentIcon, DoubleBubbleIcon } from '@/components/ui/icons';
 
 export default function Home() {
   const router = useRouter();
@@ -11,38 +12,36 @@ export default function Home() {
         <h1 className="text-center text-3xl font-bold">Create a map</h1>
         <p className="text-center text-lg">Use your own text and data or a ChatGPT prompt</p>
         <div className="grid grid-cols-2 gap-8">
-          <div className="flex flex-col items-center space-y-4" onClick={() => router.push("/datasource")}>
-              <Card className="w-full max-w-[400px] bg-white border border-blue-500 rounded-lg shadow-sm hover:shadow-md transition-shadow dark:border-gray-800" onClick={() => router.push("#")}>
+          <button className="flex flex-col items-center space-y-4" onClick={() => router.push("/datasource")}>
+              <Card className="w-full max-w-[400px] bg-white border border-blue-500 rounded-lg shadow-sm hover:shadow-md transition-shadow">
                 <CardHeader>
                   <div className="flex items-center space-x-2">
-                    <TextIcon className="h-5 w-5 text-blue-600" />
-                    <CardTitle>Use a text or data source</CardTitle>
+                  <TextDocumentIcon/><CardTitle>Use a text or data source</CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <CardDescription>
+                  <CardDescription className="text-left">
                     The text or data must contain locations, addresses or points of interest.
                   </CardDescription>
                 </CardContent>
                 <CardFooter className="flex justify-end" />
               </Card>
-          </div>
-          <div className="flex flex-col items-center space-y-4" onClick={() => router.push("/askChat")}>
-            <Card className="w-full max-w-[400px] bg-white border border-blue-500 rounded-lg shadow-sm hover:shadow-md transition-shadow dark:border-gray-800" onClick={() => router.push("#")}>
+          </button>
+          <button className="flex flex-col items-center space-y-4" onClick={() => router.push("/askChat")}>
+            <Card className="w-full max-w-[400px] bg-white border border-blue-500 rounded-lg shadow-sm hover:shadow-md transition-shadow">
               <CardHeader>
                 <div className="flex items-center space-x-2">
-                  <BarChart2Icon className="h-5 w-5 text-blue-600" />
-                  <CardTitle>Ask ChatGPT a question</CardTitle>
+                  <DoubleBubbleIcon/><CardTitle>Ask ChatGPT a question</CardTitle>
                 </div>
               </CardHeader>
               <CardContent>
-                <CardDescription>
+                <CardDescription className="text-left">
                   Curious about Earth's wonders? Unlock the world's insights with ChatGPT!
                 </CardDescription>
               </CardContent>
               <CardFooter className="flex justify-end" />
             </Card>
-          </div>
+          </button>
         </div>
         <div className="grid grid-cols-2 gap-8">
           <div className="flex flex-col items-center space-y-4">
@@ -77,49 +76,5 @@ export default function Home() {
         </div>
       </div>
     </div>
-  )
-}
-
-
-function TextIcon(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M17 6.1H3" />
-      <path d="M21 12.1H3" />
-      <path d="M15.1 18H3" />
-    </svg>
-  )
-}
-
-
-function BarChart2Icon(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <line x1="18" x2="18" y1="20" y2="10" />
-      <line x1="12" x2="12" y1="20" y2="4" />
-      <line x1="6" x2="6" y1="20" y2="14" />
-    </svg>
   )
 }

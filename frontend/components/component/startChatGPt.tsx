@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useReducer } from "react"; // Import the useReducer hook
 import AskingView from "./askingView";
+import { Toolbar } from "../ui/toolbar";
 
 const initialState = { asking: false, editedText: '', textareaValue: '' };
 
@@ -11,6 +12,8 @@ function reducer(state: any, action: any) {
       return { ...state, textareaValue: action.value };
     case 'ASK':
       return { ...state, asking: true, editedText: action.value };
+    case 'DISCARD':
+      return { ...state, asking: false, editedText: '', textareaValue: '' };
     default:
       throw new Error();
   }
@@ -38,14 +41,22 @@ export default function StartChatGPt() {
     }
   };
 
+  const handleDiscard = () => {
+    dispatch({ type: 'DISCARD' });
+  }
+
     return (
         <div>
+            <Toolbar
+                viewAllOptions={state.asking}
+                onDiscardClick={handleDiscard}
+            />
             {state.asking ? (
                 // Pass the handleEditSave function as the onEditSave prop
                 <AskingView onEditSave={handleEditSave} editedText={state.editedText} />
             ) : (
                 <>
-                    <div className="max-w-4xl mx-auto my-12 p-8 bg-white rounded-lg">
+                    <div className="max-w-4xl mx-auto my-12 mt-4 p-8 bg-white">
                         <h1 className="text-3xl font-bold text-center mb-6">Create a map from an ask</h1>
                         <div className="flex flex-col lg:flex-row justify-between gap-8">
                             <div className="flex-1">

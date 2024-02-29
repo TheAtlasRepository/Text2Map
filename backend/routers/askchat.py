@@ -16,6 +16,7 @@ router = APIRouter()
 client = OpenAI()
 
 chat_history = []
+text_history = []
 
 nlp = spacy.load("en_core_web_trf")
 
@@ -324,5 +325,6 @@ async def postSendMoreText(message):
     # filter out the first user message from the response
     filtered_messages = filtered_messages[1:]
 
+    # Return the new GeoJSON file path to the frontend
     return {"entities": entities, "chat_history": filtered_messages,
             "selected_countries_geojson_path": new_geojson}
