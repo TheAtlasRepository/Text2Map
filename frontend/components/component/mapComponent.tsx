@@ -15,7 +15,7 @@ type MapComponentProps = {
     mapRef: React.MutableRefObject<null>;
     selectedMarkerIndex: number | null;
     setSelectedMarkerIndex: React.Dispatch<React.SetStateAction<number | null>>;
-    geojsonData: any;
+    geojsonData?: any;
 };
 
 
@@ -41,13 +41,17 @@ const MapComponent: React.FC<MapComponentProps> = ({
     geojsonData,
 }) => {
     const [isLoaded, setIsLoaded] = useState(false);
+    const [gotGeoJson, setGotGeoJsonState] = useState(false);
+
     const handleOnLoad = () => {
         setIsLoaded(true);
-        console.log('GeoJson: ', geojsonData);
-
-
-        console.log('Map loading-state: ', isLoaded);
     };
+
+    useEffect(() => {
+        if (geojsonData != undefined && !gotGeoJson) {
+            setGotGeoJsonState(true);
+        }
+    })
 
     return (
         <ReactMapGL
@@ -64,6 +68,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
             {isLoaded &&
                 <>
                     {/* Render GeoJSON */}
+                    {gotGeoJson &&
                     <Source id="selectedCountries" type="geojson" data={geojsonData}>
                         <Layer
                             id="selectedCountries"
@@ -74,6 +79,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
                             }}
                         />
                     </Source>
+                    }
 
                     {/* Render markers */}
                     {markers.map((marker, index) => (
