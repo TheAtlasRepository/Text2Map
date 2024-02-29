@@ -163,16 +163,16 @@ def get_country_iso_code(country_name):
         print(f"Error getting ISO code for country: {e}")
         return None
 
-@router.post("/resetchat", response_model=dict)
-async def postResetChat(message: str):
+@router.post("/newText", response_model=dict)
+async def postNewText(message: str):
     global chat_history
     chat_history = [{"role": "user", "content": message}]
-    response = await postSendChat(message)
+    response = await postSendMoreText(message)
     return {"entities": response["entities"], "chat_history": response["chat_history"][1:],
             "selected_countries_geojson_path": response["selected_countries_geojson_path"]}
 
-@router.post("/sendchat", response_model=dict)
-async def postSendChat(message):
+@router.post("/sendMoreText", response_model=dict)
+async def postSendMoreText(message):
     print("Sending message: " + message)
     global chat_history
     global geometry_cache
