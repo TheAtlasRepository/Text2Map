@@ -10,10 +10,8 @@ import MapComponent from "./mapComponent";
 
 
 export default function StartDataSource() {
-    //const [state, dispatch] = useReducer(reducer, initialState); // Use the useReducer hook
     const maxLengthInput = 3000; // Max length for input
     const router = useRouter();
-    const mapRef = useRef(null);
 
     const [mapView, setMapView] = useState(false);
     const [textSource, toggleTextSource] = useState(true);
@@ -69,22 +67,16 @@ export default function StartDataSource() {
         toggleTextSource(!textSource);
     }
 
-    //const handleViewstateChange = (inputText?: string | null) => {
-
-    //} 
-
-    // const handleReturnMainpage = () => {
-    //     localStorage.removeItem('textValue')
-    // }
 
     const handleDiscard = () => {
-        console.log('Discarded was activated');
-        //setInputText(''); // Remove the text for the map so it reverts to input page
+        console.log('Discarded was activated'); 
+        setTextareaValue('');
+        setInputText(''); // Remove the text for the map so it reverts to input page
         setMapView(false);
     }
 
     const handlePostText = (text: string) => {
-        handleSendTextInput(text, setJsonData, setMarkers, setLoading);
+        handleSendTextInput(text, setJsonData, setCenterCoordinates, setMarkers, setLoading);
 
         //setInputText("");
     }
@@ -98,21 +90,6 @@ export default function StartDataSource() {
     //     handleSaveChat(localEditedText, setEditingText, setLoading, setJsonData, setMarkers, setLocalEditedText, prevEditedTextRef);
     // };
 
-
-
-    useEffect(() => {
-        if (centerCoordinates) {
-            setInitialViewState({
-                latitude: centerCoordinates[1],
-                longitude: centerCoordinates[0],
-                zoom: 10,  // Adjust the zoom level as needed
-            });
-        }
-    }, [centerCoordinates]);
-
-    const handleTestClicked = () => {
-        console.log('Test Registered');
-    }
 
     return (
         <div>
@@ -279,7 +256,6 @@ export default function StartDataSource() {
                                     markers={markers}
                                     centerCoordinates={centerCoordinates}
                                     initialViewState={initialViewState}
-                                    mapRef={mapRef}
                                     selectedMarkerIndex={selectedMarkerIndex}
                                     setSelectedMarkerIndex={setSelectedMarkerIndex}
                                     geojsonData={jsonData?.selected_countries_geojson_path}
