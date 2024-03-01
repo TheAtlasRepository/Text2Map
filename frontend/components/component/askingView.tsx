@@ -10,7 +10,6 @@ import { handleSaveChat, handleSendChat } from '../functions/ApiUtils';
 import { ChevronArrowIcon } from '../ui/icons';
 
 export default function AskingView({ onEditSave, editedText }: { onEditSave: (text: string) => void, editedText: string }) {
-    const mapRef = useRef(null);
     const [selectedMarkerIndex, setSelectedMarkerIndex] = useState<number | null>(null);
     const [editingText, setEditingText] = useState(false);  
     const [localEditedText, setLocalEditedText] = useState('');
@@ -46,7 +45,7 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
     // Save the text to the backend
     useEffect(() => {
       if (!isInitialRender.current) {
-        handleSaveChat( editedText, setEditingText, setLoading, setJsonData, setMarkers, setLocalEditedText, prevEditedTextRef
+        handleSaveChat( editedText, setEditingText, setCenterCoordinates, setLoading, setJsonData, setMarkers, setLocalEditedText, prevEditedTextRef
         );
       } else {
         isInitialRender.current = false;
@@ -71,13 +70,13 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
     
     // Save the text to the backend
     const handleSaveTextWrapper = () => {
-      handleSaveChat(localEditedText, setEditingText, setLoading, setJsonData, setMarkers, setLocalEditedText, prevEditedTextRef);
+      handleSaveChat(localEditedText, setEditingText, setCenterCoordinates, setLoading, setJsonData, setMarkers, setLocalEditedText, prevEditedTextRef);
     };
 
     // Send the text to the backend
     const handleSendTextWrapper = () => {
       if (typeof inputText === 'string' && inputText.trim() !== "") {
-        handleSendChat(inputText, setJsonData, setMarkers, setInputText, setLoading);
+        handleSendChat(inputText, setJsonData, setCenterCoordinates, setMarkers, setInputText, setLoading);
         // Set the inputText to an empty string after sending the request
         setInputText("");
       } else {
@@ -154,7 +153,6 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
               markers={markers}
               centerCoordinates={centerCoordinates}
               initialViewState={initialViewState}
-              mapRef={mapRef}
               selectedMarkerIndex={selectedMarkerIndex}
               setSelectedMarkerIndex={setSelectedMarkerIndex}
               geojsonData={jsonData?.selected_countries_geojson_path}
