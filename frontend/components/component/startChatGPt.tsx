@@ -78,7 +78,7 @@ export default function StartChatGPt() {
                             </div>
                         </div>
                         <div className="mt-8">
-                            <form className="flex flex-col items-center">
+                            {/* <form className="flex flex-col items-center"> */}
                                 <textarea
                                     className="w-full p-4 border rounded-lg mb-4"
                                     placeholder="Ask a question"
@@ -93,7 +93,7 @@ export default function StartChatGPt() {
                                 >
                                     Ask ChatGPT
                                 </Button>
-                            </form>
+                            {/* </form> */}
                             <p className="text-center text-sm text-gray-500 mt-4">Question + Answer is limited to 1000 words</p>
                         </div>
                     </div>

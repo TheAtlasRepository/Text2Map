@@ -16,7 +16,6 @@ router = APIRouter()
 client = OpenAI()
 
 chat_history = []
-text_history = []
 
 nlp = spacy.load("en_core_web_trf")
 
@@ -164,19 +163,37 @@ def get_country_iso_code(country_name):
         print(f"Error getting ISO code for country: {e}")
         return None
 
+# Function for handeling manual text input
 @router.post("/newText", response_model=dict)
-async def postNewText(message: str):
+async def postNewText(text: str):
+    print("Sending text: " + text)
+
+    response = await run_text_through_prosessor(text)
+    
+    # Return the new GeoJSON file path to the frontend
+    return {
+        "entities": response["entities"],
+        "selected_countries_geojson_path": response["selected_countries_geojson_path"]
+        }
+
+# Function for handeling start of a chat with Gpt
+@router.post("/newChat", response_model=dict)
+async def postNewChat(message: str):
     global chat_history
     chat_history = [{"role": "user", "content": message}]
-    response = await postSendMoreText(message)
-    return {"entities": response["entities"], "chat_history": response["chat_history"][1:],
-            "selected_countries_geojson_path": response["selected_countries_geojson_path"]}
+    response = await postMoreChat(message)
+    return {
+        "entities": response["entities"], 
+        "chat_history": response["chat_history"][1:],
+        "selected_countries_geojson_path": response["selected_countries_geojson_path"]
+        }
 
-@router.post("/sendMoreText", response_model=dict)
-async def postSendMoreText(message):
+# Function for handeling chat with Gpt
+@router.post("/moreChat", response_model=dict)
+async def postMoreChat(message):
     print("Sending message: " + message)
     global chat_history
-    global geometry_cache
+    # global geometry_cache
 
     messages = chat_history.copy()
 
@@ -184,10 +201,10 @@ async def postSendMoreText(message):
         messages.append({"role": "user", "content": message})
         
     # Add a system message to prompt the assistant to mention city, state, and country
-    messages.append({"role": "system", "content": "Please mention the city, state, and countrys ISO3 code like this (city, state, country ISO3 Code) for all places mentioned."})
+    messages.append({"role": "system", "content": "Please mention the city, state, and countrys ISO3 code like this (city, state, country ISO3 Code) for all places mentioned or requested."})
     
     # Add a system message to prompt the assistant to talk a bit about the places mentioned
-    messages.append({"role": "system", "content": "Can you tell me a bit about the places you mentioned?"})
+    messages.append({"role": "system", "content": "Can you tell me a bit about the places you mentioned? No more than 60 words if possible."})
 
     messages_for_openai = [
         {"role": msg["role"], "content": msg["content"]} for msg in messages
@@ -218,7 +235,27 @@ async def postSendMoreText(message):
 
     print("Received response: " + assistant_response)
 
+
     doc = ' '.join([msg["content"] for msg in messages])
+    response = await run_text_through_prosessor(doc, assistant_response)
+    
+
+    # Filter out system messages from the response
+    filtered_messages = [msg for msg in messages if msg["role"] != "system"]
+    
+    # filter out the first user message from the response
+    filtered_messages = filtered_messages[1:]
+    
+    return {
+        "entities": response["entities"], 
+        "chat_history": filtered_messages,
+        "selected_countries_geojson_path": response["selected_countries_geojson_path"]
+        }
+
+
+
+async def run_text_through_prosessor(doc, text = ''):
+    global geometry_cache
 
     entities = []
 
@@ -229,8 +266,12 @@ async def postSendMoreText(message):
     iso_to_country = {ent.alpha_3: ent.name for ent in pycountry.countries}
     
     # Extract city names mentioned in the user's input
-    cities_mentioned_in_doc = extract_cities(assistant_response)
-    
+    if (text): 
+        cities_mentioned_in_doc = extract_cities(text)
+
+    else: 
+        cities_mentioned_in_doc = extract_cities(doc)
+
     unique_cities_mentioned_in_doc = list(set(cities_mentioned_in_doc))
     
     # Keep track of ISO codes of the countries mentioned in the user's input
@@ -242,7 +283,7 @@ async def postSendMoreText(message):
     country_tasks = []
     city_tasks = []
 
-   # Extract country ISO codes first
+    # Extract country ISO codes first
     for ent in pycountry.countries:
         if ent.name in doc:
             iso_code = ent.alpha_3
@@ -319,12 +360,8 @@ async def postSendMoreText(message):
     # Clear geometry_cache for entries not used recently
     geometry_cache = {iso_code: geometry for iso_code, geometry in geometry_cache.items() if iso_code in iso_codes}
 
-    # Filter out system messages from the response
-    filtered_messages = [msg for msg in messages if msg["role"] != "system"]
-    
-    # filter out the first user message from the response
-    filtered_messages = filtered_messages[1:]
-
     # Return the new GeoJSON file path to the frontend
-    return {"entities": entities, "chat_history": filtered_messages,
-            "selected_countries_geojson_path": new_geojson}
+    return {
+        "entities": entities, 
+        "selected_countries_geojson_path": new_geojson
+        }

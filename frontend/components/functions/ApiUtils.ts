@@ -97,7 +97,7 @@ export const handleSaveChat = async (
     if (localEditedText !== prevEditedTextRef.current) {
         setEditingText(false);
         await handleDataFetching(
-          `http://127.0.0.1:8000/newText?message=${localEditedText}`,
+            `http://127.0.0.1:8000/newChat?message=${localEditedText}`,
           { editedText: localEditedText },
           setJsonData,
           setMarkers,
@@ -117,7 +117,7 @@ export const handleSendChat = async (
   ) => {
     if (inputText.trim() !== '') {
       await handleDataFetching(
-        'http://127.0.0.1:8000/sendMoreText?message=' + inputText,
+            'http://127.0.0.1:8000/moreChat?message=' + inputText,
         { inputText },
         setJsonData,
         setMarkers,
