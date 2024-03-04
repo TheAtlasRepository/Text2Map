@@ -19,6 +19,12 @@ chat_history = []
 
 nlp = spacy.load("en_core_web_trf")
 
+my_assistant = client.beta.assistants.create(
+        name="Text2Map Assistant",
+        description="You are a helpful text interpreter and will answer the question as informative as possible. If any locations are mentioned please format it like this ( Country, State , City) And if no country is mentioned you can assume it is the country you are in.",
+        model="gpt-3.5-turbo-16k",
+    )
+
 geolocator = Nominatim(user_agent="city-extractor")
 
 # Define a cache to store previously fetched geometries
@@ -31,19 +37,6 @@ async def fetch_geojson(session: ClientSession, url: str) -> dict:
     async with semaphore:
         async with session.get(url) as response:
             return await response.json(content_type=None)
-
-def create_chat_completion(model, messages, temperature, max_tokens, top_p, frequency_penalty, presence_penalty):
-    prompt = {
-        "model": model,
-        "messages": messages,
-        "temperature": temperature,
-        "max_tokens": max_tokens,
-        "top_p": top_p,
-        "frequency_penalty": frequency_penalty,
-        "presence_penalty": presence_penalty
-    }
-
-    return client.chat.completions.create(**prompt)
     
 # Function to fetch geometry by ISO code from GeoBoundaries API
 async def get_geometry_online(iso_code: str, adm_level: str, release_type: str = "gbOpen") -> shape:
@@ -180,79 +173,68 @@ async def postNewText(text: str):
 @router.post("/newChat", response_model=dict)
 async def postNewChat(message: str):
     global chat_history
+    global thread_id
+    # Create a new thread
+    new_thread = client.beta.threads.create() 
     chat_history = [{"role": "user", "content": message}]
+    # create a global variable to store the thread_id
+    thread_id = new_thread.id
+    # print the thread_id
+    print(f"Thread ID: {thread_id}")
+    # Pass the thread_id to postMoreChat
     response = await postMoreChat(message)
+    chat_history.append({"role": "assistant", "content": response["chat_history"][-1]["message"]})
+
     return {
-        "entities": response["entities"], 
-        "chat_history": response["chat_history"][1:],
-        "selected_countries_geojson_path": response["selected_countries_geojson_path"]
-        }
+        "entities": response["entities"],
+        "selected_countries_geojson_path": response["selected_countries_geojson_path"],
+        "chat_history": response["chat_history"]
+    }
 
 # Function for handeling chat with Gpt
 @router.post("/moreChat", response_model=dict)
-async def postMoreChat(message):
-    print("Sending message: " + message)
-    global chat_history
-    # global geometry_cache
+async def postMoreChat(message: str):
+    global thread_id
+    print("Sending message: " + message + " to thread " + thread_id)
 
-    messages = chat_history.copy()
-
-    if not messages or (messages[-1]["role"] == "user" and messages[-1]["content"] != message):
-        messages.append({"role": "user", "content": message})
-        
-    # Add a system message to prompt the assistant to mention city, state, and country
-    messages.append({"role": "system", "content": "Please mention the city, state, and countrys ISO3 code like this (city, state, country ISO3 Code) for all places mentioned or requested."})
+    # Use the thread_id directly instead of a thread object
+    msg = client.beta.threads.messages.create(thread_id, role="user", content=message)
     
-    # Add a system message to prompt the assistant to talk a bit about the places mentioned
-    messages.append({"role": "system", "content": "Can you tell me a bit about the places you mentioned? No more than 60 words if possible."})
-
-    messages_for_openai = [
-        {"role": msg["role"], "content": msg["content"]} for msg in messages
-    ]
-
-    loop = asyncio.get_event_loop()
-    response = await loop.run_in_executor(
-        None,
-        create_chat_completion,
-        "gpt-4-turbo-preview",
-        messages_for_openai,
-        1,  # temperature
-        1000,  # max_tokens
-        1,  # top_p
-        1,  # frequency_penalty
-        0  # presence_penalty
-    )
-
-    assistant_response = response.choices[0].message.content
-
-    if "user:" in message:
-        messages.append({"role": "assistant", "content": assistant_response})
-    else:
-        messages.append({"role": "user", "content": message})
-        messages.append({"role": "assistant", "content": assistant_response})
-
-    chat_history = messages
-
-    print("Received response: " + assistant_response)
-
-
-    doc = ' '.join([msg["content"] for msg in messages])
-    response = await run_text_through_prosessor(doc, assistant_response)
+    # Rest of the function remains the same...
+    run = client.beta.threads.runs.create(thread_id, assistant_id=my_assistant.id)
     
+    while run.status != "completed":
+        keep_retrieving_run = client.beta.threads.runs.retrieve(
+            thread_id=thread_id,
+            run_id=run.id
+        )
+        print(f"Run status: {keep_retrieving_run.status} on thread {thread_id}")
 
-    # Filter out system messages from the response
-    filtered_messages = [msg for msg in messages if msg["role"] != "system"]
+        if keep_retrieving_run.status == "completed":
+            print("\n")
+            break
     
-    # filter out the first user message from the response
-    filtered_messages = filtered_messages[1:]
+    all_messages = client.beta.threads.messages.list(thread_id=thread_id)
+    
+    # Extract and format the messages
+    formatted_messages = []
+    for msg in all_messages.data:
+        formatted_messages.append({
+            "sender": "assistant" if msg.role == "assistant" else "user",
+            "message": msg.content[0].text.value
+        })
+    
+    print (f"Assistant response: {formatted_messages}")
+    
+    # Run the value field through the processor
+    response = await run_text_through_prosessor(str(all_messages))
+    
     
     return {
-        "entities": response["entities"], 
-        "chat_history": filtered_messages,
-        "selected_countries_geojson_path": response["selected_countries_geojson_path"]
-        }
-
-
+        "entities": response["entities"],
+        "selected_countries_geojson_path": response["selected_countries_geojson_path"],
+        "chat_history": formatted_messages
+    }
 
 async def run_text_through_prosessor(doc, text = ''):
     global geometry_cache
