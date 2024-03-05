@@ -173,7 +173,6 @@ async def postNewText(text: str):
 @router.post("/newChat", response_model=dict)
 async def postNewChat(message: str):
     global chat_history
-    global thread_id
     # Create a new thread
     new_thread = client.beta.threads.create() 
     chat_history = [{"role": "user", "content": message}]
@@ -182,19 +181,19 @@ async def postNewChat(message: str):
     # print the thread_id
     print(f"Thread ID: {thread_id}")
     # Pass the thread_id to postMoreChat
-    response = await postMoreChat(message)
+    response = await postMoreChat(message, thread_id)
     chat_history.append({"role": "assistant", "content": response["chat_history"][-1]["message"]})
 
     return {
         "entities": response["entities"],
         "selected_countries_geojson_path": response["selected_countries_geojson_path"],
-        "chat_history": response["chat_history"]
+        "chat_history": response["chat_history"],
+        "thread_id": thread_id
     }
 
 # Function for handeling chat with Gpt
 @router.post("/moreChat", response_model=dict)
-async def postMoreChat(message: str):
-    global thread_id
+async def postMoreChat(message: str, thread_id: str):
     print("Sending message: " + message + " to thread " + thread_id)
 
     # Use the thread_id directly instead of a thread object
