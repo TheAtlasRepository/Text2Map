@@ -1,6 +1,7 @@
 from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from routers import askchat, imageSearch
+import uvicorn
 
 app = FastAPI()
 router = APIRouter()
@@ -23,4 +24,4 @@ app.include_router(askchat.router)
 app.include_router(imageSearch.router)
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000, loop="asyncio")

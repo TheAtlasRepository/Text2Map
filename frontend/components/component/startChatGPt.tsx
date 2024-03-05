@@ -5,6 +5,7 @@ import { Toolbar } from "../ui/toolbar";
 
 const initialState = { asking: false, editedText: '', textareaValue: '' };
 
+// Define the reducer function
 function reducer(state: any, action: any) {
   switch (action.type) {
     case 'SET_TEXTAREA_VALUE':
@@ -18,18 +19,22 @@ function reducer(state: any, action: any) {
   }
 }
 
+// Define the StartChatGPt component
 export default function StartChatGPt() {
   const [state, dispatch] = useReducer(reducer, initialState); // Use the useReducer hook
 
+  // Handler for the onEditSave prop
   const handleEditSave = (text: string) => {
     console.log('handleEditSave called. text:', text);
     dispatch({ type: 'ASK', value: text }); // Update editedText using dispatch
   };
   
+  // Handler for the textarea change event
   const handleTextareaChange = (e: any) => {
     dispatch({ type: 'SET_TEXTAREA_VALUE', value: e.target.value });
   };
 
+  // Handler for the Ask button click event
   const handleAskButtonClick = () => {
     if (state.textareaValue.trim() !== "") {
       dispatch({ type: 'ASK', value: state.textareaValue });
@@ -47,6 +52,7 @@ export default function StartChatGPt() {
                 onDiscardClick={handleDiscard}
             />
             {state.asking ? (
+                // Pass the handleEditSave function as the onEditSave prop
                 <AskingView onEditSave={handleEditSave} editedText={state.editedText} />
             ) : (
                 <>
@@ -72,7 +78,7 @@ export default function StartChatGPt() {
                             </div>
                         </div>
                         <div className="mt-8">
-                            <form className="flex flex-col items-center">
+                            {/* <form className="flex flex-col items-center"> */}
                                 <textarea
                                     className="w-full p-4 border rounded-lg mb-4"
                                     placeholder="Ask a question"
@@ -87,7 +93,7 @@ export default function StartChatGPt() {
                                 >
                                     Ask ChatGPT
                                 </Button>
-                            </form>
+                            {/* </form> */}
                             <p className="text-center text-sm text-gray-500 mt-4">Question + Answer is limited to 1000 words</p>
                         </div>
                     </div>

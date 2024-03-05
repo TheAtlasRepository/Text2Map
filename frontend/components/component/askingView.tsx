@@ -31,6 +31,21 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
       return jsonData ? ReactDOMServer.renderToStaticMarkup(<JsonRenderer jsonData={jsonData} />) : null;
     };
 
+    // TODO: Set the initial view state when centerCoordinates change 
+    useEffect(() => {
+      const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+        if (localEditedText !== prevEditedTextRef.current) {
+          e.preventDefault();
+          e.returnValue = '';
+        }
+      }
+      window.addEventListener('beforeunload', handleBeforeUnload);
+      return () => {
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+      };
+    }
+    , [localEditedText]);
+
     useEffect(() => {
       if (centerCoordinates) {
         setInitialViewState({
@@ -41,6 +56,7 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
       }
     }, [centerCoordinates]);
 
+    // Save the text to the backend
     useEffect(() => {
       if (!isInitialRender.current) {
         handleSaveChat( editedText, setEditingText, setCenterCoordinates, setLoading, setJsonData, setMarkers, setLocalEditedText, prevEditedTextRef
@@ -49,7 +65,7 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
         isInitialRender.current = false;
       }
     }, [editedText]);
-
+    
     useEffect(() => {
       // Update the initial view state when centerCoordinates change
       if (centerCoordinates) {
@@ -61,14 +77,17 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
       }
     }, [centerCoordinates]);
 
+    // Handle the case where the user clicks the "Edit & add text" button
     const handleEditClick = () => {
       setEditingText(true);
     };
-  
+    
+    // Save the text to the backend
     const handleSaveTextWrapper = () => {
       handleSaveChat(localEditedText, setEditingText, setCenterCoordinates, setLoading, setJsonData, setMarkers, setLocalEditedText, prevEditedTextRef);
     };
 
+    // Send the text to the backend
     const handleSendTextWrapper = () => {
       if (typeof inputText === 'string' && inputText.trim() !== "") {
         handleSendChat(inputText, setJsonData, setCenterCoordinates, setMarkers, setInputText, setLoading);
@@ -81,7 +100,7 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
     };    
 
     return (
-      <div className="bg-white min-h-screen overflow-y-auto">
+      <div className="bg-white overflow-y-auto">
         {/* <header className="flex items-center justify-between p-4 border-b">
           <div className="flex items-center space-x-4">
             <h1 className="text-lg font-semibold">Unsaved map</h1>
