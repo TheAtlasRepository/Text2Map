@@ -57,7 +57,7 @@ export default function StartDataSource() {
     const handleExampleText = () => {
         console.log('Example text was pressed! Send something.');
         // let text = 'Where can i find London?';
-        let text = "Bananas are grown in many tropical regions around the world. Major banana-producing countries include India.";
+        let text = "Bananas are grown in many tropical regions around the world. Major banana-producing countries include India, China and Brazil to name a few.";
         setInputText(text);
         setMapView(true);
         handlePostText(text);
@@ -204,7 +204,7 @@ export default function StartDataSource() {
                 </>
 
             ) : (
-                <div className="bg-white min-h-screen overflow-y-auto">
+                <div className="bg-white overflow-y-auto">
                     <div className="flex">
                         <aside className="w-1/3 p-4 space-y-4 border-r flex flex-col" style={{ flex: '0 0 auto', height: 'calc(100vh - 73px)' }}>
                             {/* <div className="flex items-center justify-between w-full">
