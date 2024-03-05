@@ -216,10 +216,10 @@ async def postMoreChat(message: str, thread_id: str):
     """
     print("Sending message: " + message + " to thread " + thread_id)
 
-    # Use the thread_id directly instead of a thread object
+    # Send a message to the assistant
     msg = client.beta.threads.messages.create(thread_id, role="user", content=message)
     
-    # Rest of the function remains the same...
+    # Run the assistant
     run = client.beta.threads.runs.create(thread_id, assistant_id=my_assistant.id)
     
     while run.status != "completed":
