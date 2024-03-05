@@ -170,6 +170,7 @@ async def postNewText(text: str):
         }
 
 # Function for handeling start of a chat with Gpt
+# TODO: Make a pydantic model for the response schema
 @router.post("/newChat", response_model=dict)
 async def postNewChat(message: str):
     global chat_history
@@ -192,6 +193,7 @@ async def postNewChat(message: str):
     }
 
 # Function for handeling chat with Gpt
+# TODO: Make a pydantic model for the response schema
 @router.post("/moreChat", response_model=dict)
 async def postMoreChat(message: str, thread_id: str):
     print("Sending message: " + message + " to thread " + thread_id)
