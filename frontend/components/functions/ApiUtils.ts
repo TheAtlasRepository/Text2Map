@@ -144,8 +144,11 @@ export const handleSendChat = async (
     setLoading: React.Dispatch<React.SetStateAction<boolean>>
 ) => {
     if (inputText.trim() !== '') {
+        // Get all cookies and split them by semicolon. Find the first row starting with desired cookie-name, then ceep only value after equals-sign.
+        let thread_id = document.cookie.split('; ').find((row) => row.startsWith('threadId='))?.split('=')[1];
+        
         await handleDataFetching(
-            'http://127.0.0.1:8000/moreChat?message=' + inputText + '&thread_id=' + document.cookie.split('=')[1],
+            'http://127.0.0.1:8000/moreChat?message=' + inputText + '&thread_id=' + thread_id,
             { inputText },
             setJsonData,
             setCenter,
