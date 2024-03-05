@@ -173,6 +173,15 @@ async def postNewText(text: str):
 # TODO: Make a pydantic model for the response schema
 @router.post("/newChat", response_model=dict)
 async def postNewChat(message: str):
+    """
+    # Send a message to the assistant and return the response.
+    
+    ## Arguments
+    - message the message to send to the assistant
+    ## Return: 
+    - returns the response from the assistant as a dictionary which includes the entities, selected_countries_geojson_path, chat_history, and thread_id
+    """
+    
     global chat_history
     # Create a new thread
     new_thread = client.beta.threads.create() 
@@ -196,6 +205,15 @@ async def postNewChat(message: str):
 # TODO: Make a pydantic model for the response schema
 @router.post("/moreChat", response_model=dict)
 async def postMoreChat(message: str, thread_id: str):
+    """
+    # Send a message to the assistant and return the response.
+    
+    ## Arguments
+    - message the message to send to the assistant
+    - thread_id the id of the thread to send the message to
+    ## Return: 
+    - returns the response from the assistant as a dictionary which includes the entities, selected_countries_geojson_path, chat_history, and thread_id
+    """
     print("Sending message: " + message + " to thread " + thread_id)
 
     # Use the thread_id directly instead of a thread object
