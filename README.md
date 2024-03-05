@@ -66,10 +66,8 @@ You are now done with the automatic startup, and will see two terminals appear, 
 
    pip install -r requirements.txt
 
-   Install Spacy, large (560MB) OR small (12MB), large is recommended
-   python -m spacy download en_core_web_lg
-   OR
-   python -m spacy download en_core_web_sm
+   Install Spacy
+   python -m spacy download en_core_web_trf
 
    uvicorn main:app --reload
    ```
