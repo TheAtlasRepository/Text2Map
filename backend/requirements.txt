@@ -10,7 +10,6 @@ pycountry
 shapely
 uvicorn[standard]
 shapely
-pycountry
 geopy
 
 ###### Requirements with Version Specifiers ######
