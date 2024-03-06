@@ -19,11 +19,7 @@ chat_history = []
 
 nlp = spacy.load("en_core_web_trf")
 
-my_assistant = client.beta.assistants.create(
-        name="Text2Map Assistant",
-        description="You are a helpful text interpreter and will answer the question as informative as possible. If any locations are mentioned please format it like this ( Country, State , City) And if no country is mentioned you can assume it is the country you are in.",
-        model="gpt-3.5-turbo-16k",
-    )
+my_assistant = client.beta.assistants.retrieve("asst_eKL7g3MCeUtwaD0CjC9VBv7p")
 
 geolocator = Nominatim(user_agent="city-extractor")
 
