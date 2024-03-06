@@ -255,7 +255,9 @@ async def postMoreChat(message: str, thread_id: str):
         "chat_history": formatted_messages
     }
 
-async def run_text_through_prosessor(doc, text = ''):
+
+# Text processor for extracting and finding locations from text
+async def run_text_through_prosessor(doc):
     global geometry_cache
 
     entities = []
@@ -267,18 +269,12 @@ async def run_text_through_prosessor(doc, text = ''):
     iso_to_country = {ent.alpha_3: ent.name for ent in pycountry.countries}
     
     # Extract city names mentioned in the user's input
-    if (text): 
-        cities_mentioned_in_doc = extract_cities(text)
-
-    else: 
-        cities_mentioned_in_doc = extract_cities(doc)
-
-    unique_cities_mentioned_in_doc = list(set(cities_mentioned_in_doc))
+    places_mentioned_in_doc = list(set(extract_cities(doc)))
     
     # Keep track of ISO codes of the countries mentioned in the user's input
     mentioned_country_iso_codes = set()
     
-    print (f"Cities mentioned in the user's input: {unique_cities_mentioned_in_doc}")
+    print (f"Cities mentioned in the user's input: {places_mentioned_in_doc}")
 
     # Run geocoding, geometry fetching, and city information fetching concurrently
     country_tasks = []
@@ -293,7 +289,7 @@ async def run_text_through_prosessor(doc, text = ''):
             country_tasks.append(get_geometry(iso_code, "ADM0"))
 
     # Extract city information
-    for city in unique_cities_mentioned_in_doc:
+    for city in places_mentioned_in_doc:
         city_tasks.append(get_city_info(city))
 
     # Combine the results of country and city tasks
