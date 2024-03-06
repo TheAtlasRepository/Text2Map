@@ -33,20 +33,6 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
 
     // TODO: Set the initial view state when centerCoordinates change 
     useEffect(() => {
-      const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-        if (localEditedText !== prevEditedTextRef.current) {
-          e.preventDefault();
-          e.returnValue = '';
-        }
-      }
-      window.addEventListener('beforeunload', handleBeforeUnload);
-      return () => {
-        window.removeEventListener('beforeunload', handleBeforeUnload);
-      };
-    }
-    , [localEditedText]);
-
-    useEffect(() => {
       if (centerCoordinates) {
         setInitialViewState({
           latitude: centerCoordinates[1],
