@@ -31,6 +31,14 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
       return jsonData ? ReactDOMServer.renderToStaticMarkup(<JsonRenderer jsonData={jsonData} />) : null;
     };
 
+    // Ask user if he wants to reload the page
+    useEffect(() => {
+      window.onbeforeunload = () => true;
+      return () => {
+        window.onbeforeunload = null;
+      };
+    }, []);
+
     // TODO: Set the initial view state when centerCoordinates change 
     useEffect(() => {
       if (centerCoordinates) {

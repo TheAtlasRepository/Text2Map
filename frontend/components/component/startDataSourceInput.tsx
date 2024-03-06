@@ -85,6 +85,14 @@ export default function StartDataSource() {
         setEditingText(true);
     };
 
+    // Ask user if he wants to reload the page
+    useEffect(() => {
+        window.onbeforeunload = () => true;
+        return () => {
+          window.onbeforeunload = null;
+        };
+      }, []);
+
 
     // const handleSaveTextWrapper = () => {
     //     handleSaveChat(localEditedText, setEditingText, setLoading, setJsonData, setMarkers, setLocalEditedText, prevEditedTextRef);
