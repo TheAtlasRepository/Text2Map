@@ -107,7 +107,7 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
           </div>
         </header> */}
         <div className="flex">
-        <aside className="w-1/3 p-4 space-y-4 border-r flex flex-col" style={{ flex: '0 0 auto', height: 'calc(100vh - 73px)' }}>
+        <aside className="w-1/3 p-4 space-y-4 border-r flex flex-col" style={{ flex: '0 0 auto', height: 'calc(100vh - 57px)' }}>
             <div className="flex items-center justify-between w-full">
             {editingText ? (
             <input
@@ -156,7 +156,7 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
           </div>
           </aside>
           <main className="flex-auto relative w-2/3">
-            <div style={{ height: 'calc(100vh - 73px)' }}>
+            <div style={{ height: 'calc(100vh - 57px)' }}>
             <MapComponent
               markers={markers}
               centerCoordinates={centerCoordinates}
