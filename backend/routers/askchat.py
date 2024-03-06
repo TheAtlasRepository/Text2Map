@@ -50,8 +50,8 @@ async def get_geometry_online(iso_code: str, adm_level: str, release_type: str =
                 data = await response.json()
 
             # Check if the request was successful
-            if response.status ==  200 and 'gjDownloadURL' in data:
-                geojson_url = data['gjDownloadURL']
+            if response.status ==  200 and 'simplifiedGeometryGeoJSON' in data:
+                geojson_url = data['simplifiedGeometryGeoJSON']
                 geojson_data = await fetch_geojson(session, geojson_url)
 
                 # Check if the GeoJSON request was successful
@@ -59,6 +59,7 @@ async def get_geometry_online(iso_code: str, adm_level: str, release_type: str =
                     geometry = shape(geojson_data['features'][0]['geometry'])
                     # Cache the geometry for future use
                     geometry_cache[iso_code] = geometry
+                    print(f"Fetched geometry for {iso_code}")
                     return geometry
             else:
                 print(f"Failed to fetch geometry. Status code: {response.status}")
@@ -126,6 +127,9 @@ async def geocode(address, iso_code):
 # Function to fetch country geometry by ISO code from GeoBoundaries API
 async def get_geometry(iso_code, adm_level):
     geometry = await get_geometry_online(iso_code, adm_level)
+    
+    
+    
     return geometry
 
 # Function to fetch city geometry and geocode a city by name and ISO code
