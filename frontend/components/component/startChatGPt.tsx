@@ -46,7 +46,7 @@ export default function StartChatGPt() {
   }
 
     return (
-        <div>
+        <div className="min-h-screen bg-white dark:bg-gray-900">
             <Toolbar
                 viewAllOptions={state.asking}
                 onDiscardClick={handleDiscard}
@@ -56,8 +56,9 @@ export default function StartChatGPt() {
                 <AskingView onEditSave={handleEditSave} editedText={state.editedText} />
             ) : (
                 <>
-                    <div className="max-w-4xl mx-auto my-12 mt-4 p-8 bg-white">
-                        <h1 className="text-3xl font-bold text-center mb-6">Create a map from an ask</h1>
+                <div>
+                    <div className="max-w-4xl mx-auto my-12 mt-4 p-8 dark:text-gray-300">
+                        <h1 className="text-3xl font-bold text-center mb-6 dark:text-300">Create a map from an ask</h1>
                         <div className="flex flex-col lg:flex-row justify-between gap-8">
                             <div className="flex-1">
                                 <h2 className="text-xl font-semibold mb-4">Examples of what you can ask:</h2>
@@ -80,13 +81,13 @@ export default function StartChatGPt() {
                         <div className="mt-8">
                             {/* <form className="flex flex-col items-center"> */}
                                 <textarea
-                                    className="w-full p-4 border rounded-lg mb-4"
+                                    className="w-full p-4 border rounded-lg mb-4 dark:bg-gray-700 dark:text-white"
                                     placeholder="Ask a question"
                                     value={state.textareaValue}
                                     onChange={handleTextareaChange}
                                 />
                                 <Button
-                                    className={`w-full ${state.textareaValue.trim() === "" ? "bg-gray-300 cursor-not-allowed" : ""}`}
+                                    className={`w-full ${state.textareaValue.trim() === "" ? "bg-gray-600 cursor-not-allowed hover:bg-blue" : ""}`}
                                     variant={"secondary"}
                                     onClick={handleAskButtonClick}
                                     disabled={state.textareaValue.trim() === ""}
@@ -96,6 +97,7 @@ export default function StartChatGPt() {
                             {/* </form> */}
                             <p className="text-center text-sm text-gray-500 mt-4">Question + Answer is limited to 1000 words</p>
                         </div>
+                    </div>
                     </div>
                 </>
             )}

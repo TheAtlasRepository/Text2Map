@@ -20,7 +20,7 @@ const JsonRenderer: React.FC<JsonRendererProps> = ({ jsonData }) => {
         const role = item.role === 'user' ? 'User' : 'Assistant';
         const content =
           typeof item.content === 'object' ? item.content.content : item.content;
-        return <p key={index}><strong>{role}:</strong> {content}</p>;
+        return <p key={index}><strong>{role}:</strong> <div className="dark:text-white">{content}</div></p>;
       });
 
     // Combine all the React components
