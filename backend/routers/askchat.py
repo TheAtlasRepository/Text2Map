@@ -100,26 +100,6 @@ async def geocode_with_retry(address, retries=3, delay=2):
             else:
                 raise e
 
-# Function to geocode a city using the openstreetmap API
-async def geocode_city(city_name):
-    try:
-        geolocator = Nominatim(user_agent="city-extractor")
-        location = geolocator.geocode(city_name)
-        
-        # For some reason, geolocator messes up language somehow. Returns labels in native language, as oposed to english
-        print('Geocoding city using name: ', city_name, ', and got: ', location)
-
-        if location:
-            return {"latitude": location.latitude, "longitude": location.longitude, "address": location.address}
-        else:
-            print(f"Geocoding failed for address: {city_name}")
-            return {"error": "Geocoding failed"}
-    except Exception as e:
-        print(f"Error: {e}")
-        return {"latitude": None, "longitude": None, "address": None, "error": "Geocoding failed"}
-
-
-
 # Function to geocode an address using the openstreetmap API
 async def geocode(address):
     print('Is the adress for ' + address +' in cache? ', address in openStreetmap_cache)
