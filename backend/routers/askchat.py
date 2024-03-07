@@ -36,15 +36,15 @@ async def fetch_geojson(session: ClientSession, url: str) -> dict:
             return await response.json(content_type=None)
     
 # Function to fetch geometry by ISO code from GeoBoundaries API
-async def get_geometry_online(iso_code: str, adm_level: str, release_type: str = "gbOpen") -> shape:
+async def get_geometry_online(address: str, api_key: str = "65e951fee9015502767625ytu96364c") -> dict:
     # Check if the geometry is already cached
-    if iso_code in geometry_cache:
-        print('Retrieved geometry from cache using iso_code: ', iso_code)
-        return geometry_cache[iso_code]
+    if address in geometry_cache:
+        print('Retrieved geometry from cache using address: ', address)
+        return geometry_cache[address]
 
     try:
-        # Construct the GeoBoundaries API endpoint URL
-        url = f"https://www.geoboundaries.org/api/current/{release_type}/{iso_code}/{adm_level}/"
+        # Construct the new API endpoint URL
+        url = f"https://geocode.maps.co/search?q={address}&format=geojson&api_key={api_key}&polygon_geojson=1"
 
         async with aiohttp.ClientSession() as session:
             # Make a GET request to the API
@@ -52,17 +52,12 @@ async def get_geometry_online(iso_code: str, adm_level: str, release_type: str =
                 data = await response.json()
 
             # Check if the request was successful
-            if response.status ==  200 and 'simplifiedGeometryGeoJSON' in data:
-                geojson_url = data['simplifiedGeometryGeoJSON']
-                geojson_data = await fetch_geojson(session, geojson_url)
-
-                # Check if the GeoJSON request was successful
-                if geojson_data and 'features' in geojson_data:
-                    geometry = shape(geojson_data['features'][0]['geometry'])
-                    # Cache the geometry for future use
-                    geometry_cache[iso_code] = geometry
-                    print(f"Fetched geometry for {iso_code}")
-                    return geometry
+            if response.status == 200 and 'features' in data:
+                geometry = data['features'][0]['geometry']
+                # Cache the geometry for future use
+                geometry_cache[address] = geometry
+                print(f"Fetched geometry for {address}")
+                return geometry
             else:
                 print(f"Failed to fetch geometry. Status code: {response.status}")
                 return None
@@ -136,8 +131,8 @@ async def geocode(address):
 
     
 # Function to fetch country geometry by ISO code from GeoBoundaries API
-async def get_geometry(iso_code, adm_level):
-    geometry = await get_geometry_online(iso_code, adm_level)
+async def get_geometry(address):
+    geometry = await get_geometry_online(address)
     
     return geometry
 
@@ -268,7 +263,7 @@ async def run_text_through_prosessor(doc):
             iso_code = ent.alpha_3
             mentioned_country_iso_codes.add(iso_code)  # Track mentioned country ISO codes
             country_tasks.append(geocode_with_retry(ent.name))
-            country_tasks.append(get_geometry(iso_code, "ADM0"))
+            country_tasks.append(get_geometry(ent.name))
 
     # Extract city information
     for city in places_mentioned_in_doc:
