@@ -90,10 +90,10 @@ def extract_cities(text):
     print(' ')
     return set(cities_and_places)
 
-async def geocode_with_retry(address, iso_code, retries=3, delay=2):
+async def geocode_with_retry(address, retries=3, delay=2):
     for i in range(retries):
         try:
-            return await geocode(address, iso_code)
+            return await geocode(address)
         except GeocoderUnavailable as e:
             if i < retries - 1: # i is zero indexed
                 await asyncio.sleep(delay) # wait before retrying
@@ -121,7 +121,7 @@ async def geocode_city(city_name):
 
 
 # Function to geocode an address using the openstreetmap API
-async def geocode(address, iso_code):
+async def geocode(address):
     print('Is the adress for ' + address +' in cache? ', address in openStreetmap_cache)
 
     # First check if data is in cache
@@ -130,7 +130,7 @@ async def geocode(address, iso_code):
         
         data = openStreetmap_cache[address]
         #print('Data: ', data)
-        return {"latitude": data['lat'], "longitude": data['lon'], "address": data['display_name'], "iso_code": iso_code}
+        return {"latitude": data['lat'], "longitude": data['lon'], "address": data['display_name']}
 
     try:
         async with aiohttp.ClientSession() as session:
@@ -146,7 +146,7 @@ async def geocode(address, iso_code):
                 if data:
                     # Save data in cache
                     openStreetmap_cache[address] = data
-                    return {"latitude": data['lat'], "longitude": data['lon'], "address": data['display_name'], "iso_code": iso_code, }
+                    return {"latitude": data['lat'], "longitude": data['lon'], "address": data['display_name'] }
                 else:
                     print(f"Geocoding failed for address: {address}")
                     return {"error": "Geocoding failed"}
@@ -159,33 +159,7 @@ async def geocode(address, iso_code):
 async def get_geometry(iso_code, adm_level):
     geometry = await get_geometry_online(iso_code, adm_level)
     
-    
-    
     return geometry
-
-# Function to fetch city geometry and geocode a city by name and ISO code
-async def get_city_info(city_name):
-    geocode_result = await geocode_city(city_name)
-    return geocode_result
-
-
-# Function to get ISO code for a country
-def get_country_iso_code(country_name):
-    try:
-        # Check if the country name is already an ISO code
-        if len(country_name) == 3 and country_name.isalpha():
-            return country_name.upper()
-
-        # Check if the country name is in the pycountry database
-        country = pycountry.countries.get(name=country_name)
-        if country:
-            return country.alpha_3
-        else:
-            print(f"ISO code not found for country: {country_name}")
-            return None
-    except Exception as e:
-        print(f"Error getting ISO code for country: {e}")
-        return None
 
 # Function for handeling manual text input
 @router.post("/newText", response_model=dict)
@@ -295,9 +269,6 @@ async def run_text_through_prosessor(doc):
 
     # Initialize country_geometries as an empty list
     country_geometries = []
-
-    # Create a dictionary to map ISO codes to country names
-    iso_to_country = {ent.alpha_3: ent.name for ent in pycountry.countries}
     
     # Extract city names mentioned in the user's input
     places_mentioned_in_doc = list(extract_cities(doc))
@@ -316,12 +287,12 @@ async def run_text_through_prosessor(doc):
         if ent.name in doc:
             iso_code = ent.alpha_3
             mentioned_country_iso_codes.add(iso_code)  # Track mentioned country ISO codes
-            country_tasks.append(geocode_with_retry(ent.name, iso_code))
+            country_tasks.append(geocode_with_retry(ent.name))
             country_tasks.append(get_geometry(iso_code, "ADM0"))
 
     # Extract city information
     for city in places_mentioned_in_doc:
-        city_tasks.append(get_city_info(city))
+        city_tasks.append(geocode(city))
 
     # Combine the results of country and city tasks
     country_results = await asyncio.gather(*country_tasks)
@@ -332,13 +303,12 @@ async def run_text_through_prosessor(doc):
         geocode_result = country_results[i]
         geometry_result = country_results[i + 1]
         if "error" not in geocode_result and geometry_result:
-            # Get the current entity name using the ISO code
-            current_entity_name = iso_to_country.get(geocode_result['iso_code'])
+            # Check if 'display_name' exists in the geocode_result
+            current_entity_name = geocode_result.get('display_name', 'Unknown')
             if current_entity_name:
-                print(f"Found country: {current_entity_name}, ISO Code: {geocode_result['iso_code']}")
+                print(f"Found country: {current_entity_name}")
                 entities.append((
                     ("Found entities:", current_entity_name),
-                    ("ISO Code:", geocode_result['iso_code']),
                     ("Latitude:", geocode_result["latitude"]),
                     ("Longitude:", geocode_result["longitude"])
                 ))
