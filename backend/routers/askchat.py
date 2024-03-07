@@ -11,6 +11,7 @@ import asyncio
 import json
 import urllib
 import spacy
+import re
 
 router = APIRouter()
 
@@ -44,17 +45,30 @@ def address_to_coordinates(address, bing_maps_key = "Akp4jrj9Y3XZZmmVVwpiK2Op2v7
     data = json.loads(response.read().decode())
     coordinates = data['resourceSets'][0]['resources'][0]['point']['coordinates']
     return coordinates
+
+def address_to_iso_code(country_name):
+    # Convert the country name to uppercase for case-insensitive matching
+    country_name = country_name.upper()
+
+    # Check if the country name is a valid pycountry country name
+    try:
+        country = pycountry.countries.lookup(country_name)
+        return country.alpha_3
+    except LookupError:
+        print(f"Could not find ISO code for country: {country_name}")
+        return None
     
 # Function to fetch geometry by ISO code from GeoBoundaries API
-async def get_geometry_online(address: str, api_key: str = "65e951fee9015502767625ytu96364c") -> dict:
+async def get_geometry_online(address: str, adm_level: str = "ADM0", release_type: str = "gbOpen") -> shape:
+    iso_code = address_to_iso_code(address)
     # Check if the geometry is already cached
-    if address in geometry_cache:
-        print('Retrieved geometry from cache using address: ', address)
-        return geometry_cache[address]
+    if iso_code in geometry_cache:
+        print('Retrieved geometry from cache using iso_code: ', iso_code)
+        return geometry_cache[iso_code]
 
     try:
-        # Construct the new API endpoint URL
-        url = f"https://geocode.maps.co/search?q={address}&format=geojson&api_key={api_key}&polygon_geojson=1"
+        # Construct the GeoBoundaries API endpoint URL
+        url = f"https://www.geoboundaries.org/api/current/{release_type}/{iso_code}/{adm_level}/"
 
         async with aiohttp.ClientSession() as session:
             # Make a GET request to the API
@@ -62,12 +76,17 @@ async def get_geometry_online(address: str, api_key: str = "65e951fee90155027676
                 data = await response.json()
 
             # Check if the request was successful
-            if response.status == 200 and 'features' in data:
-                geometry = data['features'][0]['geometry']
-                # Cache the geometry for future use
-                geometry_cache[address] = geometry
-                print(f"Fetched geometry for {address}")
-                return geometry
+            if response.status ==  200 and 'simplifiedGeometryGeoJSON' in data:
+                geojson_url = data['simplifiedGeometryGeoJSON']
+                geojson_data = await fetch_geojson(session, geojson_url)
+
+                # Check if the GeoJSON request was successful
+                if geojson_data and 'features' in geojson_data:
+                    geometry = shape(geojson_data['features'][0]['geometry'])
+                    # Cache the geometry for future use
+                    geometry_cache[iso_code] = geometry
+                    print(f"Fetched geometry for {iso_code}")
+                    return geometry
             else:
                 print(f"Failed to fetch geometry. Status code: {response.status}")
                 return None
@@ -82,17 +101,22 @@ def extract_cities(text):
 
     for ent in doc.ents:
         if ent.label_ in ["GPE", "LOC", "FAC"]:
-            text = ent.text
-            print('Entity and label: ', ent.text, ',', ent.label_)
-            
-            # Cut off 'The' to improve the process for searching
-            if text.title().startswith('The '): 
-                text = text[4:]
-                print('Cut text: ', text)
+            text = ent.text.strip()
 
-            cities_and_places.append(text)
+            # Check if the text starts with 'The '
+            if text.title().startswith('The '):
+                text = text[4:].strip()
 
-    print(' ')
+            # Use regular expression to remove additional characters or digits
+            cleaned_text = re.sub(r'\.\s*\d+', '', text)
+
+            # Filter out country names
+            iso_code = address_to_iso_code(cleaned_text)
+            if iso_code and pycountry.countries.get(alpha_3=iso_code):
+                continue
+
+            cities_and_places.append(cleaned_text)
+
     return set(cities_and_places)
 
 async def geocode_with_retry(address, retries=3, delay=2):
@@ -289,15 +313,17 @@ async def run_text_through_prosessor(doc):
         geometry_result = country_results[i + 1]
         if "error" not in geocode_result and geometry_result:
             # Check if 'display_name' exists in the geocode_result
-            current_entity_name = geocode_result.get('display_name', 'Unknown')
+            current_entity_name = geocode_result.get('address', 'Unknown')  # Use 'address' instead of 'display_name'
             if current_entity_name:
-                print(f"Found country: {current_entity_name}")
-                entities.append((
-                    ("Found entities:", current_entity_name),
-                    ("Latitude:", geocode_result["latitude"]),
-                    ("Longitude:", geocode_result["longitude"])
-                ))
-                country_geometries.append(geometry_result)
+                iso_code = address_to_iso_code(current_entity_name)  # Use the updated function
+                if iso_code:
+                    print(f"Found country: {current_entity_name}")
+                    entities.append((
+                        ("Found entities:", current_entity_name),
+                        ("Latitude:", geocode_result["latitude"]),
+                        ("Longitude:", geocode_result["longitude"])
+                    ))
+                    country_geometries.append(geometry_result)
 
     # Process the results for cities
     for city_result in city_results:
@@ -313,7 +339,7 @@ async def run_text_through_prosessor(doc):
             address = city_result.get('address', 'Unknown')
             print(f"Geocoding failed for city: {address}")
 
-    iso_codes = [ent[1][1] for ent in entities]
+    iso_codes = [ent[1][1] for ent in entities if ent[0][0] == "Found entities:"]  # Filter entities for countries only
     country_geometries = [shape(geo) for geo in country_geometries]
 
     # Ensure that the geometry objects are valid before mapping also set a color for each country
@@ -339,6 +365,7 @@ async def run_text_through_prosessor(doc):
         "type": "FeatureCollection",
         "features": features
     }
+
 
     # Clear geometry_cache for entries not used recently
     geometry_cache = {iso_code: geometry for iso_code, geometry in geometry_cache.items() if iso_code in iso_codes}
