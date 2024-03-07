@@ -25,6 +25,7 @@ geolocator = Nominatim(user_agent="city-extractor")
 
 # Define a cache to store previously fetched geometries
 geometry_cache = {}
+openStreetmap_cache = {}
 
 # Define a semaphore to limit concurrent requests
 semaphore = asyncio.Semaphore(5)  # Adjust the limit as needed
@@ -38,6 +39,7 @@ async def fetch_geojson(session: ClientSession, url: str) -> dict:
 async def get_geometry_online(iso_code: str, adm_level: str, release_type: str = "gbOpen") -> shape:
     # Check if the geometry is already cached
     if iso_code in geometry_cache:
+        print('Retrieved geometry from cache using iso_code: ', iso_code)
         return geometry_cache[iso_code]
 
     try:
@@ -74,10 +76,19 @@ def extract_cities(text):
     cities_and_places = []
 
     for ent in doc.ents:
-        if ent.label_ in ["GPE", "LOC"]:
-            cities_and_places.append(ent.text)
+        if ent.label_ in ["GPE", "LOC", "FAC"]:
+            text = ent.text
+            print('Entity and label: ', ent.text, ',', ent.label_)
+            
+            # Cut off 'The' to improve the process for searching
+            if text.title().startswith('The '): 
+                text = text[4:]
+                print('Cut text: ', text)
 
-    return cities_and_places
+            cities_and_places.append(text)
+
+    print(' ')
+    return set(cities_and_places)
 
 async def geocode_with_retry(address, iso_code, retries=3, delay=2):
     for i in range(retries):
@@ -94,6 +105,9 @@ async def geocode_city(city_name):
     try:
         geolocator = Nominatim(user_agent="city-extractor")
         location = geolocator.geocode(city_name)
+        
+        # For some reason, geolocator messes up language somehow. Returns labels in native language, as oposed to english
+        print('Geocoding city using name: ', city_name, ', and got: ', location)
 
         if location:
             return {"latitude": location.latitude, "longitude": location.longitude, "address": location.address}
@@ -108,14 +122,31 @@ async def geocode_city(city_name):
 
 # Function to geocode an address using the openstreetmap API
 async def geocode(address, iso_code):
+    print('Is the adress for ' + address +' in cache? ', address in openStreetmap_cache)
+
+    # First check if data is in cache
+    if address in openStreetmap_cache:
+        print('Retrieved data from cache using address: ', address)
+        
+        data = openStreetmap_cache[address]
+        #print('Data: ', data)
+        return {"latitude": data['lat'], "longitude": data['lon'], "address": data['display_name'], "iso_code": iso_code}
+
     try:
         async with aiohttp.ClientSession() as session:
-            async with session.get(f"https://nominatim.openstreetmap.org/search?format=json&q={address}") as response:
+            # limit=1 limits the api to return a single element in the JSON 
+            # accept-language=en-US tells the api what language is prefered
+            # polygon_geojson=! tells teh api to return geojson bounderies
+            async with session.get(f"https://nominatim.openstreetmap.org/search?limit=1&accept-language=en-US&format=json&q={address}") as response:
                 data = await response.json()
-
+                
+                # Set first item from response as data
+                data = data[0]
+                
                 if data:
-                    location = data[0]['lat'], data[0]['lon']
-                    return {"latitude": location[0], "longitude": location[1], "address": data[0]['display_name'], "iso_code": iso_code}
+                    # Save data in cache
+                    openStreetmap_cache[address] = data
+                    return {"latitude": data['lat'], "longitude": data['lon'], "address": data['display_name'], "iso_code": iso_code, }
                 else:
                     print(f"Geocoding failed for address: {address}")
                     return {"error": "Geocoding failed"}
@@ -255,7 +286,9 @@ async def postMoreChat(message: str, thread_id: str):
         "chat_history": formatted_messages
     }
 
-async def run_text_through_prosessor(doc, text = ''):
+
+# Text processor for extracting and finding locations from text
+async def run_text_through_prosessor(doc):
     global geometry_cache
 
     entities = []
@@ -267,18 +300,12 @@ async def run_text_through_prosessor(doc, text = ''):
     iso_to_country = {ent.alpha_3: ent.name for ent in pycountry.countries}
     
     # Extract city names mentioned in the user's input
-    if (text): 
-        cities_mentioned_in_doc = extract_cities(text)
-
-    else: 
-        cities_mentioned_in_doc = extract_cities(doc)
-
-    unique_cities_mentioned_in_doc = list(set(cities_mentioned_in_doc))
+    places_mentioned_in_doc = list(extract_cities(doc))
     
     # Keep track of ISO codes of the countries mentioned in the user's input
     mentioned_country_iso_codes = set()
     
-    print (f"Cities mentioned in the user's input: {unique_cities_mentioned_in_doc}")
+    print (f"Cities mentioned in the user's input: {places_mentioned_in_doc}")
 
     # Run geocoding, geometry fetching, and city information fetching concurrently
     country_tasks = []
@@ -293,7 +320,7 @@ async def run_text_through_prosessor(doc, text = ''):
             country_tasks.append(get_geometry(iso_code, "ADM0"))
 
     # Extract city information
-    for city in unique_cities_mentioned_in_doc:
+    for city in places_mentioned_in_doc:
         city_tasks.append(get_city_info(city))
 
     # Combine the results of country and city tasks
