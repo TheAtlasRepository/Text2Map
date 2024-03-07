@@ -8,7 +8,8 @@ from geopy.exc import GeocoderUnavailable
 import aiohttp
 from aiohttp import ClientSession
 import asyncio
-import os
+import json
+import urllib
 import spacy
 
 router = APIRouter()
@@ -34,6 +35,15 @@ async def fetch_geojson(session: ClientSession, url: str) -> dict:
     async with semaphore:
         async with session.get(url) as response:
             return await response.json(content_type=None)
+       
+def address_to_coordinates(address, bing_maps_key = "Akp4jrj9Y3XZZmmVVwpiK2Op2v7wB7xaHr4mqDWOQ8xD-ObvUUOrG_4Xae2rYiml"):
+    encoded_address = urllib.parse.quote(address, safe='')
+    route_url = f"http://dev.virtualearth.net/REST/V1/Locations?q={encoded_address}&key={bing_maps_key}"
+    request = urllib.request.Request(route_url)
+    response = urllib.request.urlopen(request)
+    data = json.loads(response.read().decode())
+    coordinates = data['resourceSets'][0]['resources'][0]['point']['coordinates']
+    return coordinates
     
 # Function to fetch geometry by ISO code from GeoBoundaries API
 async def get_geometry_online(address: str, api_key: str = "65e951fee9015502767625ytu96364c") -> dict:
@@ -95,9 +105,9 @@ async def geocode_with_retry(address, retries=3, delay=2):
             else:
                 raise e
 
-# Function to geocode an address using the openstreetmap API
+# Function to geocode an address 
 async def geocode(address):
-    print('Is the adress for ' + address +' in cache? ', address in openStreetmap_cache)
+    print('Is the address for ' + address +' in cache? ', address in openStreetmap_cache)
 
     # First check if data is in cache
     if address in openStreetmap_cache:
@@ -108,23 +118,23 @@ async def geocode(address):
         return {"latitude": data['lat'], "longitude": data['lon'], "address": data['display_name']}
 
     try:
-        async with aiohttp.ClientSession() as session:
-            # limit=1 limits the api to return a single element in the JSON 
-            # accept-language=en-US tells the api what language is prefered
-            # polygon_geojson=! tells teh api to return geojson bounderies
-            async with session.get(f"https://nominatim.openstreetmap.org/search?limit=1&accept-language=en-US&format=json&q={address}") as response:
-                data = await response.json()
-                
-                # Set first item from response as data
-                data = data[0]
-                
-                if data:
-                    # Save data in cache
-                    openStreetmap_cache[address] = data
-                    return {"latitude": data['lat'], "longitude": data['lon'], "address": data['display_name'] }
-                else:
-                    print(f"Geocoding failed for address: {address}")
-                    return {"error": "Geocoding failed"}
+        # Use address_to_coordinates function to get coordinates
+        coordinates = address_to_coordinates(address)
+        if coordinates:
+            # Assuming coordinates is a tuple (latitude, longitude)
+            latitude, longitude = coordinates
+            # Construct a response similar to what you would get from the API
+            response_data = {
+                "lat": latitude,
+                "lon": longitude,
+                "display_name": address # This might need adjustment based on how you want to handle display names
+            }
+            # Save data in cache
+            openStreetmap_cache[address] = response_data
+            return {"latitude": latitude, "longitude": longitude, "address": address}
+        else:
+            print(f"Geocoding failed for address: {address}")
+            return {"error": "Geocoding failed"}
     except Exception as e:
         print(f"Error: {e}")
         return {"latitude": None, "longitude": None, "address": None, "error": "Geocoding failed"}
