@@ -27,7 +27,7 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
     const prevEditedTextRef = useRef<string | undefined>('');
 
     const renderJsonData = (): string | null => {
-      return jsonData ? ReactDOMServer.renderToStaticMarkup(<JsonRenderer jsonData={jsonData} />) : null;
+      return jsonData ? ReactDOMServer.renderToStaticMarkup(<div className="dark:text-white"><JsonRenderer jsonData={jsonData} /></div>) : null;
     };
 
     // TODO: Set the initial view state when centerCoordinates change 
@@ -98,12 +98,11 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
       }
     };    
 
-    /* Need darkmode colors for chatgpt text*/
     return (
       <div className="bg-white min-h-screen overflow-y-auto dark:bg-gray-800">
         <div className="flex">
         <aside className="w-1/3 p-4 space-y-4 border-r flex flex-col" style={{ flex: '0 0 auto', height: 'calc(100vh - 73px)' }}>
-            <div className="flex items-center justify-between w-full">
+            <div className="flex items-center justify-between w-full dark:text-white">
             {editingText ? (
             <input
             type="text"
@@ -131,9 +130,9 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
           )}
           <ScrollArea>
             {loading ? (
-              <div className="justify-center">Thinking...</div>
+              <div className="justify-center dark:text-white">Thinking...</div>
             ) : (
-              <div className="prose">
+              <div className="prose dark:text-white">
                 <JsonRenderer jsonData={jsonData} />
               </div>
             )}

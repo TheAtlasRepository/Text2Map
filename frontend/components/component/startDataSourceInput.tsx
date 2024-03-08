@@ -110,8 +110,8 @@ export default function StartDataSource() {
               <button
                 className={`rounded-lg border ${
                   textSource
-                    ? "bg-white dark:bg-gray-900 border-blue-500 text-blue-500 border-underline-blue"
-                    : "text-gray-500 border-gray-100"
+                    ? "bg-white dark:bg-gray-900 text-blue-500 border-blue-500 border-underline-blue"
+                    : "text-gray-500 border-gray-300"
                 }`}
                 disabled={textSource}
                 onClick={handleInputToggle}
@@ -155,7 +155,7 @@ export default function StartDataSource() {
                   {/* <form className="flex flex-col items-center"> */}
                   <Textarea
                     name="TextAreaInput"
-                    className="mb-4  dark:bg-gray-700"
+                    className="mb-4  dark:bg-gray-700 dark:text-white"
                     placeholder="Aa"
                     value={textareaValue}
                     onChange={handleTextareaChange}
@@ -262,7 +262,7 @@ export default function StartDataSource() {
           </div>
         </>
       ) : (
-        <div className="bg-white dark:bg-gray-700 dark:text-white min-h-screen overflow-y-auto">
+        <div className="bg-white dark:bg-gray-800 dark:text-white min-h-screen overflow-y-auto">
           <div className="flex">
             <aside
               className="w-1/3 p-4 space-y-4 border-r flex flex-col"

@@ -9,7 +9,7 @@ const JsonRenderer: React.FC<JsonRendererProps> = ({ jsonData }) => {
     return null;
   }
 
-  const gptContent = jsonData.GPT ? <p><strong>GPT:</strong> {jsonData.GPT}</p> : '';
+  const gptContent = jsonData.GPT ? <p  className="dark:text-white"><strong>GPT:</strong>{jsonData.GPT}</p> : '';
   const chatHistory = jsonData.chat_history;
 
   if (Array.isArray(chatHistory) && chatHistory.length > 0) {
@@ -20,13 +20,13 @@ const JsonRenderer: React.FC<JsonRendererProps> = ({ jsonData }) => {
         const role = item.role === 'user' ? 'User' : 'Assistant';
         const content =
           typeof item.content === 'object' ? item.content.content : item.content;
-        return <p key={index}><strong>{role}:</strong> <div className="dark:text-white">{content}</div></p>;
+        return <p className="dark:text-white"key={index}><strong>{role}:</strong>{content}</p>;
       });
 
     // Combine all the React components
     const reactContent = [gptContent, initialContent, ...formattedContent];
 
-    return <>{reactContent}</>;
+    return <><div className="dark:text-white">{reactContent}</div></>;
   }
 
   return null;
