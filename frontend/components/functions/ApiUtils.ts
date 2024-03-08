@@ -21,6 +21,7 @@ export const handleDataFetching = async (
         });
 
         const data = response.data;
+        setJsonData(data);
 
         console.log('JSON data from the backend:', data);
 
@@ -85,7 +86,7 @@ export const handleDataFetching = async (
             // Set loading to false
             setLoading(false);
         }
-
+        return data;
     }
     catch (error) {
         console.error('Error fetching JSON data:', error);
@@ -110,7 +111,7 @@ export const handleSaveChat = async (
 ) => {
     if (localEditedText !== prevEditedTextRef.current) {
         setEditingText(false);
-        await handleDataFetching(
+        const responseData = await handleDataFetching(
             `http://127.0.0.1:8000/newChat?message=${localEditedText}`,
             { editedText: localEditedText },
             setJsonData,
@@ -119,6 +120,17 @@ export const handleSaveChat = async (
             setLoading,
             setLocalEditedText
         );
+
+        console.log('Response data:', responseData);
+
+        const threadId = responseData.thread_id;
+        if(!threadId)   {
+            console.error('No threadId provided in the backend response.');
+            return;
+        } else {
+            document.cookie = `threadId=${threadId}; path=/; max-age=31536000`;
+            console.log('threadId:', threadId);
+        }
     }
 };
 
@@ -132,8 +144,11 @@ export const handleSendChat = async (
     setLoading: React.Dispatch<React.SetStateAction<boolean>>
 ) => {
     if (inputText.trim() !== '') {
+        // Get all cookies and split them by semicolon. Find the first row starting with desired cookie-name, then ceep only value after equals-sign.
+        let thread_id = document.cookie.split('; ').find((row) => row.startsWith('threadId='))?.split('=')[1];
+        
         await handleDataFetching(
-            'http://127.0.0.1:8000/moreChat?message=' + inputText,
+            'http://127.0.0.1:8000/moreChat?message=' + inputText + '&thread_id=' + thread_id,
             { inputText },
             setJsonData,
             setCenter,

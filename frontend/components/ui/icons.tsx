@@ -10,7 +10,7 @@ const svgParams = {
     stroke: "currentColor",
     strokeLinecap: "round",
     strokeLinejoin: "round",
-    class: 'inline-flex',
+    className: 'inline-flex',
 }
 
 // Manipulation
@@ -93,6 +93,8 @@ const TextDocumentIcon = (props: any) => {
         </svg>
     )
 }
+
+
 const DoubleBubbleIcon = (props: any) => {
     return (
         <svg {...props} {...svgParams} >

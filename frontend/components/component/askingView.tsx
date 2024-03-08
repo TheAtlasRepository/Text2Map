@@ -30,21 +30,15 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
       return jsonData ? ReactDOMServer.renderToStaticMarkup(<div className="dark:text-white"><JsonRenderer jsonData={jsonData} /></div>) : null;
     };
 
-    // TODO: Set the initial view state when centerCoordinates change 
+    // Ask user if he wants to reload the page
     useEffect(() => {
-      const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-        if (localEditedText !== prevEditedTextRef.current) {
-          e.preventDefault();
-          e.returnValue = '';
-        }
-      }
-      window.addEventListener('beforeunload', handleBeforeUnload);
+      window.onbeforeunload = () => true;
       return () => {
-        window.removeEventListener('beforeunload', handleBeforeUnload);
+        window.onbeforeunload = null;
       };
-    }
-    , [localEditedText]);
+    }, []);
 
+    // TODO: Set the initial view state when centerCoordinates change 
     useEffect(() => {
       if (centerCoordinates) {
         setInitialViewState({
@@ -101,7 +95,7 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
     return (
       <div className="bg-white min-h-screen overflow-y-auto dark:bg-gray-800">
         <div className="flex">
-        <aside className="w-1/3 p-4 space-y-4 border-r flex flex-col" style={{ flex: '0 0 auto', height: 'calc(100vh - 73px)' }}>
+        <aside className="w-1/3 p-4 space-y-4 border-r flex flex-col" style={{ flex: '0 0 auto', height: 'calc(100vh - 57px)' }}>
             <div className="flex items-center justify-between w-full dark:text-white">
             {editingText ? (
             <Input
@@ -150,7 +144,7 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
           </div>
           </aside>
           <main className="flex-auto relative w-2/3">
-            <div style={{ height: 'calc(100vh - 73px)' }}>
+            <div style={{ height: 'calc(100vh - 57px)' }}>
             <MapComponent
               markers={markers}
               centerCoordinates={centerCoordinates}

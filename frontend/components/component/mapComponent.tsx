@@ -55,7 +55,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
         }
 
         if (centerCoordinates != null) {
-            console.log(centerCoordinates);
+            //console.log(centerCoordinates);
             mapRef.current.flyTo({ center: centerCoordinates, zoom: 3 });
         }
     })

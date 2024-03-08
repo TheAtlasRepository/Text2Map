@@ -94,6 +94,14 @@ export default function StartDataSource() {
   const handleEditClick = () => {
     setEditingText(true);
   };
+    
+  // Ask user if he wants to reload the page
+  useEffect(() => {
+    window.onbeforeunload = () => true;
+    return () => {
+      window.onbeforeunload = null;
+    };
+  }, []);
 
   // const handleSaveTextWrapper = () => {
   //     handleSaveChat(localEditedText, setEditingText, setLoading, setJsonData, setMarkers, setLocalEditedText, prevEditedTextRef);
@@ -139,13 +147,8 @@ export default function StartDataSource() {
                       For best results:
                     </h2>
                     <ul className="list-disc pl-5 space-y-2 ">
-                      <li>
-                        Capitalise location names: New York, Eiffel Tower,
-                        Thailand.
-                      </li>
-                      <li>
-                        Use natural language: I saw the Big Ben while in London.
-                      </li>
+                      <li>Capitalise location names: New York, Eiffel Tower, Thailand.</li>
+                      <li>Use natural language: I saw the Big Ben while in London.</li>
                       <li>Add commas between locations: Paris, Rome, Ibiza.</li>
                     </ul>
                   </div>
@@ -204,10 +207,7 @@ export default function StartDataSource() {
                     </h2>
                     <ul className="list-disc pl-5 space-y-2 ">
                       <li>Supported file formats: CSV</li>
-                      <li>
-                        Capitalise location names: New York, Eiffel Tower,
-                        Thailand.
-                      </li>
+                      <li>Capitalise location names: New York, Eiffel Tower, Thailand.</li>
                     </ul>
                   </div>
                 </div>
@@ -265,14 +265,14 @@ export default function StartDataSource() {
           <div className="flex">
             <aside
               className="w-1/3 p-4 space-y-4 border-r flex flex-col"
-              style={{ flex: "0 0 auto", height: "calc(100vh - 73px)" }}
+              style={{ flex: "0 0 auto", height: "calc(100vh - 57px)" }}
             >
               <ScrollArea>
                 <div>{inputText}</div>
               </ScrollArea>
             </aside>
             <main className="flex-auto relative w-2/3">
-              <div style={{ height: "calc(100vh - 73px)" }}>
+              <div style={{ height: "calc(100vh - 57px)" }}>
                 <MapComponent
                   markers={markers}
                   centerCoordinates={centerCoordinates}
