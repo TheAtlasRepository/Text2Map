@@ -104,11 +104,11 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
         <aside className="w-1/3 p-4 space-y-4 border-r flex flex-col" style={{ flex: '0 0 auto', height: 'calc(100vh - 73px)' }}>
             <div className="flex items-center justify-between w-full dark:text-white">
             {editingText ? (
-            <input
+            <Input
             type="text"
             value={localEditedText}
             onChange={(e) => setLocalEditedText(e.target.value)}
-            className="border border-gray-300 p-2 rounded text-lg font-semibold w-full"
+            className="p-2 text-lg font-semibold"
           />
           ) : (
               <h1 className="p-2 rounded text-2xl font-semibold">{localEditedText}</h1>
@@ -132,14 +132,13 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
             {loading ? (
               <div className="justify-center dark:text-white">Thinking...</div>
             ) : (
-              <div className="prose dark:text-white">
+              <div className="prose">
                 <JsonRenderer jsonData={jsonData} />
               </div>
             )}
           </ScrollArea>
           <div className="flex justify-center space-x-2 mt-auto">
             <Input
-              className="dark:bg-gray-300 dark:text-black"
               placeholder="Type your message here..."
               type="text"
               value={inputText}

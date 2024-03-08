@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { useReducer } from "react"; // Import the useReducer hook
 import AskingView from "./askingView";
 import { Toolbar } from "../ui/toolbar";
+import { Textarea } from "../ui/textarea";
 
 const initialState = { asking: false, editedText: '', textareaValue: '' };
 
@@ -58,7 +59,7 @@ export default function StartChatGPt() {
                 <>
                 <div>
                     <div className="max-w-4xl mx-auto my-12 mt-4 p-8 dark:text-gray-300">
-                        <h1 className="text-3xl font-bold text-center mb-6 dark:text-300">Create a map from an ask</h1>
+                        <h1 className="text-3xl font-bold text-center mb-6">Create a map from an ask</h1>
                         <div className="flex flex-col lg:flex-row justify-between gap-8">
                             <div className="flex-1">
                                 <h2 className="text-xl font-semibold mb-4">Examples of what you can ask:</h2>
@@ -80,15 +81,15 @@ export default function StartChatGPt() {
                         </div>
                         <div className="mt-8">
                             {/* <form className="flex flex-col items-center"> */}
-                                <textarea
-                                    className="w-full p-4 border rounded-lg mb-4 dark:bg-gray-700 dark:text-white"
+                                <Textarea
+                                    className="mb-4"
                                     placeholder="Ask a question"
                                     value={state.textareaValue}
                                     onChange={handleTextareaChange}
                                 />
                                 <Button
-                                    className={`w-full ${state.textareaValue.trim() === "" ? "bg-gray-600 cursor-not-allowed hover:bg-blue" : ""}`}
-                                    variant={"secondary"}
+                                    className={`w-full ${state.textareaValue.trim() === "" ? "bg-gray-500 cursor-not-allowed " : ""}`}
+                                    variant={"blue"}
                                     onClick={handleAskButtonClick}
                                     disabled={state.textareaValue.trim() === ""}
                                 >

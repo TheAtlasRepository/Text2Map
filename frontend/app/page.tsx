@@ -25,7 +25,7 @@ export default function Home() {
               className="flex flex-col items-center space-y-4"
               onClick={() => router.push("/datasource")}
             >
-              <Card className="w-full max-w-[400px] bg-white border border-blue-500 rounded-lg shadow-sm hover:shadow-md transition-shadow dark:bg-gray-900 dark:hover:bg-gray-800">
+              <Card className="w-full max-w-[400px]">
                 <CardHeader>
                   <div className="flex items-center space-x-2">
                     <TextDocumentIcon />
@@ -45,7 +45,7 @@ export default function Home() {
               className="flex flex-col items-center space-y-4"
               onClick={() => router.push("/askChat")}
             >
-              <Card className="w-full max-w-[400px] bg-white border border-blue-500 rounded-lg shadow-sm hover:shadow-md transition-shad  dark:bg-gray-900 dark:hover:bg-gray-800">
+              <Card className="w-full max-w-[400px]">
                 <CardHeader>
                   <div className="flex items-center space-x-2">
                     <DoubleBubbleIcon />

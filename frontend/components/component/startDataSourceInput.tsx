@@ -105,13 +105,13 @@ export default function StartDataSource() {
       <Toolbar viewAllOptions={mapView} onDiscardClick={handleDiscard} />
       {!mapView ? (
         <>
-          <div className="max-w-4xl mx-auto mb-12 mt-4 p-8">
-            <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-1 inline-flex gap-1">
+          <div className="max-w-4xl mx-auto mb-12 mt-4 px-8 text-gray-600 dark:text-gray-300">
+            <div className="bg-gray-100 dark:bg-gray-800 mb-8 rounded-lg p-1 inline-flex gap-1">
               <button
                 className={`rounded-lg border ${
                   textSource
-                    ? "bg-white dark:bg-gray-900 text-blue-500 border-blue-500 border-underline-blue"
-                    : "text-gray-500 border-gray-300"
+                    ? "bg-white dark:bg-slate-800 text-blue-500 border-blue-500 border-underline-blue"
+                    : "border-gray-100 dark:border-gray-800 dark:text-gray-400"
                 }`}
                 disabled={textSource}
                 onClick={handleInputToggle}
@@ -121,8 +121,8 @@ export default function StartDataSource() {
               <button
                 className={`rounded-lg border ${
                   !textSource
-                    ? "bg-white dark:bg-gray-900 border-blue-500 text-blue-500 border-underline-blue"
-                    : "text-gray-500 border-gray-100"
+                    ? "bg-white dark:bg-slate-800 border-blue-500 text-blue-500 border-underline-blue"
+                    : "border-gray-100 dark:border-gray-800 dark:text-gray-500" 
                 }`}
                 disabled={!textSource}
                 onClick={handleInputToggle}
@@ -130,11 +130,10 @@ export default function StartDataSource() {
                 <div className="px-6 py-1">Spreadsheet</div>
               </button>
             </div>
-
             {textSource ? (
               <>
                 <div className="flex mt-5">
-                  <div className="text-gray-500 pb-10 dark:text-gray-300">
+                  <div className="pb-10">
                     <h2 className="text-xl font-semibold mb-4">
                       Type or paste in your text here to generate a map. <br />{" "}
                       For best results:
@@ -155,7 +154,7 @@ export default function StartDataSource() {
                   {/* <form className="flex flex-col items-center"> */}
                   <Textarea
                     name="TextAreaInput"
-                    className="mb-4  dark:bg-gray-700 dark:text-white"
+                    className="mb-4"
                     placeholder="Aa"
                     value={textareaValue}
                     onChange={handleTextareaChange}
@@ -178,7 +177,7 @@ export default function StartDataSource() {
                         className={`w-full transition ${
                           textareaValue.trim() === "" ||
                           textareaValue.trim().length > maxLengthInput
-                            ? "bg-gray-500 cursor-not-allowed"
+                            ? "bg-gray-500"
                             : ""
                         }`}
                         variant={"blue"}
@@ -198,7 +197,7 @@ export default function StartDataSource() {
             ) : (
               <>
                 <div className="flex mt-5">
-                  <div className="text-gray-500 pb-10 dark:text-gray-300">
+                  <div className="text-gray-600 pb-10 dark:text-gray-300">
                     <h2 className="text-xl font-semibold mb-4">
                       Upload a CSV file here to generate a map.
                       <br /> For best results:
@@ -216,10 +215,10 @@ export default function StartDataSource() {
                   <div className="flex items-center justify-center w-full mb-2">
                     <label
                       htmlFor="dropzone-file"
-                      className="flex flex-col items-center justify-center w-full h-64 border-4 border-blue-200 border-dashed rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-500"
+                      className="flex flex-col items-center justify-center w-full h-64 border-4 border-blue-300 dark:border-blue-400 border-dashed rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
                     >
                       <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        <UploadIcon className="w-8 h-8 mb-4 text-blue-300" />
+                        <UploadIcon className="w-8 h-8 mb-4 text-blue-300 dark:text-blue-400" />
                         <p className="mb-2 text-sm text-gray-400 dark:text-gray-300 ">
                           <span className="font-semibold">Click to upload</span>{" "}
                           or drag and drop
@@ -253,7 +252,7 @@ export default function StartDataSource() {
               </>
             )}
             <div className="flex">
-              <Button className="dark:bg-gray-800" variant="fancy_blue" onClick={handleExampleText}>
+              <Button variant="fancy_blue" onClick={handleExampleText}>
                 <div className="px-4">
                   💡 Try an existing text <ArrowLongIcon />
                 </div>
