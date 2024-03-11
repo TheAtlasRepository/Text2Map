@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { handleSendTextInput } from "../functions/ApiUtils";
 import { ScrollArea } from "../ui/scroll-area";
