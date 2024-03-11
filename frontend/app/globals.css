@@ -56,6 +56,18 @@ body {
     box-shadow: 0 2px 0 0 rgb(59, 130, 246);
 }
 
+.editMarkerOverlay {
+  z-index: 1000; /* Adjust the z-index as needed */
+  position: fixed; /* Ensure it's positioned relative to the viewport */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+ }
+
 /*Cropper CSS*/
 .cropped {
   height: 200px; /* height of container */

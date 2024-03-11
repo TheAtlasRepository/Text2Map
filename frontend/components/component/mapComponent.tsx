@@ -4,12 +4,13 @@ import type { FillLayer, MapRef } from 'react-map-gl';
 import Coordinate from '../functions/Coordinates';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import InfoPanel from '../component/info-panel';
+import { EditMarker } from '../component/edit-marker';
 
 /**
  * Input props for the map component
  */
 type MapComponentProps = {
-    markers: { latitude: number; longitude: number; type: string }[];
+    markers: { latitude: number; longitude: number; type: string, imageLink: string }[];
     centerCoordinates: [number, number] | null;
     initialViewState: any;
     selectedMarkerIndex: number | null;
@@ -42,10 +43,25 @@ const MapComponent: React.FC<MapComponentProps> = ({
     const [markers, setMarkers] = useState(markersProp);
     const [isLoaded, setIsLoaded] = useState(false);
     const [gotGeoJson, setGotGeoJsonState] = useState(false);
+    const [isEditMarkerOverlayVisible, setIsEditMarkerOverlayVisible] = useState(false);
 
     const handleOnLoad = () => {
         setIsLoaded(true);
     };
+
+    const handleMarkerTitleChange = (newTitle: string) => {
+        // Update the marker title and type in the MapComponent's state
+        setMarkers(markers.map((marker, index) => {
+            if (index === selectedMarkerIndex) {
+                return { ...marker, type: newTitle, title: newTitle }; // Assuming you want to update both title and type
+            }
+            return marker;
+        }));
+    };
+
+    const toggleEditMarkerOverlay = () => {
+        setIsEditMarkerOverlayVisible(!isEditMarkerOverlayVisible);
+    }
 
     const handleDeleteMarker = (index: number) => {
         // Assuming markers is a state variable
@@ -81,8 +97,6 @@ const MapComponent: React.FC<MapComponentProps> = ({
             ref={mapRef}
             onLoad={handleOnLoad}
         >
-
-
             {isLoaded &&
                 <>
                     {/* Render GeoJSON */}
@@ -126,15 +140,27 @@ const MapComponent: React.FC<MapComponentProps> = ({
                                 >
                                     <InfoPanel 
                                         title={marker.type} 
+                                        type={marker.type}
                                         onClosed={() => setSelectedMarkerIndex(null)} 
-                                        onDeleteMarker={() => handleDeleteMarker(index)} // Pass the callback here
-                                        />
+                                        onDeleteMarker={() => handleDeleteMarker(index)} 
+                                        onEditMarker={toggleEditMarkerOverlay}
+                                        onMarkerTitleChange={handleMarkerTitleChange}
+                                    />
                                 </Popup>
                             )}
                         </Marker>
                     ))}
                 </>
             }
+                {isEditMarkerOverlayVisible && selectedMarkerIndex !== null && (
+                    <div className="editMarkerOverlay">
+                        <EditMarker 
+                        onClose={toggleEditMarkerOverlay} 
+                        onTitleChange={handleMarkerTitleChange}
+                        title={markers[selectedMarkerIndex].type}
+                        />
+                    </div>
+                    )}
         </ReactMapGL>
     );
 };
