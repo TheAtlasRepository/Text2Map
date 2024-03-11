@@ -10,7 +10,7 @@ import { EditMarker } from '../component/edit-marker';
  * Input props for the map component
  */
 type MapComponentProps = {
-    markers: { latitude: number; longitude: number; type: string, imageLink: string }[];
+    markers: { latitude: number; longitude: number; type: string}[];
     centerCoordinates: [number, number] | null;
     initialViewState: any;
     selectedMarkerIndex: number | null;

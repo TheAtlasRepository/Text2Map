@@ -16,7 +16,7 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
     const [jsonData, setJsonData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [inputText, setInputText] = useState('');
-    const [markers, setMarkers] = useState<{ latitude: number; longitude: number; type: string }[]>([]);
+    const [markers, setMarkers] = useState<{ latitude: number; longitude: number; type: string;}[]>([]);
     const [centerCoordinates, setCenterCoordinates] = useState<[number, number] | null>(null);
     const [initialViewState, setInitialViewState] = useState<any>({
       latitude: 35.668641,
