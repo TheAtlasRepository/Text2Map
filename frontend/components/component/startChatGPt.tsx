@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { useReducer } from "react"; // Import the useReducer hook
 import AskingView from "./askingView";
 import { Toolbar } from "../ui/toolbar";
+import { Textarea } from "../ui/textarea";
 
 const initialState = { asking: false, editedText: '', textareaValue: '' };
 
@@ -46,7 +47,7 @@ export default function StartChatGPt() {
   }
 
     return (
-        <div>
+        <div className="min-h-screen bg-white dark:bg-gray-900">
             <Toolbar
                 viewAllOptions={state.asking}
                 onDiscardClick={handleDiscard}
@@ -56,7 +57,8 @@ export default function StartChatGPt() {
                 <AskingView onEditSave={handleEditSave} editedText={state.editedText} />
             ) : (
                 <>
-                    <div className="max-w-4xl mx-auto my-12 mt-4 p-8 bg-white">
+                <div>
+                    <div className="max-w-4xl mx-auto my-12 mt-4 p-8 dark:text-gray-300">
                         <h1 className="text-3xl font-bold text-center mb-6">Create a map from an ask</h1>
                         <div className="flex flex-col lg:flex-row justify-between gap-8">
                             <div className="flex-1">
@@ -79,15 +81,15 @@ export default function StartChatGPt() {
                         </div>
                         <div className="mt-8">
                             {/* <form className="flex flex-col items-center"> */}
-                                <textarea
-                                    className="w-full p-4 border rounded-lg mb-4"
+                                <Textarea
+                                    className="mb-4"
                                     placeholder="Ask a question"
                                     value={state.textareaValue}
                                     onChange={handleTextareaChange}
                                 />
                                 <Button
-                                    className={`w-full ${state.textareaValue.trim() === "" ? "bg-gray-300 cursor-not-allowed" : ""}`}
-                                    variant={"secondary"}
+                                    className={`w-full ${state.textareaValue.trim() === "" ? "bg-gray-500 cursor-not-allowed " : ""}`}
+                                    variant={"blue"}
                                     onClick={handleAskButtonClick}
                                     disabled={state.textareaValue.trim() === ""}
                                 >
@@ -96,6 +98,7 @@ export default function StartChatGPt() {
                             {/* </form> */}
                             <p className="text-center text-sm text-gray-500 mt-4">Question + Answer is limited to 1000 words</p>
                         </div>
+                    </div>
                     </div>
                 </>
             )}

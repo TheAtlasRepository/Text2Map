@@ -3,9 +3,13 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
+  /* --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 255, 255, 255;
-  --background-end-rgb: 255, 255, 255;
+  --background-end-rgb: 255, 255, 255; */
+  --background-dark: #0e101b;
+  --text-primary: #0e101b;
+  --text-secondary: #3e5468;
+  --card-gray: #F2F6F9;
 }
 
 body {
@@ -16,6 +20,7 @@ body {
       rgb(var(--background-end-rgb))
     )
     rgb(var(--background-start-rgb));
+    font-family: Inter,sans-serif;
 }
 
 ::-webkit-scrollbar {
@@ -33,6 +38,48 @@ body {
   -webkit-border-radius: 10px;
   border-radius: 10px;
   background: rgba(94, 94, 94, 0.8); 
+}
+
+/* Button */
+.btn-nav {
+    --tw-text-opacity: 1;
+    color: rgb(148 163 184 / var(--tw-text-opacity));
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    border-radius: 0.25rem;
+    margin-right: 1.5rem;
+  }
+
+.btn-nav:hover {
+--tw-bg-opacity: 1;
+background-color: rgb(31 41 55 / var(--tw-bg-opacity));
+}
+
+.btn-nav-active {
+color: rgb(255 255 255 / var(--tw-text-opacity));
+--tw-bg-opacity: 1;
+background-color: rgb(31 41 55 / var(--tw-bg-opacity));
+}
+
+.background-dark {
+background-color: var(--background-dark);
+}
+
+.text-primary {
+color: var(--text-primary);
+font-family: Inter,sans-serif;
+}
+
+.text-secondary {
+color: var(--text-secondary);
+font-family: Inter,sans-serif;
+}
+
+.card {
+background-color: var(--card-gray);
+border-radius: 10px;
 }
 
 /* Marker CSS */

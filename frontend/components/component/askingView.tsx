@@ -7,7 +7,6 @@ import MapComponent from "./mapComponent";
 import JsonRenderer from "../functions/JsonRenderer";
 import ReactDOMServer from 'react-dom/server';
 import { handleSaveChat, handleSendChat } from '../functions/ApiUtils';
-import { ChevronArrowIcon } from '../ui/icons';
 
 export default function AskingView({ onEditSave, editedText }: { onEditSave: (text: string) => void, editedText: string }) {
     const [selectedMarkerIndex, setSelectedMarkerIndex] = useState<number | null>(null);
@@ -28,7 +27,7 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
     const prevEditedTextRef = useRef<string | undefined>('');
 
     const renderJsonData = (): string | null => {
-      return jsonData ? ReactDOMServer.renderToStaticMarkup(<JsonRenderer jsonData={jsonData} />) : null;
+      return jsonData ? ReactDOMServer.renderToStaticMarkup(<div className="dark:text-white"><JsonRenderer jsonData={jsonData} /></div>) : null;
     };
 
     // Ask user if he wants to reload the page
@@ -94,27 +93,16 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
     };    
 
     return (
-      <div className="bg-white overflow-y-auto">
-        {/* <header className="flex items-center justify-between p-4 border-b">
-          <div className="flex items-center space-x-4">
-            <h1 className="text-lg font-semibold">Unsaved map</h1>
-          </div>
-          <div className="flex items-center space-x-4">
-            <Button variant="ghost">Export map</Button>
-            <Button variant="ghost">Share</Button>
-            <Button variant="ghost">Embed</Button>
-            <Button variant="secondary">Save map</Button>
-          </div>
-        </header> */}
+      <div className="bg-white min-h-screen overflow-y-auto dark:bg-gray-800">
         <div className="flex">
         <aside className="w-1/3 p-4 space-y-4 border-r flex flex-col" style={{ flex: '0 0 auto', height: 'calc(100vh - 57px)' }}>
-            <div className="flex items-center justify-between w-full">
+            <div className="flex items-center justify-between w-full dark:text-white">
             {editingText ? (
-            <input
+            <Input
             type="text"
             value={localEditedText}
             onChange={(e) => setLocalEditedText(e.target.value)}
-            className="border border-gray-300 p-2 rounded text-lg font-semibold w-full"
+            className="p-2 text-lg font-semibold"
           />
           ) : (
               <h1 className="p-2 rounded text-2xl font-semibold">{localEditedText}</h1>
@@ -128,15 +116,15 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
             </div>
           )}
           {!editingText && (
-            <div className="flex justify-center space-x-2 mt-auto self-center">
-              <Button onClick={handleEditClick} className="flex items-center justify-center space-x-2" variant="secondary">
+            <div className="flex justify-center space-x-2 mt-auto self-center0">
+              <Button onClick={handleEditClick} variant="secondary" className="flex items-center justify-center space-x-2" > {/*variant="secondary">Needs darkmode*/}
                 <span>Edit & add text</span>
               </Button>
             </div>
           )}
           <ScrollArea>
             {loading ? (
-              <div className="justify-center">Thinking...</div>
+              <div className="justify-center dark:text-white">Thinking...</div>
             ) : (
               <div className="prose">
                 <JsonRenderer jsonData={jsonData} />
@@ -150,7 +138,7 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
             />
-            <Button onClick={handleSendTextWrapper} variant="secondary" disabled={inputText?.trim() === ""}>
+            <Button className="dark:bg-gray-300 dark:hover:bg-gray-500" onClick={handleSendTextWrapper} disabled={inputText?.trim() === ""}>
               Send
             </Button>
           </div>

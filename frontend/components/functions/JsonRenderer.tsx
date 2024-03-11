@@ -5,9 +5,9 @@ type JsonRendererProps = {
 };
 
 const JsonRenderer: React.FC<JsonRendererProps> = ({ jsonData }) => {
- if (!jsonData) {
+  if (!jsonData) {
     return null;
- }
+  }
 
  const gptContent = jsonData.GPT ? <p><strong>GPT:</strong> {jsonData.GPT}</p> : '';
  const chatHistory = jsonData.chat_history;
