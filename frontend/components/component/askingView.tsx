@@ -127,7 +127,7 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
               {loading ? (
                 <div className="justify-center">Thinking...</div>
               ) : (
-                <div className="max-w-prose">
+                <div>
                   <JsonRenderer jsonData={jsonData} />
                 </div>
               )}  
