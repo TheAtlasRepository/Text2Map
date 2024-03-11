@@ -31,7 +31,7 @@ type MapComponentProps = {
  * @returns 
  */
 const MapComponent: React.FC<MapComponentProps> = ({
-    markers,
+    markers: markersProp,
     centerCoordinates,
     initialViewState,
     selectedMarkerIndex,
@@ -39,12 +39,23 @@ const MapComponent: React.FC<MapComponentProps> = ({
     geojsonData,
 }) => {
     const mapRef = useRef<MapRef>(null);
+    const [markers, setMarkers] = useState(markersProp);
     const [isLoaded, setIsLoaded] = useState(false);
     const [gotGeoJson, setGotGeoJsonState] = useState(false);
 
     const handleOnLoad = () => {
         setIsLoaded(true);
     };
+
+    const handleDeleteMarker = (index: number) => {
+        // Assuming markers is a state variable
+        setMarkers(markers.filter((_, i) => i !== index));
+        setSelectedMarkerIndex(null); // Optionally, clear the selected marker index
+       };
+
+    useEffect(() => {
+        setMarkers(markersProp);
+    }, [markersProp]);
 
     useEffect(() => {
         if (!mapRef.current) { return; };
@@ -113,7 +124,11 @@ const MapComponent: React.FC<MapComponentProps> = ({
                                     anchor="bottom"
                                     offset={[0, -30] as [number, number]}
                                 >
-                                    <InfoPanel title={marker.type} onClosed={() => setSelectedMarkerIndex(null)} />
+                                    <InfoPanel 
+                                        title={marker.type} 
+                                        onClosed={() => setSelectedMarkerIndex(null)} 
+                                        onDeleteMarker={() => handleDeleteMarker(index)} // Pass the callback here
+                                        />
                                 </Popup>
                             )}
                         </Marker>

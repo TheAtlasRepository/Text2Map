@@ -5,8 +5,10 @@ import { CloseIcon, TrashHeroIcon } from "../ui/icons";
 export default function InfoPanel(props: { 
   title: string;
   onClosed: () => void;
+  onDeleteMarker: () => void; // Add this line
   }) {
     const [imageLink, setImageLink] = useState("");
+
 
     useEffect(() => {
       // Fetch data from API
@@ -40,7 +42,7 @@ export default function InfoPanel(props: {
             </a>
         </div>
         <div className="absolute top-0 left-0 mt-2 ml-2">
-        <button className="bg-gray-100 hover:bg-gray-200 rounded-full p-2 focus:outline-none">
+        <button className="bg-gray-100 hover:bg-gray-200 rounded-full p-2 focus:outline-none" onClick={props.onDeleteMarker}>
           <TrashHeroIcon/>
         </button>
       </div>
