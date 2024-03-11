@@ -108,7 +108,7 @@ export default function StartDataSource() {
   // };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-900">
+    <div>
       <Navbar activePage="startDataSourceInput" />
       <Toolbar viewAllOptions={mapView} onDiscardClick={handleDiscard} />
       {!mapView ? (
@@ -261,7 +261,7 @@ export default function StartDataSource() {
           </div>
         </>
       ) : (
-        <div className="bg-white dark:bg-gray-800 dark:text-white min-h-screen overflow-y-auto">
+        <div className="bg-white dark:bg-gray-800 dark:text-white overflow-y-auto">
           <div className="flex">
             <aside
               className="w-1/3 p-4 space-y-4 border-r flex flex-col"

@@ -13,14 +13,13 @@
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
-    font-family: Inter,sans-serif;
+  background-color: rgb(255 255 255);
+  font-family: Inter,sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: rgb(15 23 42);
+  }
 }
 
 ::-webkit-scrollbar {
