@@ -47,7 +47,7 @@ export default function StartChatGPt() {
   }
 
     return (
-        <div className="min-h-screen bg-white dark:bg-gray-900">
+        <div>
             <Toolbar
                 viewAllOptions={state.asking}
                 onDiscardClick={handleDiscard}
