@@ -23,6 +23,7 @@ function reducer(state: any, action: any) {
 export default function StartChatGPt() {
   const [state, dispatch] = useReducer(reducer, initialState); // Use the useReducer hook
   const [geoJsonPath, setGeoJsonPath] = useState<string | null>(null);
+  const [markers, setMarkersToolbar] = useState<{ latitude: number; longitude: number; type: string;}[]>([]);
 
   // Handler for the onEditSave prop
   const handleEditSave = (text: string) => {
@@ -52,10 +53,11 @@ export default function StartChatGPt() {
                 viewAllOptions={state.asking}
                 onDiscardClick={handleDiscard}
                 geoJsonPath={geoJsonPath}
+                markers={markers}
             />
             {state.asking ? (
                 // Pass the handleEditSave function as the onEditSave prop
-                <AskingView onEditSave={handleEditSave} editedText={state.editedText} setGeoJsonPath={setGeoJsonPath}/>
+                <AskingView onEditSave={handleEditSave} editedText={state.editedText} setGeoJsonPath={setGeoJsonPath} setMarkersToolbar={setMarkersToolbar}/>
             ) : (
                 <>
                     <div className="max-w-4xl mx-auto my-12 mt-4 p-8 bg-white">

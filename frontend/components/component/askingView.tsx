@@ -9,7 +9,7 @@ import ReactDOMServer from 'react-dom/server';
 import { handleSaveChat, handleSendChat } from '../functions/ApiUtils';
 import { ChevronArrowIcon } from '../ui/icons';
 
-export default function AskingView({ onEditSave, editedText, setGeoJsonPath }: { onEditSave: (text: string) => void, editedText: string, setGeoJsonPath: (path: string) => void}) {
+export default function AskingView({ onEditSave, editedText, setGeoJsonPath, setMarkersToolbar }: { onEditSave: (text: string) => void, editedText: string, setGeoJsonPath: (path: string) => void, setMarkersToolbar: (markers: { latitude: number; longitude: number; type: string;}[]) => void }) {
     const [selectedMarkerIndex, setSelectedMarkerIndex] = useState<number | null>(null);
     const [editingText, setEditingText] = useState(false);  
     const [localEditedText, setLocalEditedText] = useState('');
@@ -39,13 +39,19 @@ export default function AskingView({ onEditSave, editedText, setGeoJsonPath }: {
       };
     }, []);
 
+    // SetMarkersToolbar when markers change
+    useEffect(() => {
+      setMarkersToolbar(markers);
+    }, [markers]);
+
+    // Set the geoJsonPath when jsonData.selected_countries_geojson_path changes
     useEffect(() => {
       if (jsonData?.selected_countries_geojson_path) {
         setGeoJsonPath(jsonData.selected_countries_geojson_path);
       }
     }, [jsonData?.selected_countries_geojson_path]);
 
-    // TODO: Set the initial view state when centerCoordinates change 
+    // Set the initial view state when centerCoordinates change 
     useEffect(() => {
       if (centerCoordinates) {
         setInitialViewState({
