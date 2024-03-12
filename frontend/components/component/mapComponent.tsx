@@ -74,18 +74,18 @@ const MapComponent: React.FC<MapComponentProps> = ({
     }, [markersProp]);
 
     useEffect(() => {
-        if (!mapRef.current) { return; };
-        
         if (geojsonData != undefined && !gotGeoJson) {
-            // console.log('Fired state!');
             setGotGeoJsonState(true);
         }
-
-        if (centerCoordinates != null) {
-            //console.log(centerCoordinates);
-            mapRef.current.flyTo({ center: centerCoordinates, zoom: 3 });
-        }
     })
+
+    // Run once when centerCoorcinates changes, then fly to coordinates.
+    useEffect(() => {
+      if (mapRef.current && centerCoordinates != null) {
+          console.log('Flying to: ', centerCoordinates);
+          mapRef.current.flyTo({ center: centerCoordinates, zoom: 3 });
+      }
+    }, [centerCoordinates])
 
     return (
         <ReactMapGL
