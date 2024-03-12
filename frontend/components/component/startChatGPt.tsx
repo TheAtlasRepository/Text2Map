@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { useReducer } from "react"; // Import the useReducer hook
+import { useReducer, useState } from "react"; // Import the useReducer hook
 import AskingView from "./askingView";
 import { Toolbar } from "../ui/toolbar";
 import { Textarea } from "../ui/textarea";
@@ -23,6 +23,8 @@ function reducer(state: any, action: any) {
 // Define the StartChatGPt component
 export default function StartChatGPt() {
   const [state, dispatch] = useReducer(reducer, initialState); // Use the useReducer hook
+  const [geoJsonPath, setGeoJsonPath] = useState<string | null>(null);
+  const [markers, setMarkersToolbar] = useState<{ latitude: number; longitude: number; type: string;}[]>([]);
 
   // Handler for the onEditSave prop
   const handleEditSave = (text: string) => {
@@ -51,10 +53,12 @@ export default function StartChatGPt() {
             <Toolbar
                 viewAllOptions={state.asking}
                 onDiscardClick={handleDiscard}
+                geoJsonPath={geoJsonPath}
+                markers={markers}
             />
             {state.asking ? (
                 // Pass the handleEditSave function as the onEditSave prop
-                <AskingView onEditSave={handleEditSave} editedText={state.editedText} />
+                <AskingView onEditSave={handleEditSave} editedText={state.editedText} setGeoJsonPath={setGeoJsonPath} setMarkersToolbar={setMarkersToolbar}/>
             ) : (
                 <>
                 <div>

@@ -8,14 +8,14 @@ import JsonRenderer from "../functions/JsonRenderer";
 import ReactDOMServer from 'react-dom/server';
 import { handleSaveChat, handleSendChat } from '../functions/ApiUtils';
 
-export default function AskingView({ onEditSave, editedText }: { onEditSave: (text: string) => void, editedText: string }) {
+export default function AskingView({ onEditSave, editedText, setGeoJsonPath, setMarkersToolbar }: { onEditSave: (text: string) => void, editedText: string, setGeoJsonPath: (path: string) => void, setMarkersToolbar: (markers: { latitude: number; longitude: number; type: string;}[]) => void }) {
     const [selectedMarkerIndex, setSelectedMarkerIndex] = useState<number | null>(null);
     const [editingText, setEditingText] = useState(false);  
     const [localEditedText, setLocalEditedText] = useState('');
     const [jsonData, setJsonData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [inputText, setInputText] = useState('');
-    const [markers, setMarkers] = useState<{ latitude: number; longitude: number; type: string }[]>([]);
+    const [markers, setMarkers] = useState<{ latitude: number; longitude: number; type: string;}[]>([]);
     const [centerCoordinates, setCenterCoordinates] = useState<[number, number] | null>(null);
     const [initialViewState, setInitialViewState] = useState<any>({
       latitude: 35.668641,
@@ -38,7 +38,19 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
       };
     }, []);
 
-    // TODO: Set the initial view state when centerCoordinates change 
+    // SetMarkersToolbar when markers change
+    useEffect(() => {
+      setMarkersToolbar(markers);
+    }, [markers]);
+
+    // Set the geoJsonPath when jsonData.selected_countries_geojson_path changes
+    useEffect(() => {
+      if (jsonData?.selected_countries_geojson_path) {
+        setGeoJsonPath(jsonData.selected_countries_geojson_path);
+      }
+    }, [jsonData?.selected_countries_geojson_path]);
+
+    // Set the initial view state when centerCoordinates change 
     useEffect(() => {
       if (centerCoordinates) {
         setInitialViewState({

@@ -4,12 +4,13 @@ import type { FillLayer, MapRef } from 'react-map-gl';
 import Coordinate from '../functions/Coordinates';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import InfoPanel from '../component/info-panel';
+import { EditMarker } from '../component/edit-marker';
 
 /**
  * Input props for the map component
  */
 type MapComponentProps = {
-    markers: { latitude: number; longitude: number; type: string }[];
+    markers: { latitude: number; longitude: number; type: string}[];
     centerCoordinates: [number, number] | null;
     initialViewState: any;
     selectedMarkerIndex: number | null;
@@ -31,7 +32,7 @@ type MapComponentProps = {
  * @returns 
  */
 const MapComponent: React.FC<MapComponentProps> = ({
-    markers,
+    markers: markersProp,
     centerCoordinates,
     initialViewState,
     selectedMarkerIndex,
@@ -39,12 +40,38 @@ const MapComponent: React.FC<MapComponentProps> = ({
     geojsonData,
 }) => {
     const mapRef = useRef<MapRef>(null);
+    const [markers, setMarkers] = useState(markersProp);
     const [isLoaded, setIsLoaded] = useState(false);
     const [gotGeoJson, setGotGeoJsonState] = useState(false);
+    const [isEditMarkerOverlayVisible, setIsEditMarkerOverlayVisible] = useState(false);
 
     const handleOnLoad = () => {
         setIsLoaded(true);
     };
+
+    const handleMarkerTitleChange = (newTitle: string) => {
+        // Update the marker title and type in the MapComponent's state
+        setMarkers(markers.map((marker, index) => {
+            if (index === selectedMarkerIndex) {
+                return { ...marker, type: newTitle, title: newTitle }; // Assuming you want to update both title and type
+            }
+            return marker;
+        }));
+    };
+
+    const toggleEditMarkerOverlay = () => {
+        setIsEditMarkerOverlayVisible(!isEditMarkerOverlayVisible);
+    }
+
+    const handleDeleteMarker = (index: number) => {
+        // Assuming markers is a state variable
+        setMarkers(markers.filter((_, i) => i !== index));
+        setSelectedMarkerIndex(null); // Optionally, clear the selected marker index
+       };
+
+    useEffect(() => {
+        setMarkers(markersProp);
+    }, [markersProp]);
 
     useEffect(() => {
         if (geojsonData != undefined && !gotGeoJson) {
@@ -70,8 +97,6 @@ const MapComponent: React.FC<MapComponentProps> = ({
             ref={mapRef}
             onLoad={handleOnLoad}
         >
-
-
             {isLoaded &&
                 <>
                     {/* Render GeoJSON */}
@@ -113,13 +138,29 @@ const MapComponent: React.FC<MapComponentProps> = ({
                                     anchor="bottom"
                                     offset={[0, -30] as [number, number]}
                                 >
-                                    <InfoPanel title={marker.type} onClosed={() => setSelectedMarkerIndex(null)} />
+                                    <InfoPanel 
+                                        title={marker.type} 
+                                        type={marker.type}
+                                        onClosed={() => setSelectedMarkerIndex(null)} 
+                                        onDeleteMarker={() => handleDeleteMarker(index)} 
+                                        onEditMarker={toggleEditMarkerOverlay}
+                                        onMarkerTitleChange={handleMarkerTitleChange}
+                                    />
                                 </Popup>
                             )}
                         </Marker>
                     ))}
                 </>
             }
+                {isEditMarkerOverlayVisible && selectedMarkerIndex !== null && (
+                    <div className="editMarkerOverlay">
+                        <EditMarker 
+                        onClose={toggleEditMarkerOverlay} 
+                        onTitleChange={handleMarkerTitleChange}
+                        title={markers[selectedMarkerIndex].type}
+                        />
+                    </div>
+                    )}
         </ReactMapGL>
     );
 };
