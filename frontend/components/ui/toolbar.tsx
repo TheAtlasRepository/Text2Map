@@ -110,13 +110,15 @@ const Toolbar = (props: any) => {
                         />
                     </div>
                     <div className="flex items-center space-x-4">
-                        <Button variant="ghost" onClick={toggleDropdown}>Export map</Button>
-                        {dropdownVisible && (
-                             <div className="absolute right-30 mt-24 bg-white border border-gray-300 rounded-md shadow-md z-10">
-                                <Button variant="ghost" onClick={handleExportClick}>Export GeoJSON</Button>
-                                <Button variant="ghost" onClick={handleExportClickWMarkers}>Export GeoJSON with markers</Button>
-                            </div>
-                        )}
+                        <div className="relative">
+                            <Button variant="ghost" onClick={toggleDropdown}>Export map</Button>
+                            {dropdownVisible && (
+                                <div className="absolute top-full mt-2 w-full min-w-max bg-white border border-gray-300 rounded-md shadow-md z-10 flex flex-col">
+                                    <Button variant="ghost" onClick={handleExportClick}>Export GeoJSON</Button>
+                                    <Button variant="ghost" onClick={handleExportClickWMarkers}>Export GeoJSON with markers</Button>
+                                </div>
+                            )}
+                        </div>
                         <Button variant="ghost">Share</Button>
                         <Button variant="ghost">Embed</Button>
                         <Button variant="secondary">Save map</Button>
