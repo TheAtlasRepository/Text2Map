@@ -19,6 +19,8 @@ import { ChevronArrowIcon } from "./icons";
 
 const Toolbar = (props: any) => {
     const router = useRouter();
+    const [mapName, setMapName] = useState('Unsaved map'); // State to hold the map name
+
     const handleExportClick = () => {
         if (props.geoJsonPath) {
             // Convert the GeoJSON object to a string
@@ -33,7 +35,7 @@ const Toolbar = (props: any) => {
             // Create a temporary anchor element
             const link = document.createElement('a');
             link.href = url;
-            link.download = 'map.geojson'; // You can customize the filename here
+            link.download = `${mapName}.geojson`; // You can customize the filename here
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -50,7 +52,13 @@ const Toolbar = (props: any) => {
                 <>
                     <div className="flex items-center space-x-4">
                         <Button variant="ghost" onClick={() => props.onDiscardClick()}>Discard</Button>
-                        <h1 className="text-lg font-semibold">Unsaved map</h1>
+                        <input
+                            type="text"
+                            value={mapName}
+                            onChange={(e) => setMapName(e.target.value)}
+                            className="text-xl font-semibold bg-transparent border-none outline-none"
+                            placeholder="Unsaved map"
+                        />
                     </div>
                     <div className="flex items-center space-x-4">
                         <Button variant="ghost" onClick={handleExportClick}>Export map</Button>
