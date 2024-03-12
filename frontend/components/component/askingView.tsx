@@ -9,7 +9,7 @@ import ReactDOMServer from 'react-dom/server';
 import { handleSaveChat, handleSendChat } from '../functions/ApiUtils';
 import { ChevronArrowIcon } from '../ui/icons';
 
-export default function AskingView({ onEditSave, editedText }: { onEditSave: (text: string) => void, editedText: string }) {
+export default function AskingView({ onEditSave, editedText, setGeoJsonPath }: { onEditSave: (text: string) => void, editedText: string, setGeoJsonPath: (path: string) => void}) {
     const [selectedMarkerIndex, setSelectedMarkerIndex] = useState<number | null>(null);
     const [editingText, setEditingText] = useState(false);  
     const [localEditedText, setLocalEditedText] = useState('');
@@ -38,6 +38,12 @@ export default function AskingView({ onEditSave, editedText }: { onEditSave: (te
         window.onbeforeunload = null;
       };
     }, []);
+
+    useEffect(() => {
+      if (jsonData?.selected_countries_geojson_path) {
+        setGeoJsonPath(jsonData.selected_countries_geojson_path);
+      }
+    }, [jsonData?.selected_countries_geojson_path]);
 
     // TODO: Set the initial view state when centerCoordinates change 
     useEffect(() => {

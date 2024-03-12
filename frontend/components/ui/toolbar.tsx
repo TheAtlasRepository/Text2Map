@@ -4,7 +4,6 @@ import { Button } from "./button";
 import { ChevronArrowIcon } from "./icons";
 
 
-
 /**
  * Navbar component
  * 
@@ -20,7 +19,29 @@ import { ChevronArrowIcon } from "./icons";
 
 const Toolbar = (props: any) => {
     const router = useRouter();
-
+    const handleExportClick = () => {
+        if (props.geoJsonPath) {
+            // Convert the GeoJSON object to a string
+            const geoJsonString = JSON.stringify(props.geoJsonPath, null, 2);
+    
+            // Create a Blob from the string
+            const blob = new Blob([geoJsonString], { type: 'application/geo+json' });
+    
+            // Create a URL for the Blob
+            const url = URL.createObjectURL(blob);
+    
+            // Create a temporary anchor element
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'map.geojson'; // You can customize the filename here
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+    
+            // Release the URL for the Blob
+            URL.revokeObjectURL(url);
+        }
+    };
     //console.log(props);
 
     return (
@@ -32,7 +53,7 @@ const Toolbar = (props: any) => {
                         <h1 className="text-lg font-semibold">Unsaved map</h1>
                     </div>
                     <div className="flex items-center space-x-4">
-                        <Button variant="ghost">Export map</Button>
+                        <Button variant="ghost" onClick={handleExportClick}>Export map</Button>
                         <Button variant="ghost">Share</Button>
                         <Button variant="ghost">Embed</Button>
                         <Button variant="secondary">Save map</Button>

@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { useReducer } from "react"; // Import the useReducer hook
+import { useReducer, useState } from "react"; // Import the useReducer hook
 import AskingView from "./askingView";
 import { Toolbar } from "../ui/toolbar";
 
@@ -22,6 +22,7 @@ function reducer(state: any, action: any) {
 // Define the StartChatGPt component
 export default function StartChatGPt() {
   const [state, dispatch] = useReducer(reducer, initialState); // Use the useReducer hook
+  const [geoJsonPath, setGeoJsonPath] = useState<string | null>(null);
 
   // Handler for the onEditSave prop
   const handleEditSave = (text: string) => {
@@ -50,10 +51,11 @@ export default function StartChatGPt() {
             <Toolbar
                 viewAllOptions={state.asking}
                 onDiscardClick={handleDiscard}
+                geoJsonPath={geoJsonPath}
             />
             {state.asking ? (
                 // Pass the handleEditSave function as the onEditSave prop
-                <AskingView onEditSave={handleEditSave} editedText={state.editedText} />
+                <AskingView onEditSave={handleEditSave} editedText={state.editedText} setGeoJsonPath={setGeoJsonPath}/>
             ) : (
                 <>
                     <div className="max-w-4xl mx-auto my-12 mt-4 p-8 bg-white">
