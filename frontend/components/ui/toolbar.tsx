@@ -96,7 +96,7 @@ const Toolbar = (props: any) => {
     }
 
     return (
-        <header className="flex items-center justify-between p-2 px-4 border-b">
+        <header className="flex items-center justify-between p-2 px-4 border-b dark:border-b-gray-600 dark:text-gray-300">
             {props.viewAllOptions ? (
                 <>
                     <div className="flex items-center space-x-4">
