@@ -37,11 +37,6 @@ export default function StartDataSource() {
   const [centerCoordinates, setCenterCoordinates] = useState<
     [number, number] | null
   >(null);
-  const [initialViewState, setInitialViewState] = useState<any>({
-    latitude: 35.668641,
-    longitude: 139.750567,
-    zoom: 1,
-  });
 
   const handleTextareaChange = (e: any) => {
     setTextareaValue(e.target.value);
@@ -276,7 +271,6 @@ export default function StartDataSource() {
                 <MapComponent
                   markers={markers}
                   centerCoordinates={centerCoordinates}
-                  initialViewState={initialViewState}
                   selectedMarkerIndex={selectedMarkerIndex}
                   setSelectedMarkerIndex={setSelectedMarkerIndex}
                   geojsonData={jsonData?.selected_countries_geojson_path}

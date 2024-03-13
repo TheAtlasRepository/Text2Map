@@ -12,7 +12,6 @@ import { EditMarker } from '../component/edit-marker';
 type MapComponentProps = {
     markers: { latitude: number; longitude: number; type: string}[];
     centerCoordinates: [number, number] | null;
-    initialViewState: any;
     selectedMarkerIndex: number | null;
     setSelectedMarkerIndex: React.Dispatch<React.SetStateAction<number | null>>;
     geojsonData?: any;
@@ -24,8 +23,6 @@ type MapComponentProps = {
  * 
  * @param markers 
  * @param centerCoordinates 
- * @param initialViewState 
- * @param mapRef 
  * @param selectedMarkerIndex 
  * @param setSelectedMarkerIndex 
  * @param geojsonData 
@@ -34,7 +31,6 @@ type MapComponentProps = {
 const MapComponent: React.FC<MapComponentProps> = ({
     markers: markersProp,
     centerCoordinates,
-    initialViewState,
     selectedMarkerIndex,
     setSelectedMarkerIndex,
     geojsonData,
@@ -44,6 +40,11 @@ const MapComponent: React.FC<MapComponentProps> = ({
     const [isLoaded, setIsLoaded] = useState(false);
     const [gotGeoJson, setGotGeoJsonState] = useState(false);
     const [isEditMarkerOverlayVisible, setIsEditMarkerOverlayVisible] = useState(false);
+  const [initialViewState, setInitialViewState] = useState<any>({
+    latitude: 35.668641,
+    longitude: 139.750567,
+    zoom: 1,
+  });
 
     const handleOnLoad = () => {
         setIsLoaded(true);
@@ -91,7 +92,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
         <ReactMapGL
             mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
             mapStyle="mapbox://styles/mapbox/standard"
-            //initialViewState={initialViewState}
+      initialViewState={initialViewState}
             maxZoom={20}
             minZoom={2}
             ref={mapRef}
