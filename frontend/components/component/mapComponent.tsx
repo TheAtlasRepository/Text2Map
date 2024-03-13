@@ -10,12 +10,11 @@ import { EditMarker } from '../component/edit-marker';
  * Input props for the map component
  */
 type MapComponentProps = {
-    markers: { latitude: number; longitude: number; type: string}[];
-    centerCoordinates: [number, number] | null;
-    initialViewState: any;
-    selectedMarkerIndex: number | null;
-    setSelectedMarkerIndex: React.Dispatch<React.SetStateAction<number | null>>;
-    geojsonData?: any;
+  markers: { latitude: number; longitude: number; type: string }[];
+  centerCoordinates: [number, number] | null;
+  selectedMarkerIndex: number | null;
+  setSelectedMarkerIndex: React.Dispatch<React.SetStateAction<number | null>>;
+  geojsonData?: any;
 };
 
 
@@ -24,145 +23,157 @@ type MapComponentProps = {
  * 
  * @param markers 
  * @param centerCoordinates 
- * @param initialViewState 
- * @param mapRef 
  * @param selectedMarkerIndex 
  * @param setSelectedMarkerIndex 
  * @param geojsonData 
  * @returns 
  */
 const MapComponent: React.FC<MapComponentProps> = ({
-    markers: markersProp,
-    centerCoordinates,
-    initialViewState,
-    selectedMarkerIndex,
-    setSelectedMarkerIndex,
-    geojsonData,
+  markers: markersProp,
+  centerCoordinates,
+  selectedMarkerIndex,
+  setSelectedMarkerIndex,
+  geojsonData,
 }) => {
-    const mapRef = useRef<MapRef>(null);
-    const [markers, setMarkers] = useState(markersProp);
-    const [isLoaded, setIsLoaded] = useState(false);
-    const [gotGeoJson, setGotGeoJsonState] = useState(false);
-    const [isEditMarkerOverlayVisible, setIsEditMarkerOverlayVisible] = useState(false);
+  const mapRef = useRef<MapRef>(null);
+  const [markers, setMarkers] = useState(markersProp);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [gotGeoJson, setGotGeoJsonState] = useState(false);
+  const [isEditMarkerOverlayVisible, setIsEditMarkerOverlayVisible] = useState(false);
+  const [initialViewState, setInitialViewState] = useState<any>({
+    latitude: 35.668641,
+    longitude: 139.750567,
+    zoom: 1,
+  });
 
-    const handleOnLoad = () => {
-        setIsLoaded(true);
-    };
+  const handleOnLoad = () => {
+    setIsLoaded(true);
+  };
 
-    const handleMarkerTitleChange = (newTitle: string) => {
-        // Update the marker title and type in the MapComponent's state
-        setMarkers(markers.map((marker, index) => {
-            if (index === selectedMarkerIndex) {
-                return { ...marker, type: newTitle, title: newTitle }; // Assuming you want to update both title and type
-            }
-            return marker;
-        }));
-    };
+  // Logic for when a marker is selected
+  const handleMarkerSelect = (index: number, lat: number, lon: number) => {
+    setSelectedMarkerIndex(index)
 
-    const toggleEditMarkerOverlay = () => {
-        setIsEditMarkerOverlayVisible(!isEditMarkerOverlayVisible);
+    if (mapRef.current) {
+      // console.log('lat and lon: ', lat, lon);
+      mapRef.current.flyTo({ center: [lon, lat], speed: 0.5 });
     }
+  }
 
-    const handleDeleteMarker = (index: number) => {
-        // Assuming markers is a state variable
-        setMarkers(markers.filter((_, i) => i !== index));
-        setSelectedMarkerIndex(null); // Optionally, clear the selected marker index
-       };
-
-    useEffect(() => {
-        setMarkers(markersProp);
-    }, [markersProp]);
-
-    useEffect(() => {
-        if (geojsonData != undefined && !gotGeoJson) {
-            setGotGeoJsonState(true);
-        }
-    })
-
-    // Run once when centerCoorcinates changes, then fly to coordinates.
-    useEffect(() => {
-      if (mapRef.current && centerCoordinates != null) {
-          console.log('Flying to: ', centerCoordinates);
-          mapRef.current.flyTo({ center: centerCoordinates, zoom: 3 });
+  const handleMarkerTitleChange = (newTitle: string) => {
+    // Update the marker title and type in the MapComponent's state
+    setMarkers(markers.map((marker, index) => {
+      if (index === selectedMarkerIndex) {
+        return { ...marker, type: newTitle, title: newTitle }; // Assuming you want to update both title and type
       }
-    }, [centerCoordinates])
+      return marker;
+    }));
+  };
 
-    return (
-        <ReactMapGL
-            mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
-            mapStyle="mapbox://styles/mapbox/standard"
-            //initialViewState={initialViewState}
-            maxZoom={20}
-            minZoom={2}
-            ref={mapRef}
-            onLoad={handleOnLoad}
-        >
-            {isLoaded &&
-                <>
-                    {/* Render GeoJSON */}
-                    {gotGeoJson &&
-                        <Source id="selectedCountries" type="geojson" data={geojsonData}>
-                            <Layer
-                                id="selectedCountries"
-                                type="fill"
-                                paint={{
-                                    "fill-color": "#0F58FF",
-                                    "fill-opacity":  0.5,
-                                    "fill-outline-color": "#000000",
-                                }}
-                            />
-                        </Source>
-                    }
+  const toggleEditMarkerOverlay = () => {
+    setIsEditMarkerOverlayVisible(!isEditMarkerOverlayVisible);
+  }
 
-                    {/* Render markers */}
-                    {markers.map((marker, index) => (
-                        <Marker
-                            key={index}
-                            latitude={marker.latitude}
-                            longitude={marker.longitude}
-                        >
-                            <Coordinate
-                                latitude={marker.latitude}
-                                longitude={marker.longitude}
-                                type={marker.type}
-                                isSelected={selectedMarkerIndex === index}
-                                onClick={() => setSelectedMarkerIndex(index)}
-                            />
-                            {selectedMarkerIndex === index && (
-                                <Popup
-                                    latitude={marker.latitude}
-                                    longitude={marker.longitude}
-                                    closeButton={false}
-                                    closeOnClick={false}
-                                    className="custom-popup"
-                                    anchor="bottom"
-                                    offset={[0, -30] as [number, number]}
-                                >
-                                    <InfoPanel 
-                                        title={marker.type} 
-                                        type={marker.type}
-                                        onClosed={() => setSelectedMarkerIndex(null)} 
-                                        onDeleteMarker={() => handleDeleteMarker(index)} 
-                                        onEditMarker={toggleEditMarkerOverlay}
-                                        onMarkerTitleChange={handleMarkerTitleChange}
-                                    />
-                                </Popup>
-                            )}
-                        </Marker>
-                    ))}
-                </>
-            }
-                {isEditMarkerOverlayVisible && selectedMarkerIndex !== null && (
-                    <div className="editMarkerOverlay">
-                        <EditMarker 
-                        onClose={toggleEditMarkerOverlay} 
-                        onTitleChange={handleMarkerTitleChange}
-                        title={markers[selectedMarkerIndex].type}
-                        />
-                    </div>
-                    )}
-        </ReactMapGL>
-    );
+  const handleDeleteMarker = (index: number) => {
+    // Assuming markers is a state variable
+    setMarkers(markers.filter((_, i) => i !== index));
+    setSelectedMarkerIndex(null); // Optionally, clear the selected marker index
+  };
+
+  useEffect(() => {
+    setMarkers(markersProp);
+  }, [markersProp]);
+
+  useEffect(() => {
+    if (geojsonData != undefined && !gotGeoJson) {
+      setGotGeoJsonState(true);
+    }
+  })
+
+  // Run once when centerCoorcinates changes, then fly to coordinates.
+  useEffect(() => {
+    if (mapRef.current && centerCoordinates != null) {
+      console.log('Flying to: ', centerCoordinates);
+      mapRef.current.flyTo({ center: centerCoordinates, zoom: 4 });
+    }
+  }, [centerCoordinates])
+
+  return (
+    <ReactMapGL
+      mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
+      mapStyle="mapbox://styles/mapbox/standard"
+      initialViewState={initialViewState}
+      maxZoom={20}
+      minZoom={2}
+      ref={mapRef}
+      onLoad={handleOnLoad}
+    >
+      {isLoaded &&
+        <>
+          {/* Render GeoJSON */}
+          {gotGeoJson &&
+            <Source id="selectedCountries" type="geojson" data={geojsonData}>
+              <Layer
+                id="selectedCountries"
+                type="fill"
+                paint={{
+                  "fill-color": "#0F58FF",
+                  "fill-opacity": 0.5,
+                  "fill-outline-color": "#000000",
+                }}
+              />
+            </Source>
+          }
+
+          {/* Render markers */}
+          {markers.map((marker, index) => (
+            <Marker
+              key={index}
+              latitude={marker.latitude}
+              longitude={marker.longitude}
+            >
+              <Coordinate
+                latitude={marker.latitude}
+                longitude={marker.longitude}
+                type={marker.type}
+                isSelected={selectedMarkerIndex === index}
+                onClick={() => handleMarkerSelect(index, marker.latitude, marker.longitude)}
+              />
+              {selectedMarkerIndex === index && (
+                <Popup
+                  latitude={marker.latitude}
+                  longitude={marker.longitude}
+                  closeButton={false}
+                  closeOnClick={false}
+                  className="custom-popup"
+                  anchor="bottom"
+                  offset={[0, -30] as [number, number]}
+                >
+                  <InfoPanel
+                    title={marker.type}
+                    type={marker.type}
+                    onClosed={() => setSelectedMarkerIndex(null)}
+                    onDeleteMarker={() => handleDeleteMarker(index)}
+                    onEditMarker={toggleEditMarkerOverlay}
+                    onMarkerTitleChange={handleMarkerTitleChange}
+                  />
+                </Popup>
+              )}
+            </Marker>
+          ))}
+        </>
+      }
+      {isEditMarkerOverlayVisible && selectedMarkerIndex !== null && (
+        <div className="editMarkerOverlay">
+          <EditMarker
+            onClose={toggleEditMarkerOverlay}
+            onTitleChange={handleMarkerTitleChange}
+            title={markers[selectedMarkerIndex].type}
+          />
+        </div>
+      )}
+    </ReactMapGL>
+  );
 };
 
 export default MapComponent;
