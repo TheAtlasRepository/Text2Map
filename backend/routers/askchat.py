@@ -37,14 +37,41 @@ async def fetch_geojson(session: ClientSession, url: str) -> dict:
         async with session.get(url) as response:
             return await response.json(content_type=None)
        
-def address_to_coordinates(address, bing_maps_key = "Akp4jrj9Y3XZZmmVVwpiK2Op2v7wB7xaHr4mqDWOQ8xD-ObvUUOrG_4Xae2rYiml"):
+async def address_to_coordinates(address, bing_maps_key = "Akp4jrj9Y3XZZmmVVwpiK2Op2v7wB7xaHr4mqDWOQ8xD-ObvUUOrG_4Xae2rYiml"):
     encoded_address = urllib.parse.quote(address, safe='')
     route_url = f"http://dev.virtualearth.net/REST/V1/Locations?q={encoded_address}&key={bing_maps_key}"
-    request = urllib.request.Request(route_url)
-    response = urllib.request.urlopen(request)
-    data = json.loads(response.read().decode())
-    coordinates = data['resourceSets'][0]['resources'][0]['point']['coordinates']
-    return coordinates
+    
+    async with aiohttp.ClientSession() as session:
+        async with session.get(route_url) as response:
+            data = await response.json()
+    
+    # Extract the first resource from the response
+    resource = data['resourceSets'][0]['resources'][0]
+    
+    # Extract the coordinates
+    coordinates = resource['point']['coordinates']
+    
+    # Safely extract the country region
+    country_region = resource['address'].get('countryRegion', 'Unknown')
+
+    
+    # Determine the ISO3 code of the country
+    iso3 = address_to_iso_code(country_region)
+    print(f"ISO3: {iso3}")
+    
+    # Determine the administrative level (ADM1 or ADM2)
+    # This is a simplified approach and might need adjustment based on the actual data structure
+    if 'adminDistrict' in resource['address']:
+        adm_level = "ADM1"
+        print(f"ADM1: {resource['address']['adminDistrict']}")
+    elif 'adminDistrict2' in resource['address']:
+        adm_level = "ADM2"
+        print(f"ADM2: {resource['address']['adminDistrict2']}")
+    else:
+        adm_level = "Unknown"
+    
+    return coordinates, iso3, adm_level
+
 
 def address_to_iso_code(country_name):
     # Convert the country name to uppercase for case-insensitive matching
@@ -143,7 +170,7 @@ async def geocode(address):
 
     try:
         # Use address_to_coordinates function to get coordinates
-        coordinates = address_to_coordinates(address)
+        coordinates, iso3, adm_level = await address_to_coordinates(address)
         if coordinates:
             # Assuming coordinates is a tuple (latitude, longitude)
             latitude, longitude = coordinates
