@@ -128,7 +128,7 @@ const Toolbar = (props: any) => {
                 <div className="flex items-center space-x-4">
                     <Button variant="ghost" onClick={() => router.push("/")}>
                         <div className="flex items-center space-x-2">
-                            <ChevronArrowIcon className="inline-flex h-4 w-4" left={true} />Back
+                            <ChevronArrowIcon className="inline-flex h-5 w-5" left={1} />Back
                         </div>
                     </Button>
                 </div>
