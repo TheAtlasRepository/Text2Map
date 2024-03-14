@@ -12,6 +12,8 @@ import json
 import urllib
 import spacy
 import re
+from geopy.exc import GeocoderTimedOut
+
 
 router = APIRouter()
 
@@ -52,7 +54,7 @@ async def address_to_coordinates(address, bing_maps_key = "Akp4jrj9Y3XZZmmVVwpiK
     coordinates = resource['point']['coordinates']
     
     # Safely extract the country region
-    country_region = resource['address'].get('countryRegion', 'Unknown')
+    country_region = resource['address'].get('countryRegion')
 
     
     # Determine the ISO3 code of the country
@@ -68,9 +70,9 @@ async def address_to_coordinates(address, bing_maps_key = "Akp4jrj9Y3XZZmmVVwpiK
         adm_level = "ADM2"
         print(f"ADM2: {resource['address']['adminDistrict2']}")
     else:
-        adm_level = "Unknown"
+        adm_level = "ADM0"
     
-    return coordinates, iso3, adm_level
+    return coordinates, iso3, adm_level, country_region
 
 
 def address_to_iso_code(country_name):
@@ -82,20 +84,21 @@ def address_to_iso_code(country_name):
         country = pycountry.countries.lookup(country_name)
         return country.alpha_3
     except LookupError:
-        print(f"Could not find ISO code for country: {country_name}")
         return None
     
 # Function to fetch geometry by ISO code from GeoBoundaries API
 async def get_geometry_online(address: str, adm_level: str = "ADM0", release_type: str = "gbOpen") -> shape:
-    iso_code = address_to_iso_code(address)
+    print(f"Fetching geometry for {address}")
+    coordinates, iso3, adm_level, country_region = await address_to_coordinates(address)
+    print(f"ISO3: {iso3}, ADM level: {adm_level}")
     # Check if the geometry is already cached
-    if iso_code in geometry_cache:
-        print('Retrieved geometry from cache using iso_code: ', iso_code)
-        return geometry_cache[iso_code]
+    if iso3 in geometry_cache:
+        print('Retrieved geometry from cache using iso_code: ', iso3)
+        return geometry_cache[iso3]
 
     try:
         # Construct the GeoBoundaries API endpoint URL
-        url = f"https://www.geoboundaries.org/api/current/{release_type}/{iso_code}/{adm_level}/"
+        url = f"https://www.geoboundaries.org/api/current/{release_type}/{iso3}/{adm_level}/"
 
         async with aiohttp.ClientSession() as session:
             # Make a GET request to the API
@@ -111,8 +114,8 @@ async def get_geometry_online(address: str, adm_level: str = "ADM0", release_typ
                 if geojson_data and 'features' in geojson_data:
                     geometry = shape(geojson_data['features'][0]['geometry'])
                     # Cache the geometry for future use
-                    geometry_cache[iso_code] = geometry
-                    print(f"Fetched geometry for {iso_code}")
+                    geometry_cache[iso3] = geometry
+                    print(f"Fetched geometry for {iso3}")
                     return geometry
             else:
                 print(f"Failed to fetch geometry. Status code: {response.status}")
@@ -146,6 +149,16 @@ def extract_cities(text):
 
     return set(cities_and_places)
 
+# Extract countries from the assistant's response
+def extract_countries(text):
+    # Process the text
+    doc = nlp(text)
+    
+    # Extract countries
+    countries = [ent.text for ent in doc.ents if ent.label_ == "GPE"]
+
+    return set(countries)
+
 async def geocode_with_retry(address, retries=3, delay=2):
     for i in range(retries):
         try:
@@ -170,7 +183,7 @@ async def geocode(address):
 
     try:
         # Use address_to_coordinates function to get coordinates
-        coordinates, iso3, adm_level = await address_to_coordinates(address)
+        coordinates, iso3, adm_level, country_region = await address_to_coordinates(address)
         if coordinates:
             # Assuming coordinates is a tuple (latitude, longitude)
             latitude, longitude = coordinates
@@ -317,18 +330,27 @@ async def run_text_through_prosessor(doc):
     # Run geocoding, geometry fetching, and city information fetching concurrently
     country_tasks = []
     city_tasks = []
-
-    # Extract country ISO codes first
-    for ent in pycountry.countries:
-        if ent.name in doc:
-            iso_code = ent.alpha_3
-            mentioned_country_iso_codes.add(iso_code)  # Track mentioned country ISO codes
-            country_tasks.append(geocode_with_retry(ent.name))
-            country_tasks.append(get_geometry(ent.name))
-
-    # Extract city information
+    
+    unique_countries = list(extract_countries(doc))
+    
     for city in places_mentioned_in_doc:
-        city_tasks.append(geocode(city))
+        try:
+            # Call your function to get coordinates, ISO3 code, and administrative level
+            coordinates, iso3, adm_level, country_region = await address_to_coordinates(city)
+            # Add the ISO3 code to the set
+            unique_countries.add(country_region)
+            city_tasks.append(geocode(city))
+        except Exception as e:
+            print(f"Error fetching coordinates for city: {city}. Error: {e}")
+
+    print(f"Unique countries: {unique_countries}")
+    
+    # Extract country ISO codes first
+    for country in unique_countries:
+        coordinates, iso3, adm_level, country_region = await address_to_coordinates(country)
+        mentioned_country_iso_codes.add(iso3)  # Track mentioned country ISO codes
+        country_tasks.append(geocode_with_retry(country_region))
+        country_tasks.append(get_geometry(iso3))
 
     # Combine the results of country and city tasks
     country_results = await asyncio.gather(*country_tasks)
@@ -342,8 +364,8 @@ async def run_text_through_prosessor(doc):
             # Check if 'display_name' exists in the geocode_result
             current_entity_name = geocode_result.get('address', 'Unknown')  # Use 'address' instead of 'display_name'
             if current_entity_name:
-                iso_code = address_to_iso_code(current_entity_name)  # Use the updated function
-                if iso_code:
+                coordinates, iso3, adm_level, country_region = await address_to_coordinates(current_entity_name)  # Use the updated function
+                if iso3:
                     print(f"Found country: {current_entity_name}")
                     entities.append((
                         ("Found entities:", current_entity_name),
