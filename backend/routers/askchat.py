@@ -67,7 +67,7 @@ async def address_to_coordinates(address, bing_maps_key = "Akp4jrj9Y3XZZmmVVwpiK
     
     # Determine the ISO3 code of the country
     iso3 = address_to_iso_code(country_region)
-    print(f"ISO3: {iso3}")
+    print(f"ISO3 for {country_region}: {iso3}")
     
     # Determine the administrative level (ADM1 or ADM2)
     # This is a simplified approach and might need adjustment based on the actual data structure
@@ -95,6 +95,9 @@ def address_to_iso_code(country_name):
         country = pycountry.countries.lookup(country_name)
         return country.alpha_3
     except LookupError:
+        # Handle special cases where the country name is not recognized by pycountry
+        if country_name == "RUSSIA":
+            return "RUS"
         return None
     
 # Function to fetch geometry by ISO code from GeoBoundaries API
