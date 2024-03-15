@@ -14,8 +14,9 @@
 
 body {
   background-color: rgb(255 255 255);
-  font-family: Inter,sans-serif;
+  font-family: Inter, sans-serif;
 }
+
 @media (prefers-color-scheme: dark) {
   body {
     background-color: rgb(15 23 42);
@@ -36,49 +37,49 @@ body {
 ::-webkit-scrollbar-thumb {
   -webkit-border-radius: 10px;
   border-radius: 10px;
-  background: rgba(94, 94, 94, 0.8); 
+  background: rgba(94, 94, 94, 0.8);
 }
 
 /* Button */
 .btn-nav {
-    --tw-text-opacity: 1;
-    color: rgb(148 163 184 / var(--tw-text-opacity));
-    padding-top: 0.25rem;
-    padding-bottom: 0.25rem;
-    padding-left: 1rem;
-    padding-right: 1rem;
-    border-radius: 0.25rem;
-    margin-right: 1.5rem;
-  }
+  --tw-text-opacity: 1;
+  color: rgb(148 163 184 / var(--tw-text-opacity));
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  border-radius: 0.25rem;
+  margin-right: 1.5rem;
+}
 
 .btn-nav:hover {
---tw-bg-opacity: 1;
-background-color: rgb(31 41 55 / var(--tw-bg-opacity));
+  --tw-bg-opacity: 1;
+  background-color: rgb(31 41 55 / var(--tw-bg-opacity));
 }
 
 .btn-nav-active {
-color: rgb(255 255 255 / var(--tw-text-opacity));
---tw-bg-opacity: 1;
-background-color: rgb(31 41 55 / var(--tw-bg-opacity));
+  color: rgb(255 255 255 / var(--tw-text-opacity));
+  --tw-bg-opacity: 1;
+  background-color: rgb(31 41 55 / var(--tw-bg-opacity));
 }
 
 .background-dark {
-background-color: var(--background-dark);
+  background-color: var(--background-dark);
 }
 
 .text-primary {
-color: var(--text-primary);
-font-family: Inter,sans-serif;
+  color: var(--text-primary);
+  font-family: Inter, sans-serif;
 }
 
 .text-secondary {
-color: var(--text-secondary);
-font-family: Inter,sans-serif;
+  color: var(--text-secondary);
+  font-family: Inter, sans-serif;
 }
 
 .card {
-background-color: var(--card-gray);
-border-radius: 10px;
+  background-color: var(--card-gray);
+  border-radius: 10px;
 }
 
 /* Marker CSS */
@@ -92,6 +93,20 @@ border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
+
+  ::after {
+    z-index: -1;
+    position: absolute;
+    content: '';
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    width: 20px;
+    height: 20px;
+    top: 25px;
+    background-color: #121c42;
+    transform: rotate(45deg);
+  }
 }
 
 .custom-marker span {
@@ -99,7 +114,7 @@ border-radius: 10px;
 }
 
 .border-underline-blue {
-    box-shadow: 0 2px 0 0 rgb(59, 130, 246);
+  box-shadow: 0 2px 0 0 rgb(59, 130, 246);
 }
 
 .editMarkerOverlay {
@@ -112,7 +127,7 @@ border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
- }
+}
 
 /*Cropper CSS*/
 .cropped {
