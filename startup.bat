@@ -1,13 +1,12 @@
 @echo off
-::Place this file in the root folder of the project
+:: Place this file in the root folder of the project
 
-:: sends contents from logo.txt to the console
+rem sends contents from logo.txt to the console
 type boot_utilities\logo.txt
 echo:
 
-set condapath=C:\%homepath%\miniconda3\Scripts\activate.bat
-set envname=Text2Map
-set repopath=.
+rem Local variables
+call boot_utilities\config.bat
 
 rem Check if conda is system installation or user installation
 if exist %condapath% (
@@ -15,19 +14,24 @@ if exist %condapath% (
 ) else if exist C:\programdata\miniconda3 (
     set condapath=C:\programdata\miniconda3\Scripts\activate.bat
     echo Conda found in system directory
+    :: TODO add check for pip and yarn
 ) else (
     echo Conda not found
+    echo Please set manually the path to the conda activate.bat file in the config.bat file
+    echo If Conda is not installed, please install Conda by following the instructions at https://docs.conda.io/projects/conda/en/latest/user-guide/install/
     exit /b
 )
 
 rem Check if front and backend folders exists
 if not exist %repopath%\frontend (
     echo Frontend folder not found
-    exit /b
+    echo Creating frontend folder
+    mkdir %repopath%\frontend
 )
 if not exist %repopath%\backend (
     echo Backend folder not found
-    exit /b
+    echo Creating backend folder
+    mkdir %repopath%\backend
 )
 
 rem Check if .env.local file exists
@@ -52,8 +56,9 @@ if %errorlevel% equ 0 (
     call %condapath% %envname%
 ) else (
     rem Environment doesn't exist, create and activate it
-    echo Creating and activating new Conda environment: %envname%
-    call conda create --name %envname% python=3.8
+    echo Could not find Conda environment: %envname%
+    echo Creating and activating new Conda environment
+    call conda create --name %envname% %pythonver%
     call conda activate %envname%
     call conda install -q --yes yarn
     call conda install -q --yes pip
@@ -61,8 +66,8 @@ if %errorlevel% equ 0 (
 echo Conda environment %envname% is now active.
 
 rem Starts the frontend and backend in separate cmd windows 
-start cmd /k "cd %repopath%\frontend && yarn install -s && yarn dev"
-start cmd /k "cd %repopath%\backend && pip install --quiet -r requirements.txt && uvicorn main:app --reload"
+start cmd /k "title Text2Map Website && cd %repopath%\frontend && yarn install -s && yarn dev"
+start cmd /k "title Text2Map API && cd %repopath%\backend && pip install --quiet -r requirements.txt && uvicorn main:app --reload"
 
 rem check if server is running every second if not successfull after 20 seconds exit, if successfull open browser
 setlocal
