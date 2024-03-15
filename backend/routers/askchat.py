@@ -40,21 +40,29 @@ async def fetch_geojson(session: ClientSession, url: str) -> dict:
             return await response.json(content_type=None)
        
 async def address_to_coordinates(address, bing_maps_key = "Akp4jrj9Y3XZZmmVVwpiK2Op2v7wB7xaHr4mqDWOQ8xD-ObvUUOrG_4Xae2rYiml"):
-    encoded_address = urllib.parse.quote(address, safe='')
+    encoded_address = urllib.parse.quote(address.encode('utf-8'), safe='')
     route_url = f"http://dev.virtualearth.net/REST/V1/Locations?q={encoded_address}&key={bing_maps_key}"
     
     async with aiohttp.ClientSession() as session:
         async with session.get(route_url) as response:
             data = await response.json()
     
-    # Extract the first resource from the response
-    resource = data['resourceSets'][0]['resources'][0]
+    # Check if 'resourceSets' and 'resources' exist and are not empty
+    if 'resourceSets' in data and data['resourceSets'] and 'resources' in data['resourceSets'][0] and data['resourceSets'][0]['resources']:
+        resource = data['resourceSets'][0]['resources'][0]
+    else:
+        print(f"No resources found for address: {address}")
+        return None, None, None, None, None # Return None for all values if no resources are found
+
     
     # Extract the coordinates
     coordinates = resource['point']['coordinates']
     
     # Safely extract the country region
     country_region = resource['address'].get('countryRegion')
+    
+    # Extracte formatted address
+    formatted_address = resource['address'].get('formattedAddress')
 
     
     # Determine the ISO3 code of the country
@@ -72,10 +80,13 @@ async def address_to_coordinates(address, bing_maps_key = "Akp4jrj9Y3XZZmmVVwpiK
     else:
         adm_level = "ADM0"
     
-    return coordinates, iso3, adm_level, country_region
+    return coordinates, iso3, adm_level, country_region, formatted_address
 
 
 def address_to_iso_code(country_name):
+    # Check if country_name is None
+    if country_name is None:
+        return None
     # Convert the country name to uppercase for case-insensitive matching
     country_name = country_name.upper()
 
@@ -88,41 +99,46 @@ def address_to_iso_code(country_name):
     
 # Function to fetch geometry by ISO code from GeoBoundaries API
 async def get_geometry_online(address: str, adm_level: str = "ADM0", release_type: str = "gbOpen") -> shape:
+    if address is None:
+        print("Error: Address is None")
+        return None
     print(f"Fetching geometry for {address}")
-    coordinates, iso3, adm_level, country_region = await address_to_coordinates(address)
+    coordinates, iso3, adm_level, country_region, formatted_address = await address_to_coordinates(address)
     print(f"ISO3: {iso3}, ADM level: {adm_level}")
     # Check if the geometry is already cached
     if iso3 in geometry_cache:
         print('Retrieved geometry from cache using iso_code: ', iso3)
         return geometry_cache[iso3]
 
-    try:
-        # Construct the GeoBoundaries API endpoint URL
-        url = f"https://www.geoboundaries.org/api/current/{release_type}/{iso3}/{adm_level}/"
+    # Run if ADM level is ADM0
+    if adm_level == "ADM0":
+        try:
+            # Construct the GeoBoundaries API endpoint URL
+            url = f"https://www.geoboundaries.org/api/current/{release_type}/{iso3}/{adm_level}/"
 
-        async with aiohttp.ClientSession() as session:
-            # Make a GET request to the API
-            async with session.get(url) as response:
-                data = await response.json()
+            async with aiohttp.ClientSession() as session:
+                # Make a GET request to the API
+                async with session.get(url) as response:
+                    data = await response.json()
 
-            # Check if the request was successful
-            if response.status ==  200 and 'simplifiedGeometryGeoJSON' in data:
-                geojson_url = data['simplifiedGeometryGeoJSON']
-                geojson_data = await fetch_geojson(session, geojson_url)
+                # Check if the request was successful
+                if response.status ==  200 and 'simplifiedGeometryGeoJSON' in data:
+                    geojson_url = data['simplifiedGeometryGeoJSON']
+                    geojson_data = await fetch_geojson(session, geojson_url)
 
-                # Check if the GeoJSON request was successful
-                if geojson_data and 'features' in geojson_data:
-                    geometry = shape(geojson_data['features'][0]['geometry'])
-                    # Cache the geometry for future use
-                    geometry_cache[iso3] = geometry
-                    print(f"Fetched geometry for {iso3}")
-                    return geometry
-            else:
-                print(f"Failed to fetch geometry. Status code: {response.status}")
-                return None
-    except Exception as e:
-        print(f"Error fetching geometry: {e}")
-        return None
+                    # Check if the GeoJSON request was successful
+                    if geojson_data and 'features' in geojson_data:
+                        geometry = shape(geojson_data['features'][0]['geometry'])
+                        # Cache the geometry for future use
+                        geometry_cache[iso3] = geometry
+                        print(f"Fetched geometry for {iso3}")
+                        return geometry
+                else:
+                    print(f"Failed to fetch geometry. Status code: {response.status}")
+                    return None
+        except Exception as e:
+            print(f"Error fetching geometry: {e}")
+            return None
 
 # Function to extract cities and places from the user's input using SpaCy
 def extract_cities(text):
@@ -171,6 +187,11 @@ async def geocode_with_retry(address, retries=3, delay=2):
 
 # Function to geocode an address 
 async def geocode(address):
+    # Check if address is None and handle accordingly
+    if address is None:
+        print("Address is None")
+        return {"error": "Address is None"}
+    
     print('Is the address for ' + address +' in cache? ', address in openStreetmap_cache)
 
     # First check if data is in cache
@@ -183,7 +204,7 @@ async def geocode(address):
 
     try:
         # Use address_to_coordinates function to get coordinates
-        coordinates, iso3, adm_level, country_region = await address_to_coordinates(address)
+        coordinates, iso3, adm_level, country_region, formatted_address = await address_to_coordinates(address)
         if coordinates:
             # Assuming coordinates is a tuple (latitude, longitude)
             latitude, longitude = coordinates
@@ -191,13 +212,13 @@ async def geocode(address):
             response_data = {
                 "lat": latitude,
                 "lon": longitude,
-                "display_name": address # This might need adjustment based on how you want to handle display names
+                "display_name": formatted_address # This might need adjustment based on how you want to handle display names
             }
             # Save data in cache
-            openStreetmap_cache[address] = response_data
-            return {"latitude": latitude, "longitude": longitude, "address": address}
+            openStreetmap_cache[formatted_address] = response_data
+            return {"latitude": latitude, "longitude": longitude, "address": formatted_address}
         else:
-            print(f"Geocoding failed for address: {address}")
+            print(f"Geocoding failed for address: {formatted_address}")
             return {"error": "Geocoding failed"}
     except Exception as e:
         print(f"Error: {e}")
@@ -206,7 +227,11 @@ async def geocode(address):
     
 # Function to fetch country geometry by ISO code from GeoBoundaries API
 async def get_geometry(address):
-    geometry = await get_geometry_online(address)
+    if address is not None:
+        geometry = await get_geometry_online(address)
+    else:
+        print("Error: Address is not provided")
+        geometry = None
     
     return geometry
 
@@ -292,15 +317,20 @@ async def postMoreChat(message: str, thread_id: str):
     # Extract and format the messages
     formatted_messages = []
     for msg in all_messages.data:
+        # Access the text value of the message content
+        message_text = msg.content[0].text.value
+        # Remove newline characters and replace them with spaces
+        cleaned_content = message_text.replace("\n", " ")
         formatted_messages.append({
             "sender": "assistant" if msg.role == "assistant" else "user",
-            "message": msg.content[0].text.value
+            "message": cleaned_content
         })
     
     print (f"Assistant response: {formatted_messages}")
+
     
     # Run the value field through the processor
-    response = await run_text_through_prosessor(str(all_messages))
+    response = await run_text_through_prosessor(str(formatted_messages))
     
     
     return {
@@ -331,14 +361,12 @@ async def run_text_through_prosessor(doc):
     country_tasks = []
     city_tasks = []
     
-    unique_countries = list(extract_countries(doc))
+    unique_countries = set(list(extract_countries(doc)))
     
     for city in places_mentioned_in_doc:
         try:
             # Call your function to get coordinates, ISO3 code, and administrative level
-            coordinates, iso3, adm_level, country_region = await address_to_coordinates(city)
-            # Add the ISO3 code to the set
-            unique_countries.add(country_region)
+            coordinates, iso3, adm_level, country_region, formatted_address = await address_to_coordinates(city)
             city_tasks.append(geocode(city))
         except Exception as e:
             print(f"Error fetching coordinates for city: {city}. Error: {e}")
@@ -347,10 +375,10 @@ async def run_text_through_prosessor(doc):
     
     # Extract country ISO codes first
     for country in unique_countries:
-        coordinates, iso3, adm_level, country_region = await address_to_coordinates(country)
+        coordinates, iso3, adm_level, country_region, formatted_address = await address_to_coordinates(country)
         mentioned_country_iso_codes.add(iso3)  # Track mentioned country ISO codes
         country_tasks.append(geocode_with_retry(country_region))
-        country_tasks.append(get_geometry(iso3))
+        country_tasks.append(get_geometry(formatted_address))
 
     # Combine the results of country and city tasks
     country_results = await asyncio.gather(*country_tasks)
@@ -364,7 +392,7 @@ async def run_text_through_prosessor(doc):
             # Check if 'display_name' exists in the geocode_result
             current_entity_name = geocode_result.get('address', 'Unknown')  # Use 'address' instead of 'display_name'
             if current_entity_name:
-                coordinates, iso3, adm_level, country_region = await address_to_coordinates(current_entity_name)  # Use the updated function
+                coordinates, iso3, adm_level, country_region, formatted_address = await address_to_coordinates(current_entity_name)  # Use the updated function
                 if iso3:
                     print(f"Found country: {current_entity_name}")
                     entities.append((
