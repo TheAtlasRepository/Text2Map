@@ -64,19 +64,20 @@ async def address_to_coordinates(address, bing_maps_key = "Akp4jrj9Y3XZZmmVVwpiK
     # Extracte formatted address
     formatted_address = resource['address'].get('formattedAddress')
 
+    formatted_address = formatted_address.split(",")[0]
     
     # Determine the ISO3 code of the country
     iso3 = address_to_iso_code(country_region)
-    print(f"ISO3 for {country_region}: {iso3}")
+    print(f"ISO3 for {country_region}: {iso3} : {formatted_address}")
     
     # Determine the administrative level (ADM1 or ADM2)
     # This is a simplified approach and might need adjustment based on the actual data structure
-    if 'adminDistrict' in resource['address']:
-        adm_level = "ADM1"
-        print(f"ADM1: {resource['address']['adminDistrict']}")
-    elif 'adminDistrict2' in resource['address']:
+    if 'adminDistrict2' in resource['address'] or 'locality' in resource['address']:
         adm_level = "ADM2"
-        print(f"ADM2: {resource['address']['adminDistrict2']}")
+        print(f"ADM2")
+    elif 'adminDistrict' in resource['address']:
+        adm_level = "ADM1"
+        print(f"ADM1")
     else:
         adm_level = "ADM0"
     
@@ -138,6 +139,28 @@ async def get_geometry_online(address: str, adm_level: str = "ADM0", release_typ
                         return geometry
                 else:
                     print(f"Failed to fetch geometry. Status code: {response.status}")
+                    return None
+        except Exception as e:
+            print(f"Error fetching geometry: {e}")
+            return None
+    else:
+        try:
+            address = address.split(",")[0]
+            url = f"https://geob-rust-api.fly.dev/geojson?iso3={iso3}&query={address}&adm_level={adm_level}"
+            
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url) as response:
+                    data = await response.json()
+
+                if response.status == 200 and 'features' in data and len(data['features']) > 0 and 'geometry' in data['features'][0]:
+                    geometry = shape(data['features'][0]['geometry'])
+                    geometry_cache[iso3] = geometry
+                    print(f"Fetched geometry for {iso3}")
+                    return geometry
+                else:
+                    print(f"Failed to fetch geometry. Status code: {response.status}")
+                    print(f"Data: {data}")
+                    print(f"URL: {url}")
                     return None
         except Exception as e:
             print(f"Error fetching geometry: {e}")
@@ -348,6 +371,9 @@ async def run_text_through_prosessor(doc):
     global geometry_cache
 
     entities = []
+    
+    # Initialize a set to track processed countries
+    processed_countries = set()
 
     # Initialize country_geometries as an empty list
     country_geometries = []
@@ -394,7 +420,7 @@ async def run_text_through_prosessor(doc):
         if "error" not in geocode_result and geometry_result:
             # Check if 'display_name' exists in the geocode_result
             current_entity_name = geocode_result.get('address', 'Unknown')  # Use 'address' instead of 'display_name'
-            if current_entity_name:
+            if current_entity_name and current_entity_name not in processed_countries:
                 coordinates, iso3, adm_level, country_region, formatted_address = await address_to_coordinates(current_entity_name)  # Use the updated function
                 if iso3:
                     print(f"Found country: {current_entity_name}")
@@ -403,6 +429,8 @@ async def run_text_through_prosessor(doc):
                         ("Latitude:", geocode_result["latitude"]),
                         ("Longitude:", geocode_result["longitude"])
                     ))
+                     # Add the current country to the set of processed countries
+                    processed_countries.add(current_entity_name)
                     country_geometries.append(geometry_result)
 
     # Process the results for cities
