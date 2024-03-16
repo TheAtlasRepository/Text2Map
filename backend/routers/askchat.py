@@ -525,9 +525,10 @@ async def run_text_through_prosessor(doc):
                 "type": "Feature",
                 "properties": {
                     "name": "Country",
+                    "fill": "#0F58FF",
                     "iso_code": iso_codes[i],
                     "style": {
-                        "fillColor": "#000000",
+                        "fillColor": "#0F58FF",
                         "strokeColor": "#000000",  # Black outline
                         "fillOpacity":  0.5,
                         "strokeWidth":  1
@@ -543,8 +544,9 @@ async def run_text_through_prosessor(doc):
                 "type": "Feature",
                 "properties": {
                     "name": "State",
+                    "fill": "#FFA500",
                     "style": {
-                        "fillColor": "#000000",
+                        "fillColor": "#FFA500",
                         "strokeColor": "#000000",  # Black outline
                         "fillOpacity":  0.5,
                         "strokeWidth":  1
@@ -560,8 +562,9 @@ async def run_text_through_prosessor(doc):
                 "type": "Feature",
                 "properties": {
                     "name": "City",
+                    "fill": "#008000",
                     "style": {
-                        "fillColor": "#000000",
+                        "fillColor": "#008000",
                         "strokeColor": "#000000",  # Black outline
                         "fillOpacity":  0.5,
                         "strokeWidth":  1
