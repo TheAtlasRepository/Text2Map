@@ -154,8 +154,8 @@ async def get_geometry_online(address: str, adm_level: str = "ADM0", release_typ
 
                 if response.status == 200 and 'features' in data and len(data['features']) > 0 and 'geometry' in data['features'][0]:
                     geometry = shape(data['features'][0]['geometry'])
-                    geometry_cache[iso3] = geometry
-                    print(f"Fetched geometry for {iso3}")
+                    geometry_cache[formatted_address] = geometry
+                    print(f"Fetched geometry for {formatted_address}")
                     return geometry
                 else:
                     print(f"Failed to fetch geometry. Status code: {response.status}")
@@ -196,10 +196,44 @@ def extract_countries(text):
     # Process the text
     doc = nlp(text)
     
-    # Extract countries
-    countries = [ent.text for ent in doc.ents if ent.label_ == "GPE"]
-
-    return set(countries)
+    # Extract entities
+    entities = [ent for ent in doc.ents if ent.label_ == "GPE"]
+    
+    # Initialize a set to store country names
+    countries = set()
+    
+    # Check if the text mentions the country "USA"
+    mentions_usa = "USA" in [ent.text.upper() for ent in entities]
+    
+    #Check if the text mentions the country "Russia"
+    mentions_russia = "Russia" in [ent.text for ent in entities]
+    
+    # Iterate over entities to filter out non-country entities
+    for ent in entities:
+        # If the text mentions "USA" and the entity is a state, skip it
+        if mentions_usa and ent.text.upper() in ["ALABAMA", "ALASKA", "ARIZONA", "ARKANSAS", "CALIFORNIA", "COLORADO", "CONNECTICUT", "DELAWARE", "FLORIDA", "GEORGIA", "HAWAII", "IDAHO", "ILLINOIS", "INDIANA", "IOWA", "KANSAS", "KENTUCKY", "LOUISIANA", "MAINE", "MARYLAND", "MASSACHUSETTS", "MICHIGAN", "MINNESOTA", "MISSISSIPPI", "MISSOURI", "MONTANA", "NEBRASKA", "NEVADA", "NEW HAMPSHIRE", "NEW JERSEY", "NEW MEXICO", "NEW YORK", "NORTH CAROLINA", "NORTH DAKOTA", "OHIO", "OKLAHOMA", "OREGON", "PENNSYLVANIA", "RHODE ISLAND", "SOUTH CAROLINA", "SOUTH DAKOTA", "TENNESSEE", "TEXAS", "UTAH", "VERMONT", "VIRGINIA", "WASHINGTON", "WEST VIRGINA", "WISCONSIN", "WYOMING"]:
+            continue # Skip this entity if it's a state and "USA" is mentioned
+        
+        # Attempt to convert the entity text to an ISO code
+        iso_code = address_to_iso_code(ent.text)
+        
+        # If an ISO code is found, it's likely a country
+        if iso_code:
+            # Convert the ISO code to a country name
+            country_name = pycountry.countries.get(alpha_3=iso_code).name
+            # Check if the entity text is a country name
+            if country_name.lower() == ent.text.lower():
+                countries.add(country_name)
+    
+    # If "USA" is mentioned, add "United States" to the set of countries
+    if mentions_usa:
+        countries.add("United States")
+        
+    # If "Russia" is mentioned, add "Russia" to the set of countries
+    if mentions_russia:
+        countries.add("Russia")
+    
+    return countries
 
 async def geocode_with_retry(address, retries=3, delay=2):
     for i in range(retries):
@@ -377,6 +411,7 @@ async def run_text_through_prosessor(doc):
 
     # Initialize country_geometries as an empty list
     country_geometries = []
+    city_geometries = []
     
     # Extract city names mentioned in the user's input
     places_mentioned_in_doc = list(extract_cities(doc))
