@@ -112,17 +112,41 @@ const MapComponent: React.FC<MapComponentProps> = ({
         <>
           {/* Render GeoJSON */}
           {gotGeoJson &&
-            <Source id="selectedCountries" type="geojson" data={geojsonData}>
+          <Source id="selectedCountries" type="geojson" data={geojsonData}>
+              {/* Layer for Countries */}
               <Layer
-                id="selectedCountries"
+                id="countries-layer"
                 type="fill"
+                filter={["==", ["get", "name"], "Country"]}
                 paint={{
-                  "fill-color": "#0F58FF",
+                  "fill-color": '#0F58FF', // Blue color for countries
                   "fill-opacity": 0.5,
                   "fill-outline-color": "#000000",
                 }}
               />
-            </Source>
+              {/* Layer for States */}
+              <Layer
+                id="states-layer"
+                type="fill"
+                filter={["==", ["get", "name"], "State"]}
+                paint={{
+                  "fill-color": '#FFA500', // Orange color for states
+                  "fill-opacity": 0.5,
+                  "fill-outline-color": "#000000",
+                }}
+              />
+              {/* Layer for Cities */}
+              <Layer
+                id="cities-layer"
+                type="fill"
+                filter={["==", ["get", "name"], "City"]}
+                paint={{
+                  "fill-color": '#008000', // Green color for cities
+                  "fill-opacity": 0.5,
+                  "fill-outline-color": "#000000",
+                }}
+              />
+          </Source>
           }
 
           {/* Render markers */}
