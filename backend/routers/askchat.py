@@ -28,7 +28,6 @@ my_assistant = client.beta.assistants.retrieve("asst_eKL7g3MCeUtwaD0CjC9VBv7p")
 geolocator = Nominatim(user_agent="city-extractor")
 
 # Define a cache to store previously fetched geometries
-geometry_cache = {}
 openStreetmap_cache = {}
 
 # Define a semaphore to limit concurrent requests
@@ -109,10 +108,6 @@ async def get_geometry_online(address: str, adm_level: str = "ADM0", release_typ
     print(f"Fetching geometry for {address}")
     coordinates, iso3, adm_level, country_region, formatted_address = await address_to_coordinates(address)
     print(f"ISO3: {iso3}, ADM level: {adm_level}")
-    # Check if the geometry is already cached
-    if iso3 in geometry_cache:
-        print('Retrieved geometry from cache using iso_code: ', iso3)
-        return geometry_cache[iso3]
 
     # Run if ADM level is ADM0
     if adm_level == "ADM0":
@@ -133,8 +128,6 @@ async def get_geometry_online(address: str, adm_level: str = "ADM0", release_typ
                     # Check if the GeoJSON request was successful
                     if geojson_data and 'features' in geojson_data:
                         geometry = shape(geojson_data['features'][0]['geometry'])
-                        # Cache the geometry for future use
-                        geometry_cache[iso3] = geometry
                         print(f"Fetched geometry for {iso3}")
                         return geometry
                 else:
@@ -154,7 +147,6 @@ async def get_geometry_online(address: str, adm_level: str = "ADM0", release_typ
 
                 if response.status == 200 and 'features' in data and len(data['features']) > 0 and 'geometry' in data['features'][0]:
                     geometry = shape(data['features'][0]['geometry'])
-                    geometry_cache[formatted_address] = geometry
                     print(f"Fetched geometry for {formatted_address}")
                     return geometry
                 else:
@@ -402,12 +394,11 @@ async def postMoreChat(message: str, thread_id: str):
 
 # Text processor for extracting and finding locations from text
 async def run_text_through_prosessor(doc):
-    global geometry_cache
-
     entities = []
     
     # Initialize a set to track processed countries
     processed_countries = set()
+    processed_places = set()
 
     # Initialize country_geometries as an empty list
     country_geometries = []
@@ -418,6 +409,7 @@ async def run_text_through_prosessor(doc):
     
     # Keep track of ISO codes of the countries mentioned in the user's input
     mentioned_country_iso_codes = set()
+    mentioned_places = set()
     
     print (f"Cities mentioned in the user's input: {places_mentioned_in_doc}")
 
@@ -431,7 +423,9 @@ async def run_text_through_prosessor(doc):
         try:
             # Call your function to get coordinates, ISO3 code, and administrative level
             coordinates, iso3, adm_level, country_region, formatted_address = await address_to_coordinates(city)
-            city_tasks.append(geocode(city))
+            mentioned_places.add(formatted_address)
+            city_tasks.append(geocode_with_retry(city))
+            city_tasks.append(get_geometry(formatted_address))
         except Exception as e:
             print(f"Error fetching coordinates for city: {city}. Error: {e}")
 
@@ -469,21 +463,29 @@ async def run_text_through_prosessor(doc):
                     country_geometries.append(geometry_result)
 
     # Process the results for cities
-    for city_result in city_results:
-        if "error" not in city_result:
-            city_name = city_result.get('address', '').split(',')[0].strip()
-            print(f"Found city: {city_name}")
-            entities.append((
-                ("Found entities:", city_name),
-                ("Latitude:", city_result["latitude"]),
-                ("Longitude:", city_result["longitude"])
-            ))
-        else:
-            address = city_result.get('address', 'Unknown')
-            print(f"Geocoding failed for city: {address}")
+    for i in range(0, len(city_results), 2):
+        geocode_result = city_results[i]
+        geometry_result = city_results[i + 1]
+        if "error" not in geocode_result and geometry_result:
+            # Check if 'display_name' exists in the geocode_result
+            current_entity_name = geocode_result.get('address', 'Unknown')
+            if current_entity_name and current_entity_name not in processed_places:
+                coordinates, iso3, adm_level, country_region, formatted_address = await address_to_coordinates(current_entity_name)  # Use the updated function
+                if formatted_address:
+                    print(f"Found city: {current_entity_name}")
+                    entities.append((
+                        ("Found entities:", current_entity_name),
+                        ("Latitude:", geocode_result["latitude"]),
+                        ("Longitude:", geocode_result["longitude"])
+                    ))
+                    # Add the current city to the set of processed cities
+                    processed_places.add(current_entity_name)
+                    city_geometries.append(geometry_result)
+
 
     iso_codes = [ent[1][1] for ent in entities if ent[0][0] == "Found entities:"]  # Filter entities for countries only
     country_geometries = [shape(geo) for geo in country_geometries]
+    city_geometries = [shape(geo) for geo in city_geometries]
 
     # Ensure that the geometry objects are valid before mapping also set a color for each country
     features = []
@@ -492,7 +494,25 @@ async def run_text_through_prosessor(doc):
             feature = {
                 "type": "Feature",
                 "properties": {
+                    "name": "Country",
                     "iso_code": iso_codes[i],
+                    "style": {
+                        "fillColor": "#000000",
+                        "strokeColor": "#000000",  # Black outline
+                        "fillOpacity":  0.5,
+                        "strokeWidth":  1
+                    }
+                },
+                "geometry": mapping(geometry)
+            }
+            features.append(feature)
+    
+    for i, geometry in enumerate(city_geometries):
+        if geometry.is_valid:
+            feature = {
+                "type": "Feature",
+                "properties": {
+                    "name": "City",
                     "style": {
                         "fillColor": "#000000",
                         "strokeColor": "#000000",  # Black outline
@@ -509,9 +529,6 @@ async def run_text_through_prosessor(doc):
         "features": features
     }
 
-
-    # Clear geometry_cache for entries not used recently
-    geometry_cache = {iso_code: geometry for iso_code, geometry in geometry_cache.items() if iso_code in iso_codes}
 
     # Return the new GeoJSON file path to the frontend
     return {
