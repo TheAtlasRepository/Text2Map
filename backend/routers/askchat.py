@@ -402,6 +402,7 @@ async def run_text_through_prosessor(doc):
 
     # Initialize country_geometries as an empty list
     country_geometries = []
+    state_geometries = []
     city_geometries = []
     
     # Extract city names mentioned in the user's input
@@ -415,19 +416,25 @@ async def run_text_through_prosessor(doc):
 
     # Run geocoding, geometry fetching, and city information fetching concurrently
     country_tasks = []
+    state_tasks = []
     city_tasks = []
     
     unique_countries = set(list(extract_countries(doc)))
     
-    for city in places_mentioned_in_doc:
+    for place in places_mentioned_in_doc:
         try:
             # Call your function to get coordinates, ISO3 code, and administrative level
-            coordinates, iso3, adm_level, country_region, formatted_address = await address_to_coordinates(city)
-            mentioned_places.add(formatted_address)
-            city_tasks.append(geocode_with_retry(city))
-            city_tasks.append(get_geometry(formatted_address))
+            coordinates, iso3, adm_level, country_region, formatted_address = await address_to_coordinates(place)
+            if adm_level == "ADM1":
+                mentioned_places.add(formatted_address)
+                state_tasks.append(geocode_with_retry(place))
+                state_tasks.append(get_geometry(formatted_address))
+            elif adm_level == "ADM2":
+                mentioned_places.add(formatted_address)
+                city_tasks.append(geocode_with_retry(place))
+                city_tasks.append(get_geometry(formatted_address))
         except Exception as e:
-            print(f"Error fetching coordinates for city: {city}. Error: {e}")
+            print(f"Error fetching coordinates for city: {place}. Error: {e}")
 
     print(f"Unique countries: {unique_countries}")
     
@@ -440,6 +447,7 @@ async def run_text_through_prosessor(doc):
 
     # Combine the results of country and city tasks
     country_results = await asyncio.gather(*country_tasks)
+    state_results = await asyncio.gather(*state_tasks)
     city_results = await asyncio.gather(*city_tasks)
 
     # Process the results for countries
@@ -461,6 +469,27 @@ async def run_text_through_prosessor(doc):
                      # Add the current country to the set of processed countries
                     processed_countries.add(current_entity_name)
                     country_geometries.append(geometry_result)
+                    
+    # Process the results for states
+    for i in range(0, len(state_results), 2):
+        geocode_result = state_results[i]
+        geometry_result = state_results[i + 1]
+        if "error" not in geocode_result and geometry_result:
+            # Check if 'display_name' exists in the geocode_result
+            current_entity_name = geocode_result.get('address', 'Unknown')
+            if current_entity_name and current_entity_name not in processed_places:
+                coordinates, iso3, adm_level, country_region, formatted_address = await address_to_coordinates(current_entity_name)
+                if formatted_address:
+                    print(f"Found state: {current_entity_name}")
+                    entities.append((
+                        ("Found entities:", current_entity_name),
+                        ("Latitude:", geocode_result["latitude"]),
+                        ("Longitude:", geocode_result["longitude"])
+                    ))
+                    # Add the current state to the set of processed states
+                    processed_places.add(current_entity_name)
+                    state_geometries.append(geometry_result)
+    
 
     # Process the results for cities
     for i in range(0, len(city_results), 2):
@@ -485,6 +514,7 @@ async def run_text_through_prosessor(doc):
 
     iso_codes = [ent[1][1] for ent in entities if ent[0][0] == "Found entities:"]  # Filter entities for countries only
     country_geometries = [shape(geo) for geo in country_geometries]
+    state_geometries = [shape(geo) for geo in state_geometries]
     city_geometries = [shape(geo) for geo in city_geometries]
 
     # Ensure that the geometry objects are valid before mapping also set a color for each country
@@ -496,6 +526,23 @@ async def run_text_through_prosessor(doc):
                 "properties": {
                     "name": "Country",
                     "iso_code": iso_codes[i],
+                    "style": {
+                        "fillColor": "#000000",
+                        "strokeColor": "#000000",  # Black outline
+                        "fillOpacity":  0.5,
+                        "strokeWidth":  1
+                    }
+                },
+                "geometry": mapping(geometry)
+            }
+            features.append(feature)
+            
+    for i, geometry in enumerate(state_geometries):
+        if geometry.is_valid:
+            feature = {
+                "type": "Feature",
+                "properties": {
+                    "name": "State",
                     "style": {
                         "fillColor": "#000000",
                         "strokeColor": "#000000",  # Black outline
