@@ -155,6 +155,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
               key={index}
               latitude={marker.latitude}
               longitude={marker.longitude}
+              offset={[0, -30] as [number, number]}
             >
               <Coordinate
                 latitude={marker.latitude}
@@ -171,7 +172,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
                   closeOnClick={false}
                   className="custom-popup"
                   anchor="bottom"
-                  offset={[0, -30] as [number, number]}
+                  offset={[0, -60] as [number, number]}
                 >
                   <InfoPanel
                     title={marker.type}
