@@ -3,212 +3,375 @@ from openai import OpenAI
 from shapely.geometry import shape, mapping
 from shapely.ops import unary_union
 import pycountry
-import geocoder 
+from geopy.geocoders import Nominatim
+from geopy.exc import GeocoderUnavailable
+import aiohttp
+from aiohttp import ClientSession
+import asyncio
 import json
-import os
+import urllib
+import spacy
+import re
 
 router = APIRouter()
 
 client = OpenAI()
 
 chat_history = []
-text_history = []
 
-# Get the absolute path to the GeoJSON file with country borders
-geojson_file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'jsonFiles', 'countries.geojson'))
+nlp = spacy.load("en_core_web_trf")
 
-# Load GeoJSON file with country borders
-with open(geojson_file_path) as geojson_file:
-    countries_geojson = json.load(geojson_file)
+my_assistant = client.beta.assistants.retrieve("asst_eKL7g3MCeUtwaD0CjC9VBv7p")
 
-def geocode(address):
-    """Geocode an address string to lat/long and bounding box"""
-    
+geolocator = Nominatim(user_agent="city-extractor")
+
+# Define a cache to store previously fetched geometries
+geometry_cache = {}
+openStreetmap_cache = {}
+
+# Define a semaphore to limit concurrent requests
+semaphore = asyncio.Semaphore(5)  # Adjust the limit as needed
+
+async def fetch_geojson(session: ClientSession, url: str) -> dict:
+    async with semaphore:
+        async with session.get(url) as response:
+            return await response.json(content_type=None)
+       
+def address_to_coordinates(address, bing_maps_key = "Akp4jrj9Y3XZZmmVVwpiK2Op2v7wB7xaHr4mqDWOQ8xD-ObvUUOrG_4Xae2rYiml"):
+    encoded_address = urllib.parse.quote(address, safe='')
+    route_url = f"http://dev.virtualearth.net/REST/V1/Locations?q={encoded_address}&key={bing_maps_key}"
+    request = urllib.request.Request(route_url)
+    response = urllib.request.urlopen(request)
+    data = json.loads(response.read().decode())
+    coordinates = data['resourceSets'][0]['resources'][0]['point']['coordinates']
+    return coordinates
+
+def address_to_iso_code(country_name):
+    # Convert the country name to uppercase for case-insensitive matching
+    country_name = country_name.upper()
+
+    # Check if the country name is a valid pycountry country name
     try:
-        # Use the geocode method and specify the provider (in this case, Google)
-        response = geocoder.arcgis(address)
-
-        # Check if the geocoding was successful
-        if response.ok:
-            # Extract latitude and longitude from the first result
-            coordinates = response.latlng
-            latitude, longitude = coordinates[0], coordinates[1]
-
-            return {"latitude": latitude, "longitude": longitude}
-        else:
-            print(f"Geocoding failed with status code: {response.status}")
-            return {"error": "Geocoding failed"}
+        country = pycountry.countries.lookup(country_name)
+        return country.alpha_3
+    except LookupError:
+        print(f"Could not find ISO code for country: {country_name}")
+        return None
     
+# Function to fetch geometry by ISO code from GeoBoundaries API
+async def get_geometry_online(address: str, adm_level: str = "ADM0", release_type: str = "gbOpen") -> shape:
+    iso_code = address_to_iso_code(address)
+    # Check if the geometry is already cached
+    if iso_code in geometry_cache:
+        print('Retrieved geometry from cache using iso_code: ', iso_code)
+        return geometry_cache[iso_code]
+
+    try:
+        # Construct the GeoBoundaries API endpoint URL
+        url = f"https://www.geoboundaries.org/api/current/{release_type}/{iso_code}/{adm_level}/"
+
+        async with aiohttp.ClientSession() as session:
+            # Make a GET request to the API
+            async with session.get(url) as response:
+                data = await response.json()
+
+            # Check if the request was successful
+            if response.status ==  200 and 'simplifiedGeometryGeoJSON' in data:
+                geojson_url = data['simplifiedGeometryGeoJSON']
+                geojson_data = await fetch_geojson(session, geojson_url)
+
+                # Check if the GeoJSON request was successful
+                if geojson_data and 'features' in geojson_data:
+                    geometry = shape(geojson_data['features'][0]['geometry'])
+                    # Cache the geometry for future use
+                    geometry_cache[iso_code] = geometry
+                    print(f"Fetched geometry for {iso_code}")
+                    return geometry
+            else:
+                print(f"Failed to fetch geometry. Status code: {response.status}")
+                return None
+    except Exception as e:
+        print(f"Error fetching geometry: {e}")
+        return None
+
+# Function to extract cities and places from the user's input using SpaCy
+def extract_cities(text):
+    doc = nlp(text)
+    cities_and_places = []
+
+    for ent in doc.ents:
+        if ent.label_ in ["GPE", "LOC", "FAC"]:
+            text = ent.text.strip()
+
+            # Check if the text starts with 'The '
+            if text.title().startswith('The '):
+                text = text[4:].strip()
+
+            # Use regular expression to remove additional characters or digits
+            cleaned_text = re.sub(r'\.\s*\d+', '', text)
+
+            # Filter out country names
+            iso_code = address_to_iso_code(cleaned_text)
+            if iso_code and pycountry.countries.get(alpha_3=iso_code):
+                continue
+
+            cities_and_places.append(cleaned_text)
+
+    return set(cities_and_places)
+
+async def geocode_with_retry(address, retries=3, delay=2):
+    for i in range(retries):
+        try:
+            return await geocode(address)
+        except GeocoderUnavailable as e:
+            if i < retries - 1: # i is zero indexed
+                await asyncio.sleep(delay) # wait before retrying
+            else:
+                raise e
+
+# Function to geocode an address 
+async def geocode(address):
+    print('Is the address for ' + address +' in cache? ', address in openStreetmap_cache)
+
+    # First check if data is in cache
+    if address in openStreetmap_cache:
+        print('Retrieved data from cache using address: ', address)
+        
+        data = openStreetmap_cache[address]
+        #print('Data: ', data)
+        return {"latitude": data['lat'], "longitude": data['lon'], "address": data['display_name']}
+
+    try:
+        # Use address_to_coordinates function to get coordinates
+        coordinates = address_to_coordinates(address)
+        if coordinates:
+            # Assuming coordinates is a tuple (latitude, longitude)
+            latitude, longitude = coordinates
+            # Construct a response similar to what you would get from the API
+            response_data = {
+                "lat": latitude,
+                "lon": longitude,
+                "display_name": address # This might need adjustment based on how you want to handle display names
+            }
+            # Save data in cache
+            openStreetmap_cache[address] = response_data
+            return {"latitude": latitude, "longitude": longitude, "address": address}
+        else:
+            print(f"Geocoding failed for address: {address}")
+            return {"error": "Geocoding failed"}
     except Exception as e:
         print(f"Error: {e}")
-        return {"latitude": None, "longitude": None, "bbox": None}
-    
-def get_country_geometry(iso_code):
-    for feature in countries_geojson['features']:
-        geo_iso_code = feature['properties']['ISO_A3'].strip().upper()  # Handle case sensitivity and whitespace
-        if geo_iso_code == iso_code:
-            print(f"Found geometry for ISO code {iso_code}")
-            return shape(feature['geometry'])
-    print(f"Geometry not found for ISO code {iso_code}")
-    return None
+        return {"latitude": None, "longitude": None, "address": None, "error": "Geocoding failed"}
 
-@router.post("/resetchat", response_model=dict)
-def postResetChat(message: str):
-    global chat_history
-    chat_history = [{"role": "user", "content": message}]
-    # Run postSendChat to get the first response from the assistant
-    response = postSendChat(message)
     
-    # Return the chat history but without the first message
-    return {"entities": response["entities"], "chat_history": response["chat_history"][1:], "selected_countries_geojson_path": response["selected_countries_geojson_path"]}
+# Function to fetch country geometry by ISO code from GeoBoundaries API
+async def get_geometry(address):
+    geometry = await get_geometry_online(address)
+    
+    return geometry
 
-@router.post("/sendchat", response_model=dict)
-def postSendChat(message):
-    print("Sending message: " + message)
-    global chat_history
-    
-    # Include chat history in messages
-    messages = chat_history.copy()
-    
-    # Append the user's message only if it's not the same as the last one
-    if not messages or (messages[-1]["role"] == "user" and messages[-1]["content"] != message):
-        messages.append({"role": "user", "content": message})
-    
-    # Include the entire conversation history in the messages parameter
-    messages_for_openai = [
-        {"role": msg["role"], "content": msg["content"]} for msg in messages
-    ]
-    
-    response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=messages_for_openai,
-        temperature=1,
-        max_tokens=1000,
-        top_p=1,
-        frequency_penalty=1,
-        presence_penalty=0
-    )
-    
-    # Get the assistant's response
-    assistant_response = response.choices[0].message.content
-    
-    # Append each user question and assistant response separately to the chat history
-    if "user:" in message:
-        messages.append({"role": "assistant", "content": assistant_response})
-    else:
-        # If it's not a user question, append the entire message (potentially an intermediate prompt)
-        messages.append({"role": "user", "content": message})
-        messages.append({"role": "assistant", "content": assistant_response})
-    
-    # Update the chat history
-    chat_history = messages
-    
-    print("Received response: " + assistant_response)
+# Function for handeling manual text input
+@router.post("/newText", response_model=dict)
+async def postNewText(text: str):
+    print("Sending text: " + text)
 
-    # Check if your answer + chat history has a country, city, or state
-    doc = ' '.join([msg["content"] for msg in messages])
-    
-    # Put all entities in a list
-    entities = []
-    
-    for ent in pycountry.countries:
-        if ent.name in doc:
-            if ent.name not in entities:
-                # Get ISO code for the country
-                iso_code = ent.alpha_3
-                geocode_data = geocode(ent.name)
-                if "error" in geocode_data:
-                    print(f"Skipping invalid country: {ent.name}")
-                else:
-                    print(f"Found country: {ent.name}, ISO Code: {iso_code}")
-                    entities.append((("Found entities:", ent.name), ("ISO Code:", iso_code), ("Latitude:", geocode_data["latitude"]), ("Longitude:", geocode_data["longitude"])))
-    
-    # Extract ISO codes of countries from the entities
-    iso_codes = [ent[1][1] for ent in entities]  # Adjust the index to get the ISO code directly
-
-    # Look up country geometries from GeoJSON file
-    country_geometries = [get_country_geometry(iso_code) for iso_code in iso_codes]
-
-    # Create a new GeoJSON file with only the borders of the identified countries
-    new_geojson = {
-        "type": "FeatureCollection",
-        "features": [
-            {
-                "type": "Feature",
-                "properties": {"ISO_A3": iso_code},
-                "geometry": mapping(geometry) if geometry else None
-            }
-            for iso_code, geometry in zip(iso_codes, country_geometries)
-        ]
-    }
+    response = await run_text_through_prosessor(text)
     
     # Return the new GeoJSON file path to the frontend
-    return {"entities": entities, "chat_history": chat_history, "selected_countries_geojson_path": new_geojson}
+    return {
+        "entities": response["entities"],
+        "selected_countries_geojson_path": response["selected_countries_geojson_path"]
+        }
 
-@router.post("/newText", response_model=dict)
-def postNewText(text: str):
-    print("Sending text: " + text)
-    global text_history
+# Function for handeling start of a chat with Gpt
+# TODO: Make a pydantic model for the response schema
+@router.post("/newChat", response_model=dict)
+async def postNewChat(message: str):
+    """
+    # Send a message to the assistant and return the response.
     
-    text_history = [text]
-
-    # Run postSendChat to get the first response from the assistant
-    response = postSendMoreText(text)
+    ## Arguments
+    - message the message to send to the assistant
+    ## Return: 
+    - returns the response from the assistant as a dictionary which includes the entities, selected_countries_geojson_path, chat_history, and thread_id
+    """
     
-    # Return the chat history but without the first message
-    return {"entities": response["entities"], "text_history": response["text_history"][1:], "selected_countries_geojson_path": response["selected_countries_geojson_path"]}
+    global chat_history
+    # Create a new thread
+    new_thread = client.beta.threads.create() 
+    chat_history = [{"role": "user", "content": message}]
+    # create a global variable to store the thread_id
+    thread_id = new_thread.id
+    # print the thread_id
+    print(f"Thread ID: {thread_id}")
+    # Pass the thread_id to postMoreChat
+    response = await postMoreChat(message, thread_id)
+    chat_history.append({"role": "assistant", "content": response["chat_history"][-1]["message"]})
 
-
-@router.post("/sendMoreText", response_model=dict)
-def postSendMoreText(text):
-    print("Sending text: " + text)
-    global text_history
-    
-    # Include chat history in textEntities
-    textEntities = text_history.copy()
-
-    # Append the text only if it's not the same as the last one
-    if not textEntities or (textEntities[-1] != text):
-        textEntities.append(text)
-
-    # Update the chat history
-    text_history = textEntities
-
-    # Check if your answer + chat history has a country, city, or state
-    doc = ' '.join([textEnt for textEnt in textEntities])
-
-    # Put all entities in a list
-    entities = []
-
-    for ent in pycountry.countries:
-        if ent.name in doc:
-            if ent.name not in entities:
-                # Get ISO code for the country
-                iso_code = ent.alpha_3
-                geocode_data = geocode(ent.name)
-                if "error" in geocode_data:
-                    print(f"Skipping invalid country: {ent.name}")
-                else:
-                    print(f"Found country: {ent.name}, ISO Code: {iso_code}")
-                    entities.append((("Found entities:", ent.name), ("ISO Code:", iso_code), ("Latitude:", geocode_data["latitude"]), ("Longitude:", geocode_data["longitude"])))
-    
-    # Extract ISO codes of countries from the entities
-    iso_codes = [ent[1][1] for ent in entities]  # Adjust the index to get the ISO code directly
-
-    # Look up country geometries from GeoJSON file
-    country_geometries = [get_country_geometry(iso_code) for iso_code in iso_codes]
-
-    # Create a new GeoJSON file with only the borders of the identified countries
-    new_geojson = {
-        "type": "FeatureCollection",
-        "features": [
-            {
-                "type": "Feature",
-                "properties": {"ISO_A3": iso_code},
-                "geometry": mapping(geometry) if geometry else None
-            }
-            for iso_code, geometry in zip(iso_codes, country_geometries)
-        ]
+    return {
+        "entities": response["entities"],
+        "selected_countries_geojson_path": response["selected_countries_geojson_path"],
+        "chat_history": response["chat_history"],
+        "thread_id": thread_id
     }
 
-    return {"entities": entities, "text_history": text_history, "selected_countries_geojson_path": new_geojson}
+# Function for handeling chat with Gpt
+# TODO: Make a pydantic model for the response schema
+@router.post("/moreChat", response_model=dict)
+async def postMoreChat(message: str, thread_id: str):
+    """
+    # Send a message to the assistant and return the response.
+    
+    ## Arguments
+    - message the message to send to the assistant
+    - thread_id the id of the thread to send the message to
+    ## Return: 
+    - returns the response from the assistant as a dictionary which includes the entities, selected_countries_geojson_path, chat_history, and thread_id
+    """
+    print("Sending message: " + message + " to thread " + thread_id)
+
+    # Send a message to the assistant
+    msg = client.beta.threads.messages.create(thread_id, role="user", content=message)
+    
+    # Run the assistant
+    run = client.beta.threads.runs.create(thread_id, assistant_id=my_assistant.id)
+    
+    while run.status != "completed":
+        keep_retrieving_run = client.beta.threads.runs.retrieve(
+            thread_id=thread_id,
+            run_id=run.id
+        )
+        print(f"Run status: {keep_retrieving_run.status} on thread {thread_id}")
+
+        if keep_retrieving_run.status == "completed":
+            print("\n")
+            break
+    
+    all_messages = client.beta.threads.messages.list(thread_id=thread_id)
+    
+    # Extract and format the messages
+    formatted_messages = []
+    for msg in all_messages.data:
+        formatted_messages.append({
+            "sender": "assistant" if msg.role == "assistant" else "user",
+            "message": msg.content[0].text.value
+        })
+    
+    print (f"Assistant response: {formatted_messages}")
+    
+    # Run the value field through the processor
+    response = await run_text_through_prosessor(str(all_messages))
+    
+    
+    return {
+        "entities": response["entities"],
+        "selected_countries_geojson_path": response["selected_countries_geojson_path"],
+        "chat_history": formatted_messages
+    }
+
+
+# Text processor for extracting and finding locations from text
+async def run_text_through_prosessor(doc):
+    global geometry_cache
+
+    entities = []
+
+    # Initialize country_geometries as an empty list
+    country_geometries = []
+    
+    # Extract city names mentioned in the user's input
+    places_mentioned_in_doc = list(extract_cities(doc))
+    
+    # Keep track of ISO codes of the countries mentioned in the user's input
+    mentioned_country_iso_codes = set()
+    
+    print (f"Cities mentioned in the user's input: {places_mentioned_in_doc}")
+
+    # Run geocoding, geometry fetching, and city information fetching concurrently
+    country_tasks = []
+    city_tasks = []
+
+    # Extract country ISO codes first
+    for ent in pycountry.countries:
+        if ent.name in doc:
+            iso_code = ent.alpha_3
+            mentioned_country_iso_codes.add(iso_code)  # Track mentioned country ISO codes
+            country_tasks.append(geocode_with_retry(ent.name))
+            country_tasks.append(get_geometry(ent.name))
+
+    # Extract city information
+    for city in places_mentioned_in_doc:
+        city_tasks.append(geocode(city))
+
+    # Combine the results of country and city tasks
+    country_results = await asyncio.gather(*country_tasks)
+    city_results = await asyncio.gather(*city_tasks)
+
+    # Process the results for countries
+    for i in range(0, len(country_results), 2):
+        geocode_result = country_results[i]
+        geometry_result = country_results[i + 1]
+        if "error" not in geocode_result and geometry_result:
+            # Check if 'display_name' exists in the geocode_result
+            current_entity_name = geocode_result.get('address', 'Unknown')  # Use 'address' instead of 'display_name'
+            if current_entity_name:
+                iso_code = address_to_iso_code(current_entity_name)  # Use the updated function
+                if iso_code:
+                    print(f"Found country: {current_entity_name}")
+                    entities.append((
+                        ("Found entities:", current_entity_name),
+                        ("Latitude:", geocode_result["latitude"]),
+                        ("Longitude:", geocode_result["longitude"])
+                    ))
+                    country_geometries.append(geometry_result)
+
+    # Process the results for cities
+    for city_result in city_results:
+        if "error" not in city_result:
+            city_name = city_result.get('address', '').split(',')[0].strip()
+            print(f"Found city: {city_name}")
+            entities.append((
+                ("Found entities:", city_name),
+                ("Latitude:", city_result["latitude"]),
+                ("Longitude:", city_result["longitude"])
+            ))
+        else:
+            address = city_result.get('address', 'Unknown')
+            print(f"Geocoding failed for city: {address}")
+
+    iso_codes = [ent[1][1] for ent in entities if ent[0][0] == "Found entities:"]  # Filter entities for countries only
+    country_geometries = [shape(geo) for geo in country_geometries]
+
+    # Ensure that the geometry objects are valid before mapping also set a color for each country
+    features = []
+    for i, geometry in enumerate(country_geometries):
+        if geometry.is_valid:
+            feature = {
+                "type": "Feature",
+                "properties": {
+                    "iso_code": iso_codes[i],
+                    "style": {
+                        "fillColor": "#000000",
+                        "strokeColor": "#000000",  # Black outline
+                        "fillOpacity":  0.5,
+                        "strokeWidth":  1
+                    }
+                },
+                "geometry": mapping(geometry)
+            }
+            features.append(feature)
+
+    new_geojson = {
+        "type": "FeatureCollection",
+        "features": features
+    }
+
+
+    # Clear geometry_cache for entries not used recently
+    geometry_cache = {iso_code: geometry for iso_code, geometry in geometry_cache.items() if iso_code in iso_codes}
+
+    # Return the new GeoJSON file path to the frontend
+    return {
+        "entities": entities, 
+        "selected_countries_geojson_path": new_geojson
+        }
