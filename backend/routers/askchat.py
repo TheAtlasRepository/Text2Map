@@ -12,6 +12,8 @@ import json
 import urllib
 import spacy
 import re
+import urllib.parse
+import unicodedata
 from geopy.exc import GeocoderTimedOut
 
 
@@ -71,14 +73,18 @@ async def address_to_coordinates(address, bing_maps_key = "Akp4jrj9Y3XZZmmVVwpiK
     
     # Determine the administrative level (ADM1 or ADM2)
     # This is a simplified approach and might need adjustment based on the actual data structure
-    if 'adminDistrict2' in resource['address'] or 'locality' in resource['address']:
+    if 'PopulatedPlace' in resource['entityType'] or 'Neighborhood' in resource['entityType'] or 'Postcode1' in resource['entityType'] or 'AdminDivision2' in resource['entityType']:
         adm_level = "ADM2"
         print(f"ADM2")
-    elif 'adminDistrict' in resource['address']:
+    elif 'AdminDivision1' in resource['entityType']:
         adm_level = "ADM1"
         print(f"ADM1")
-    else:
+    elif 'CountryRegion' in resource['entityType']:
         adm_level = "ADM0"
+        print(f"ADM0")
+    else:
+        adm_level = None
+        print(f"Unknown administrative level: {resource['entityType']}")
     
     return coordinates, iso3, adm_level, country_region, formatted_address
 
@@ -139,6 +145,8 @@ async def get_geometry_online(address: str, adm_level: str = "ADM0", release_typ
     else:
         try:
             address = address.split(",")[0]
+            address = unicodedata.normalize('NFD', address)
+            address = urllib.parse.quote(address, safe='')
             url = f"https://geob-rust-api.fly.dev/geojson?iso3={iso3}&query={address}&adm_level={adm_level}"
             
             async with aiohttp.ClientSession() as session:
