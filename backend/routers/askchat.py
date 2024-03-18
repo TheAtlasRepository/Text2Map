@@ -445,7 +445,6 @@ async def run_text_through_prosessor(doc):
                     city_tasks.append(geocode_with_retry(place))
                     city_tasks.append(get_geometry(formatted_address))
             else:
-                mentioned_places.add(formatted_address)
                 place_tasks.append(geocode_with_retry(place))
         except Exception as e:
             print(f"Error fetching coordinates for city: {place}. Error: {e}")
