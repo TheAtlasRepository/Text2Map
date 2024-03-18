@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from openai import OpenAI
-from shapely.geometry import shape, mapping
+from shapely.geometry import shape, mapping, MultiPolygon, Polygon
 from shapely.ops import unary_union
 import pycountry
 from geopy.geocoders import Nominatim
@@ -107,48 +107,19 @@ def address_to_iso_code(country_name):
         return None
     
 # Function to fetch geometry by ISO code from GeoBoundaries API
-async def get_geometry_online(address: str, adm_level: str = "ADM0", release_type: str = "gbOpen") -> shape:
+async def get_geometry_online(address: str) -> shape:
     if address is None:
         print("Error: Address is None")
         return None
     print(f"Fetching geometry for {address}")
     coordinates, iso3, adm_level, country_region, formatted_address = await address_to_coordinates(address)
-    print(f"ISO3: {iso3}, ADM level: {adm_level}")
+    print(f"ISO3: {iso3})")
 
-    # Run if ADM level is ADM0
     if adm_level == "ADM0":
         try:
-            # Construct the GeoBoundaries API endpoint URL
-            url = f"https://www.geoboundaries.org/api/current/{release_type}/{iso3}/{adm_level}/"
-
-            async with aiohttp.ClientSession() as session:
-                # Make a GET request to the API
-                async with session.get(url) as response:
-                    data = await response.json()
-
-                # Check if the request was successful
-                if response.status ==  200 and 'simplifiedGeometryGeoJSON' in data:
-                    geojson_url = data['simplifiedGeometryGeoJSON']
-                    geojson_data = await fetch_geojson(session, geojson_url)
-
-                    # Check if the GeoJSON request was successful
-                    if geojson_data and 'features' in geojson_data:
-                        geometry = shape(geojson_data['features'][0]['geometry'])
-                        print(f"Fetched geometry for {iso3}")
-                        return geometry
-                else:
-                    print(f"Failed to fetch geometry. Status code: {response.status}")
-                    return None
-        except Exception as e:
-            print(f"Error fetching geometry: {e}")
-            return None
-    elif adm_level == "ADM1" or adm_level == "ADM2":
-        try:
-            address = address.split(",")[0]
-            address = unicodedata.normalize('NFD', address)
-            address = urllib.parse.quote(address, safe='')
-            url = f"https://geob-rust-api.fly.dev/geojson?iso3={iso3}&query={address}&adm_level={adm_level}"
-            
+            url = f"https://geob-rust-api.fly.dev/geojson?iso3={iso3}"
+            print(f"URL: {url}")
+                
             async with aiohttp.ClientSession() as session:
                 async with session.get(url) as response:
                     data = await response.json()
@@ -156,7 +127,42 @@ async def get_geometry_online(address: str, adm_level: str = "ADM0", release_typ
                 if response.status == 200 and 'features' in data and len(data['features']) > 0 and 'geometry' in data['features'][0]:
                     geometry = shape(data['features'][0]['geometry'])
                     print(f"Fetched geometry for {formatted_address}")
-                    return geometry
+
+                    # If the geometry is a MultiPolygon, convert it to a Polygon
+                    if isinstance(geometry, MultiPolygon):
+                        # You can choose to merge all polygons into one, or handle it differently
+                        # Here's an example of merging all polygons into one
+                        geometry = unary_union(geometry)
+                        if isinstance(geometry, Polygon):
+                            print(f"Converted MultiPolygon to Polygon for {formatted_address}")
+                        else:
+                            print(f"Failed to convert MultiPolygon to Polygon for {formatted_address}")
+
+                    return geometry                   
+                else:
+                    print(f"Failed to fetch geometry. Status code: {response.status}")
+                    print(f"Data: {data}")
+                    print(f"URL: {url}")
+                    return None
+        except Exception as e:
+            print(f"Error fetching geometry: {e}")
+            return None       
+    else:
+        try:
+            address = address.split(",")[0]
+            address = unicodedata.normalize('NFD', address)
+            address = urllib.parse.quote(address, safe='')
+            url = f"https://geob-rust-api.fly.dev/geojson?iso3={iso3}&query={address}"
+            print(f"URL: {url}")
+                
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url) as response:
+                    data = await response.json()
+
+                if response.status == 200 and 'features' in data and len(data['features']) > 0 and 'geometry' in data['features'][0]:
+                    geometry = shape(data['features'][0]['geometry'])
+                    print(f"Fetched geometry for {formatted_address}")
+                    return geometry                
                 else:
                     print(f"Failed to fetch geometry. Status code: {response.status}")
                     print(f"Data: {data}")
@@ -165,9 +171,6 @@ async def get_geometry_online(address: str, adm_level: str = "ADM0", release_typ
         except Exception as e:
             print(f"Error fetching geometry: {e}")
             return None
-    else:
-        print(f"Error: Unsupported administrative level: {adm_level}")
-        return None
 
 # Function to extract cities and places from the user's input using SpaCy
 def extract_cities(text):
