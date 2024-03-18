@@ -433,14 +433,15 @@ async def run_text_through_prosessor(doc):
         try:
             # Call your function to get coordinates, ISO3 code, and administrative level
             coordinates, iso3, adm_level, country_region, formatted_address = await address_to_coordinates(place)
-            if adm_level == "ADM1":
-                mentioned_places.add(formatted_address)
-                state_tasks.append(geocode_with_retry(place))
-                state_tasks.append(get_geometry(formatted_address))
-            elif adm_level == "ADM2":
-                mentioned_places.add(formatted_address)
-                city_tasks.append(geocode_with_retry(place))
-                city_tasks.append(get_geometry(formatted_address))
+            if country_region in unique_countries:
+                if adm_level == "ADM1":
+                    mentioned_places.add(formatted_address)
+                    state_tasks.append(geocode_with_retry(place))
+                    state_tasks.append(get_geometry(formatted_address))
+                elif adm_level == "ADM2":
+                    mentioned_places.add(formatted_address)
+                    city_tasks.append(geocode_with_retry(place))
+                    city_tasks.append(get_geometry(formatted_address))
         except Exception as e:
             print(f"Error fetching coordinates for city: {place}. Error: {e}")
 
@@ -452,6 +453,16 @@ async def run_text_through_prosessor(doc):
         mentioned_country_iso_codes.add(iso3)  # Track mentioned country ISO codes
         country_tasks.append(geocode_with_retry(country_region))
         country_tasks.append(get_geometry(formatted_address))
+    
+    # If not countries are mentioned, extract the country from the first place mentioned
+    if not unique_countries:
+        try:
+            coordinates, iso3, adm_level, country_region, formatted_address = await address_to_coordinates(list(places_mentioned_in_doc)[0])
+            mentioned_country_iso_codes.add(iso3)  # Track mentioned country ISO codes
+            country_tasks.append(geocode_with_retry(country_region))
+            country_tasks.append(get_geometry(formatted_address))
+        except Exception as e:
+            print(f"Error fetching coordinates for country: {country_region}. Error: {e}")
 
     # Combine the results of country and city tasks
     country_results = await asyncio.gather(*country_tasks)
