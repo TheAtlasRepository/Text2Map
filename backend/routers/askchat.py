@@ -147,7 +147,7 @@ async def get_geometry_online(address: str) -> shape:
         except Exception as e:
             print(f"Error fetching geometry: {e}")
             return None       
-    else:
+    elif adm_level == "ADM1" or adm_level == "ADM2":
         try:
             address = address.split(",")[0]
             address = unicodedata.normalize('NFD', address)
@@ -171,6 +171,9 @@ async def get_geometry_online(address: str) -> shape:
         except Exception as e:
             print(f"Error fetching geometry: {e}")
             return None
+    else:
+        print(f"Error: Unsupported administrative level: {adm_level}")
+        return None
 
 # Function to extract cities and places from the user's input using SpaCy
 def extract_cities(text):
@@ -448,6 +451,8 @@ async def run_text_through_prosessor(doc):
                     mentioned_places.add(formatted_address)
                     city_tasks.append(geocode_with_retry(place))
                     city_tasks.append(get_geometry(formatted_address))
+                else:
+                    print(f"Unsupported administrative level: {adm_level}")
         except Exception as e:
             print(f"Error fetching coordinates for city: {place}. Error: {e}")
 
@@ -494,6 +499,8 @@ async def run_text_through_prosessor(doc):
                      # Add the current country to the set of processed countries
                     processed_countries.add(current_entity_name)
                     country_geometries.append(geometry_result)
+                    # Complete the set of mentioned country ISO codes
+                    print(f"Finished processing country: {current_entity_name}")
                     
     # Process the results for states
     for i in range(0, len(state_results), 2):
@@ -514,6 +521,7 @@ async def run_text_through_prosessor(doc):
                     # Add the current state to the set of processed states
                     processed_places.add(current_entity_name)
                     state_geometries.append(geometry_result)
+                    print(f"Finished processing state: {current_entity_name}")
     
 
     # Process the results for cities
@@ -535,6 +543,7 @@ async def run_text_through_prosessor(doc):
                     # Add the current city to the set of processed cities
                     processed_places.add(current_entity_name)
                     city_geometries.append(geometry_result)
+                    print(f"Finished processing city: {current_entity_name}")
 
 
     iso_codes = [ent[1][1] for ent in entities if ent[0][0] == "Found entities:"]  # Filter entities for countries only
