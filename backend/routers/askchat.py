@@ -58,6 +58,7 @@ async def address_to_coordinates(address, bing_maps_key = "Akp4jrj9Y3XZZmmVVwpiK
     
     # Extract the coordinates
     coordinates = resource['point']['coordinates']
+    print(f"Coordinates for {address}: {coordinates}")
     
     # Safely extract the country region
     country_region = resource['address'].get('countryRegion')
@@ -426,6 +427,7 @@ async def run_text_through_prosessor(doc):
     country_tasks = []
     state_tasks = []
     city_tasks = []
+    place_tasks = []
     
     unique_countries = set(list(extract_countries(doc)))
     
@@ -442,6 +444,9 @@ async def run_text_through_prosessor(doc):
                     mentioned_places.add(formatted_address)
                     city_tasks.append(geocode_with_retry(place))
                     city_tasks.append(get_geometry(formatted_address))
+            else:
+                mentioned_places.add(formatted_address)
+                place_tasks.append(geocode_with_retry(place))
         except Exception as e:
             print(f"Error fetching coordinates for city: {place}. Error: {e}")
 
@@ -468,6 +473,7 @@ async def run_text_through_prosessor(doc):
     country_results = await asyncio.gather(*country_tasks)
     state_results = await asyncio.gather(*state_tasks)
     city_results = await asyncio.gather(*city_tasks)
+    place_results = await asyncio.gather(*place_tasks)
 
     # Process the results for countries
     for i in range(0, len(country_results), 2):
@@ -529,6 +535,24 @@ async def run_text_through_prosessor(doc):
                     # Add the current city to the set of processed cities
                     processed_places.add(current_entity_name)
                     city_geometries.append(geometry_result)
+    
+    # Process the results for places
+    for i in range(0, len(place_results), 2):
+        geocode_result = place_results[i]
+        if "error" not in geocode_result:
+            # Check if 'display_name' exists in the geocode_result
+            current_entity_name = geocode_result.get('address', 'Unknown')
+            if current_entity_name and current_entity_name not in processed_places:
+                coordinates, iso3, adm_level, country_region, formatted_address = await address_to_coordinates(current_entity_name)
+                if formatted_address:
+                    print(f"Found place: {current_entity_name}")
+                    entities.append((
+                        ("Found entities:", current_entity_name),
+                        ("Latitude:", geocode_result["latitude"]),
+                        ("Longitude:", geocode_result["longitude"])
+                    ))
+                    # Add the current place to the set of processed places
+                    processed_places.add(current_entity_name)
 
 
     iso_codes = [ent[1][1] for ent in entities if ent[0][0] == "Found entities:"]  # Filter entities for countries only
