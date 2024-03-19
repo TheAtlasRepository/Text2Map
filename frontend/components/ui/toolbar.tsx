@@ -2,7 +2,7 @@ import React, { useRef, useState } from "react";
 import { useRouter } from 'next/navigation';
 import { Button } from "./button";
 import { ChevronArrowIcon } from "./icons";
-
+import { PopupButton } from '@typeform/embed-react'
 
 /**
  * Navbar component
@@ -119,9 +119,10 @@ const Toolbar = (props: any) => {
                                 </div>
                             )}
                         </div>
-                        <Button variant="ghost">Share</Button>
-                        <Button variant="ghost">Embed</Button>
-                        <Button variant="secondary">Save map</Button>
+                        <PopupButton id="CkFU3fze">
+                            <Button variant="green">Feedback</Button>
+                        </PopupButton>
+                        <Button variant="secondary" disabled>Save map</Button>
                     </div>
                 </>
             ) : (
