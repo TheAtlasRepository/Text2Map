@@ -82,6 +82,48 @@ body {
   border-radius: 10px;
 }
 
+/* Button */
+.btn-nav {
+  --tw-text-opacity: 1;
+  color: rgb(148 163 184 / var(--tw-text-opacity));
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  border-radius: 0.25rem;
+  margin-right: 1.5rem;
+}
+
+.btn-nav:hover {
+  --tw-bg-opacity: 1;
+  background-color: rgb(31 41 55 / var(--tw-bg-opacity));
+}
+
+.btn-nav-active {
+  color: rgb(255 255 255 / var(--tw-text-opacity));
+  --tw-bg-opacity: 1;
+  background-color: rgb(31 41 55 / var(--tw-bg-opacity));
+}
+
+.background-dark {
+  background-color: var(--background-dark);
+}
+
+.text-primary {
+  color: var(--text-primary);
+  font-family: Inter, sans-serif;
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+  font-family: Inter, sans-serif;
+}
+
+.card {
+  background-color: var(--card-gray);
+  border-radius: 10px;
+}
+
 /* Marker CSS */
 .custom-marker {
   background-color: #121c42;
@@ -115,6 +157,18 @@ body {
 
 .border-underline-blue {
   box-shadow: 0 2px 0 0 rgb(59, 130, 246);
+}
+
+.editMarkerOverlay {
+  z-index: 1000; /* Adjust the z-index as needed */
+  position: fixed; /* Ensure it's positioned relative to the viewport */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .editMarkerOverlay {

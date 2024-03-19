@@ -1,0 +1,43 @@
+@keyframes fadeInOut {
+    0% { opacity: 0; }
+    50% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  
+  .fade-text {
+   animation: fadeInOut 2.5s infinite;
+  }
+
+  .background {
+    background-color: #0e101b;
+  }
+
+.globe {
+  border: 2px solid #FFFFFF;
+  border-radius: 50%;
+  height: 140px;
+  left: 50%;
+  overflow: hidden;
+  position: absolute;
+  top: 30%;
+  transform: translate(-50%, -50%);
+  width: 140px;
+  
+  svg {
+    animation: rotation 5s linear 0s infinite;
+    
+    path {
+      stroke: #FFFFFF;
+    }
+  }
+}
+
+@keyframes rotation {
+  from {
+    transform: translateX(0);
+  }
+  
+  from {
+    transform: translateX(-50%);
+  }
+}
