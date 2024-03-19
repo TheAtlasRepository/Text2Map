@@ -416,6 +416,7 @@ async def run_text_through_prosessor(doc):
     # Initialize a set to track processed countries
     processed_countries = set()
     processed_places = set()
+    unassociated_places = set()
 
     # Initialize country_geometries as an empty list
     country_geometries = []
@@ -435,28 +436,9 @@ async def run_text_through_prosessor(doc):
     country_tasks = []
     state_tasks = []
     city_tasks = []
+    places_tasks = []
     
     unique_countries = set(list(extract_countries(doc)))
-    
-    for place in places_mentioned_in_doc:
-        try:
-            # Call your function to get coordinates, ISO3 code, and administrative level
-            coordinates, iso3, adm_level, country_region, formatted_address = await address_to_coordinates(place)
-            if country_region in unique_countries:
-                if adm_level == "ADM1":
-                    mentioned_places.add(formatted_address)
-                    state_tasks.append(geocode_with_retry(place))
-                    state_tasks.append(get_geometry(formatted_address))
-                elif adm_level == "ADM2":
-                    mentioned_places.add(formatted_address)
-                    city_tasks.append(geocode_with_retry(place))
-                    city_tasks.append(get_geometry(formatted_address))
-                else:
-                    print(f"Unsupported administrative level: {adm_level}")
-        except Exception as e:
-            print(f"Error fetching coordinates for city: {place}. Error: {e}")
-
-    print(f"Unique countries: {unique_countries}")
     
     # Extract country ISO codes first
     for country in unique_countries:
@@ -474,11 +456,43 @@ async def run_text_through_prosessor(doc):
             country_tasks.append(get_geometry(formatted_address))
         except Exception as e:
             print(f"Error fetching coordinates for country: {country_region}. Error: {e}")
+    
+    for place in places_mentioned_in_doc:
+        try:
+            # Call your function to get coordinates, ISO3 code, and administrative level
+            coordinates, iso3, adm_level, country_region, formatted_address = await address_to_coordinates(place)
+            if country_region in unique_countries:
+                if adm_level == "ADM1":
+                    mentioned_places.add(formatted_address)
+                    state_tasks.append(geocode_with_retry(place))
+                    state_tasks.append(get_geometry(formatted_address))
+                elif adm_level == "ADM2":
+                    mentioned_places.add(formatted_address)
+                    city_tasks.append(geocode_with_retry(place))
+                    city_tasks.append(get_geometry(formatted_address))
+                else:
+                    print(f"Unsupported administrative level: {adm_level}")
+                    unassociated_places.add(formatted_address)
+            else:
+                unassociated_places.add(formatted_address)
+        except Exception as e:
+            print(f"Error fetching coordinates for city: {place}. Error: {e}")
+
+    print(f"Unique countries: {unique_countries}")
+    
+    # Process the new list to add them as markers on the map
+    for place in unassociated_places:
+        try:
+            coordinates, iso3, adm_level, country_region, formatted_address = await address_to_coordinates(place)
+            places_tasks.append(geocode_with_retry(place))
+        except Exception as e:
+            print(f"Error fetching coordinates for place: {place}. Error: {e}")
 
     # Combine the results of country and city tasks
     country_results = await asyncio.gather(*country_tasks)
     state_results = await asyncio.gather(*state_tasks)
     city_results = await asyncio.gather(*city_tasks)
+    places_results = await asyncio.gather(*places_tasks)
 
     # Process the results for countries
     for i in range(0, len(country_results), 2):
@@ -544,6 +558,23 @@ async def run_text_through_prosessor(doc):
                     processed_places.add(current_entity_name)
                     city_geometries.append(geometry_result)
                     print(f"Finished processing city: {current_entity_name}")
+    
+    # Process the results for places
+    for i in range(0, len(places_results), 2):
+        geocode_result = places_results[i]
+        if "error" not in geocode_result:
+            # Check if 'display_name' exists in the geocode_result
+            current_entity_name = geocode_result.get('address', 'Unknown')
+            if current_entity_name and current_entity_name not in processed_places:
+                print(f"Found place: {current_entity_name}")
+                entities.append((
+                    ("Found entities:", current_entity_name),
+                    ("Latitude:", geocode_result["latitude"]),
+                    ("Longitude:", geocode_result["longitude"])
+                ))
+                # Add the current place to the set of processed places
+                processed_places.add(current_entity_name)
+                print(f"Finished processing place: {current_entity_name}")
 
 
     iso_codes = [ent[1][1] for ent in entities if ent[0][0] == "Found entities:"]  # Filter entities for countries only
