@@ -452,6 +452,7 @@ async def run_text_through_prosessor(doc):
         try:
             coordinates, iso3, adm_level, country_region, formatted_address = await address_to_coordinates(list(places_mentioned_in_doc)[0])
             mentioned_country_iso_codes.add(iso3)  # Track mentioned country ISO codes
+            unique_countries.add(country_region)
             country_tasks.append(geocode_with_retry(country_region))
             country_tasks.append(get_geometry(formatted_address))
         except Exception as e:
