@@ -1,16 +1,16 @@
 @keyframes fadeInOut {
-    0% { opacity: 0; }
-    50% { opacity: 1; }
-    100% { opacity: 0; }
-  }
-  
-  .fade-text {
-   animation: fadeInOut 2.5s infinite;
-  }
+  0% { opacity: 0; }
+  50% { opacity: 1; }
+  100% { opacity: 0; }
+}
 
-  .background {
-    background-color: #0e101b;
-  }
+.fade-text {
+  animation: fadeInOut 2.5s infinite;
+}
+
+.background {
+  background-color: #0e101b;
+}
 
 .globe {
   border: 2px solid #FFFFFF;
