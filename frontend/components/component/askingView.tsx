@@ -7,6 +7,7 @@ import MapComponent from "./mapComponent";
 import JsonRenderer from "../functions/JsonRenderer";
 import ReactDOMServer from 'react-dom/server';
 import { handleSaveChat, handleSendChat } from '../functions/ApiUtils';
+import { Bbl } from '../ui/bbl';
 
 export default function AskingView({ onEditSave, editedText, setGeoJsonPath, setMarkersToolbar }: { onEditSave: (text: string) => void, editedText: string, setGeoJsonPath: (path: string) => void, setMarkersToolbar: (markers: { latitude: number; longitude: number; type: string; }[]) => void }) {
   const [selectedMarkerIndex, setSelectedMarkerIndex] = useState<number | null>(null);
@@ -110,7 +111,7 @@ export default function AskingView({ onEditSave, editedText, setGeoJsonPath, set
           <ScrollArea>
             <div className="dark:text-white">
               {loading ? (
-                <div className="justify-center">Thinking...</div>
+                <Bbl />
               ) : (
                 <div>
                   <JsonRenderer jsonData={jsonData} />
