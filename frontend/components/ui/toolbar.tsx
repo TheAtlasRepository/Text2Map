@@ -2,7 +2,7 @@ import React, { useRef, useState } from "react";
 import { useRouter } from 'next/navigation';
 import { Button } from "./button";
 import { ChevronArrowIcon } from "./icons";
-import { PopupButton } from '@typeform/embed-react'
+import FormModal from "./FormModal";
 
 /**
  * Navbar component
@@ -21,6 +21,7 @@ const Toolbar = (props: any) => {
     const router = useRouter();
     const [mapName, setMapName] = useState('Unsaved map'); // State to hold the map name
     const [dropdownVisible, setDropdownVisible] = useState(false); // State to hold the dropdown visibility
+    const [isFormModalOpen, setFormModalOpen] = useState(false);
 
     //Convert Markers to GeoJSON
     const markersToGeoJsonFeatures = (markers: { latitude: number; longitude: number; type: string }[]) => {
@@ -35,6 +36,11 @@ const Toolbar = (props: any) => {
                 coordinates: [marker.longitude, marker.latitude] // GeoJSON uses [longitude, latitude]
             }
         }));
+    };
+
+    // Add a new function to handle the click event of the Feedback button
+    const handleFeedbackClick = () => {
+        setFormModalOpen(true);
     };
 
     const handleExportClickWMarkers = () => {
@@ -119,10 +125,9 @@ const Toolbar = (props: any) => {
                                 </div>
                             )}
                         </div>
-                        <PopupButton id="CkFU3fze">
-                            <Button variant="green">Feedback</Button>
-                        </PopupButton>
+                        <Button variant="green" onClick={handleFeedbackClick}>Feedback</Button>
                         <Button variant="secondary" disabled>Save map</Button>
+                        {isFormModalOpen && <FormModal onClose={() => setFormModalOpen(false)} />}
                     </div>
                 </>
             ) : (
