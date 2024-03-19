@@ -149,7 +149,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
               key={index}
               latitude={marker.latitude}
               longitude={marker.longitude}
-              offset={[0, -30] as [number, number]}
+              offset={[0, -25] as [number, number]}
             >
               <Coordinate
                 latitude={marker.latitude}
