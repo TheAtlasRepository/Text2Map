@@ -71,7 +71,7 @@ export default function StartChatGPt() {
                                     <li>What should I see when visiting Paris?</li>
                                     <li>What are the highest mountains in the world?</li>
                                     <li>Which countries took part in WW2?</li>
-                                    <li>Where is banana grown?</li>
+                                    <li>Where are bananas grown?</li>
                                     <li>Where are the best surfing spots in California?</li>
                                 </ul>
                             </div>
