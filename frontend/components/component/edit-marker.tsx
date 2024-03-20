@@ -31,9 +31,6 @@ export function EditMarker({ onClose, onTitleChange, title }: {
         <div className="flex flex-col space-y-3">
           <div className="flex items-center space-x-3">
             <Input placeholder="Location name / Address / Lat. - Long." value={inputTitle} onChange={(e) => setInputTitle(e.target.value)}/>
-            <Button className="flex-shrink-0" variant="outline">
-              <PaintbrushIcon className="h-5 w-5" />
-            </Button>
           </div>
           <Textarea placeholder="Add details and information about this location..." />
         </div>

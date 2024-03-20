@@ -70,8 +70,8 @@ export default function StartChatGPt() {
                                 <ul className="list-disc pl-5 space-y-2">
                                     <li>What should I see when visiting Paris?</li>
                                     <li>What are the highest mountains in the world?</li>
-                                    <li>Which countries took part in WW2</li>
-                                    <li>Where is banana grown?</li>
+                                    <li>Which countries took part in WW2?</li>
+                                    <li>Where are bananas grown?</li>
                                     <li>Where are the best surfing spots in California?</li>
                                 </ul>
                             </div>
@@ -80,6 +80,7 @@ export default function StartChatGPt() {
                                 <ul className="list-disc pl-5 space-y-2">
                                     <li>Limited knowledge up to 2021</li>
                                     <li>May find locations in other places than intended</li>
+                                    <li>Limited to bounderies gathered from geoBounderies</li>
                                 </ul>
                             </div>
                         </div>
