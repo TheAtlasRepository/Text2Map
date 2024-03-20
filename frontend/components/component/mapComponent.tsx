@@ -40,11 +40,6 @@ const MapComponent: React.FC<MapComponentProps> = ({
   const [isLoaded, setIsLoaded] = useState(false);
   const [gotGeoJson, setGotGeoJsonState] = useState(false);
   const [isEditMarkerOverlayVisible, setIsEditMarkerOverlayVisible] = useState(false);
-  const [initialViewState, setInitialViewState] = useState<any>({
-    latitude: 35.668641,
-    longitude: 139.750567,
-    zoom: 1,
-  });
 
   const handleOnLoad = () => {
     setIsLoaded(true);
@@ -102,7 +97,6 @@ const MapComponent: React.FC<MapComponentProps> = ({
     <ReactMapGL
       mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
       mapStyle="mapbox://styles/mapbox/standard"
-      initialViewState={initialViewState}
       maxZoom={20}
       minZoom={2}
       ref={mapRef}
@@ -155,7 +149,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
               key={index}
               latitude={marker.latitude}
               longitude={marker.longitude}
-              offset={[0, -30] as [number, number]}
+              offset={[0, -25] as [number, number]}
             >
               <Coordinate
                 latitude={marker.latitude}
