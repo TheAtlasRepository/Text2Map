@@ -32,6 +32,22 @@
 
 You are now done with the automatic startup, and will see two terminals appear, those are the local servers for front and backend respectively. After a small wait the browser will open two tabs: **The website itself** & **Backend API documentation**
 
+# Automatic Project Setup (Linux & Mac)
+
+This script automates the setup process for your project on Linux and Mac systems. It sets up your environment, installs dependencies, and starts your project.
+
+## Setup Instructions
+
+### 1. Locate the `startup.sh` Script
+
+You need to locate the `startup.sh` script in the root directory of your project.
+
+- Open Terminal: You can find it in the Applications folder or search for it using Spotlight (Command + Space).
+- Navigate to the directory where your `startup.sh` script is located. For example, if it's in your project root directory, you can use the `cd` command:
+- Make sure the script is executable: with `chmod +x startup.sh` 
+- Run the script using the following command: `./startup.sh` 
+- Follow the instructions prompted and it should run.
+
 
 ### Manual project setup in commandline
 1. **Create a Conda Environment:**
