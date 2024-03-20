@@ -14,7 +14,6 @@ export function Bbl() {
   ];
 
   const [currentItem, setCurrentItem] = useState(0);
-  const [logMessage, setLogMessage] = useState('');
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -23,18 +22,6 @@ export function Bbl() {
 
     return () => clearInterval(interval);
   }, [items.length]);
-
-  useEffect(() => {
-    const source = new EventSource('/logs');
-
-    source.onmessage = function(event) {
-      setLogMessage(event.data);
-    };
-
-    return () => {
-      source.close();
-    };
- }, []);
 
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center min-h-screen gap-4 text-center bg-opacity-75" style={{ zIndex: 9999, backgroundColor: "#0e101b" }}>
@@ -45,7 +32,6 @@ export function Bbl() {
         </div>
         {/* Display the current item from the list with a fade-in and fade-out effect */}
         <div className="text-sm font-medium fade-text">{items[currentItem]}</div>
-        <div>{logMessage}</div>
         <div className="globe">
           <Earth />
         </div>
