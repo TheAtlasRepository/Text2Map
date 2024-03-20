@@ -16,7 +16,7 @@
    2. Press create account when prompted
    3. Verify your email
 ---
-### Automatic project setup (Windows)
+## Automatic project setup (Windows)
 **Locate the `startup.bat`** in the `\` (root) directory of the project. When you have located the file, you have three options depending on your case.
 
 **Options**
@@ -32,13 +32,13 @@
 
 You are now done with the automatic startup, and will see two terminals appear, those are the local servers for front and backend respectively. After a small wait the browser will open two tabs: **The website itself** & **Backend API documentation**
 
-# Automatic Project Setup (Linux & Mac)
+## Automatic Project Setup (Linux & Mac)
 
 This script automates the setup process for your project on Linux and Mac systems. It sets up your environment, installs dependencies, and starts your project.
 
-## Setup Instructions
+### Setup Instructions
 
-### 1. Locate the `startup.sh` Script
+### Locate the `startup.sh` Script
 
 You need to locate the `startup.sh` script in the root directory of your project.
 
