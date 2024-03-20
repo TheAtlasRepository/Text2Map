@@ -4,13 +4,13 @@ import Earth from './svg files/Earth';
 
 export function Bbl() {
   const items = [
+    "Writing a description of the map",
     "Looking for Countries",
     "Looking for States",
     "Looking for Cities",
     "Looking for Places",
     "Geocoding",
     "Waiting for Bing to Bing",
-
   ];
 
   const [currentItem, setCurrentItem] = useState(0);

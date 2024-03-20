@@ -117,16 +117,16 @@ const Toolbar = (props: any) => {
                     </div>
                     <div className="flex items-center space-x-4">
                         <div className="relative">
-                            <Button variant="ghost" onClick={toggleDropdown}>Export map</Button>
+                            <Button variant="blue" onClick={toggleDropdown}>Export map</Button>
                             {dropdownVisible && (
-                                <div className="absolute top-full mt-2 w-full min-w-max bg-white border border-gray-300 rounded-md shadow-md z-10 flex flex-col">
-                                    <Button variant="ghost" onClick={handleExportClick}>Export GeoJSON</Button>
-                                    <Button variant="ghost" onClick={handleExportClickWMarkers}>Export GeoJSON with markers</Button>
+                                <div className="absolute top-full mt-2 w-full min-w-max rounded-md z-10 flex flex-col">
+                                    <Button variant="default" onClick={handleExportClick} className="mb-2">Export GeoJSON</Button>
+                                    <Button variant="default" onClick={handleExportClickWMarkers} className="mb-2">Export GeoJSON with markers</Button>
                                 </div>
                             )}
                         </div>
                         <Button variant="green" onClick={handleFeedbackClick}>Feedback</Button>
-                        <Button variant="secondary" disabled>Save map</Button>
+                        {/* <Button variant="secondary" disabled>Save map</Button> */}
                         {isFormModalOpen && <FormModal onClose={() => setFormModalOpen(false)} />}
                     </div>
                 </>
