@@ -19,12 +19,9 @@ export default function AskingView({ onEditSave, editedText, setGeoJsonPath, set
   const [markers, setMarkers] = useState<{ latitude: number; longitude: number; type: string; }[]>([]);
   const [centerCoordinates, setCenterCoordinates] = useState<[number, number] | null>(null);
 
-  const isInitialRender = useRef(true);
+  // const isInitialRender = useRef(true);
   const prevEditedTextRef = useRef<string | undefined>('');
 
-  const renderJsonData = (): string | null => {
-    return jsonData ? ReactDOMServer.renderToStaticMarkup(<div className="dark:text-white"><JsonRenderer jsonData={jsonData} /></div>) : null;
-  };
 
   // Ask user if he wants to reload the page
   useEffect(() => {
@@ -82,6 +79,7 @@ export default function AskingView({ onEditSave, editedText, setGeoJsonPath, set
           <div className="flex items-center justify-between w-full dark:text-white">
             {editingText ? (
               <Input
+                name="EditField"
                 type="text"
                 value={localEditedText}
                 onChange={(e) => setLocalEditedText(e.target.value)}
@@ -118,6 +116,7 @@ export default function AskingView({ onEditSave, editedText, setGeoJsonPath, set
           </ScrollArea>
           <div className="flex justify-center space-x-2 mt-auto">
             <Input
+              name="ChatInput"
               placeholder="Type your message here..."
               type="text"
               value={inputText}
