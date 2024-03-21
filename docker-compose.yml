@@ -16,7 +16,7 @@ services:
       - "8000:8000"
     environment:
       - UVICORN_WORKERS=1
-      - OPENAI_API_KEY=API_KEY
+      - OPENAI_API_KEY=PUT KEY HERE
 
   next-app:
     container_name: Text2Map-Website
@@ -27,5 +27,6 @@ services:
       - text2map-network
     ports:
       - "80:3000"
+      - "433:3000"
     depends_on:
       - text2map-api
