@@ -1,7 +1,12 @@
 version: '3.8'
 
+networks:
+  app-network:
+    driver: bridge
+
 services:
   backend:
+    container_name: Text2Map-API
     build: ./backend
     networks:
       - app-network
@@ -12,14 +17,11 @@ services:
       - OPENAI_API_KEY=Put your openai api key here
 
   frontend:
+    container_name: Text2Map-Website
     build: 
       context: ./frontend
       dockerfile: Dockerfile
     networks:
       - app-network
     ports:
-      - "3000:3000"
-
-networks:
-  app-network:
-    driver: bridge
+      - "80:3000"

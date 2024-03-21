@@ -1,6 +1,8 @@
 import { extractCoordinates, Coordinate } from '../functions/CoordinateExtractor'; // Adjust the import path
 import axios from 'axios';
 
+const BASE_URL = "http://localhost:8000";
+
 export const handleDataFetching = async (
     url: string,
     payload: any,
@@ -112,7 +114,7 @@ export const handleSaveChat = async (
     if (localEditedText !== prevEditedTextRef.current) {
         setEditingText(false);
         const responseData = await handleDataFetching(
-            `http://127.0.0.1:8000/newChat?message=${localEditedText}`,
+            `${BASE_URL}/newChat?message=${localEditedText}`,
             { editedText: localEditedText },
             setJsonData,
             setCenter,
@@ -148,8 +150,8 @@ export const handleSendChat = async (
         let thread_id = document.cookie.split('; ').find((row) => row.startsWith('threadId='))?.split('=')[1];
         
         await handleDataFetching(
-            'http://127.0.0.1:8000/moreChat?message=' + inputText + '&thread_id=' + thread_id,
-            { inputText },
+            `${BASE_URL}/newChat?message=${inputText}`,
+            { inputText, thread_id },
             setJsonData,
             setCenter,
             setMarkers,
@@ -172,7 +174,7 @@ export const handleSendTextInput = async (
 ) => {
     if (inputText.trim() !== '') {
         await handleDataFetching(
-            'http://127.0.0.1:8000/newText?text=' + inputText,
+            `${BASE_URL}/newChat?message=${inputText}`,
             { inputText },
             setJsonData,
             setCenter,
