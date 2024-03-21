@@ -48,12 +48,9 @@ export default function AskingView({ onEditSave, editedText, setGeoJsonPath, set
 
   // Save the text to the backend
   useEffect(() => {
-    if (!isInitialRender.current) {
-      handleSaveChat(editedText, setEditingText, setCenterCoordinates, setLoading, setJsonData, setMarkers, setLocalEditedText, prevEditedTextRef
-      );
-    } else {
-      isInitialRender.current = false;
-    }
+    console.log("Ran useEffect! Recieved text: ", editedText);
+    handleSaveChat(editedText, setEditingText, setCenterCoordinates, setLoading, setJsonData, setMarkers, setLocalEditedText, prevEditedTextRef);
+    console.log("Sendt text to backend!");
   }, [editedText]);
 
   // Handle the case where the user clicks the "Edit & add text" button

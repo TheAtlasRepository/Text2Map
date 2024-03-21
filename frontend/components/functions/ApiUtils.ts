@@ -150,8 +150,8 @@ export const handleSendChat = async (
         let thread_id = document.cookie.split('; ').find((row) => row.startsWith('threadId='))?.split('=')[1];
         
         await handleDataFetching(
-            `${BASE_URL}/newChat?message=${inputText}`,
-            { inputText, thread_id },
+            `${BASE_URL}/moreChat?message=${inputText}&thread_id=${thread_id}`,
+            { inputText },
             setJsonData,
             setCenter,
             setMarkers,
@@ -174,7 +174,7 @@ export const handleSendTextInput = async (
 ) => {
     if (inputText.trim() !== '') {
         await handleDataFetching(
-            `${BASE_URL}/newChat?message=${inputText}`,
+            `${BASE_URL}/newText?text=${inputText}`,
             { inputText },
             setJsonData,
             setCenter,
