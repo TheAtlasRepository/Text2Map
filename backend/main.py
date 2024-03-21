@@ -9,7 +9,10 @@ router = APIRouter()
 origins = [
     "http://localhost",
     "http://localhost:8080",
-    "http://localhost:3000"
+    "http://localhost:3000",
+    "http://frontend:3000",
+    "http://frontend:8080",
+    "http://frontend",
 ]
 
 app.add_middleware(

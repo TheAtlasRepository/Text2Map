@@ -1,6 +1,2 @@
-backend/__pycache__/main.cpython-312.pyc
-backend/routers/__pycache__/askchat.cpython-312.pyc
-backend/routers/__pycache__/imageSearch.cpython-312.pyc
-backend/__pycache__/main.cpython-38.pyc
-backend/routers/__pycache__/askchat.cpython-38.pyc
-backend/routers/__pycache__/imageSearch.cpython-38.pyc
+backend/__pycache__/*
+backend/routers/__pycache__/*

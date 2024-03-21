@@ -2,16 +2,12 @@
 import { CardTitle, CardHeader, CardDescription, CardContent, CardFooter, Card, } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
 import { TextDocumentIcon, DoubleBubbleIcon } from "@/components/ui/icons";
-import Navbar from "@/components/ui/navbar";
 
 export default function Home() {
   const router = useRouter();
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
-      <div>
-        <Navbar activePage="Home" />
-      </div>
       <div className="flex justify-center py-10">
         <div className="max-w-4xl space-y-8 p-8">
           <h1 className="text-center text-3xl font-bold dark:text-gray-300">
