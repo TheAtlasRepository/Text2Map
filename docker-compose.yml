@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    networks:
+      - app-network
+    ports:
+      - "8000:8000"
+    environment:
+      - UVICORN_WORKERS=1
+      - OPENAI_API_KEY=Put your openai api key here
+
+  frontend:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+    networks:
+      - app-network
+    ports:
+      - "3000:3000"
+
+networks:
+  app-network:
+    driver: bridge
