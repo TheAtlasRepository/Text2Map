@@ -16,7 +16,7 @@ services:
       - "8000:8000"
     environment:
       - UVICORN_WORKERS=1
-      - OPENAI_API_KEY=PUT KEY HERE
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
 
   next-app:
     container_name: Text2Map-Website
