@@ -47,8 +47,13 @@ You need to locate the `startup.sh` script in the root directory of your project
 - Make sure the script is executable: with `chmod +x startup.sh` 
 - Run the script using the following command: `./startup.sh` 
 - Follow the instructions prompted and it should run.
+### Docker Setup
 
-
+- You will need a .env file with your OPEN_API_KEY in the root of the project, like this: `OPENAI_API_KEY=`
+- Also need a .env.local with your NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN in the frontend folder. It should look something like this `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=`
+- You run `docker-compose.yml` with docker-compose up --build. 
+- Open localhost and it should be up and running.
+  
 ### Manual project setup in commandline
 1. **Create a Conda Environment:**
     
