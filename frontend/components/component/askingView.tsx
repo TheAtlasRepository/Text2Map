@@ -19,7 +19,7 @@ export default function AskingView({ onEditSave, editedText, setGeoJsonPath, set
   const [markers, setMarkers] = useState<{ latitude: number; longitude: number; type: string; }[]>([]);
   const [centerCoordinates, setCenterCoordinates] = useState<[number, number] | null>(null);
 
-  // const isInitialRender = useRef(true);
+  const isInitialRender = useRef(true);
   const prevEditedTextRef = useRef<string | undefined>('');
 
 
@@ -45,9 +45,12 @@ export default function AskingView({ onEditSave, editedText, setGeoJsonPath, set
 
   // Save the text to the backend
   useEffect(() => {
-    console.log("Ran useEffect! Recieved text: ", editedText);
+    if (!isInitialRender.current) { return; } 
+    // Set state so call is made only once if run in local dev outside docker
+    isInitialRender.current = false;
+  
     handleSaveChat(editedText, setEditingText, setCenterCoordinates, setLoading, setJsonData, setMarkers, setLocalEditedText, prevEditedTextRef);
-    console.log("Sendt text to backend!");
+    console.log("Text sendt to backend!");
   }, [editedText]);
 
   // Handle the case where the user clicks the "Edit & add text" button
