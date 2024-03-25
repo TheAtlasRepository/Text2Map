@@ -13,6 +13,8 @@ export default function StartDataSource() {
   const maxLengthInput = 3000; // Max length for input
   const router = useRouter();
 
+  const CSV_Available = false; // Value to toggle the CSV option
+
   const [mapView, setMapView] = useState(false);
   const [textSource, toggleTextSource] = useState(true);
   const [inputText, setInputText] = useState("");
@@ -89,7 +91,7 @@ export default function StartDataSource() {
   const handleEditClick = () => {
     setEditingText(true);
   };
-    
+
   // Ask user if he wants to reload the page
   useEffect(() => {
     window.onbeforeunload = () => true;
@@ -104,38 +106,38 @@ export default function StartDataSource() {
 
   return (
     <div>
-      <Navbar activePage="startDataSourceInput" />
+      {/* <Navbar activePage="startDataSourceInput" /> */}
       <Toolbar viewAllOptions={mapView} onDiscardClick={handleDiscard} />
       {!mapView ? (
         <>
           <div className="max-w-4xl mx-auto mb-12 mt-4 px-8 text-gray-600 dark:text-gray-300">
-            <div className="bg-gray-100 dark:bg-gray-800 mb-8 rounded-lg p-1 inline-flex gap-1">
-              <button
-                className={`rounded-lg border ${
-                  textSource
-                    ? "bg-white dark:bg-slate-800 text-blue-500 border-blue-500 border-underline-blue"
-                    : "border-gray-100 dark:border-gray-800 dark:text-gray-400"
-                }`}
-                disabled={textSource}
-                onClick={handleInputToggle}
-              >
-                <div className="px-6 py-1">Text</div>
-              </button>
-              <button
-                className={`rounded-lg border ${
-                  !textSource
-                    ? "bg-white dark:bg-slate-800 border-blue-500 text-blue-500 border-underline-blue"
-                    : "border-gray-100 dark:border-gray-800 dark:text-gray-500" 
-                }`}
-                disabled={!textSource}
-                onClick={handleInputToggle}
-              >
-                <div className="px-6 py-1">Spreadsheet</div>
-              </button>
-            </div>
+            {CSV_Available &&
+              <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-1 inline-flex gap-1">
+                <button
+                  className={`rounded-lg border ${textSource
+                      ? "bg-white dark:bg-slate-800 text-blue-500 border-blue-500 border-underline-blue"
+                      : "border-gray-100 dark:border-gray-800 dark:text-gray-400"
+                    }`}
+                  disabled={textSource}
+                  onClick={handleInputToggle}
+                >
+                  <div className="px-6 py-1">Text</div>
+                </button>
+                <button
+                  className={`rounded-lg border ${!textSource
+                      ? "bg-white dark:bg-slate-800 border-blue-500 text-blue-500 border-underline-blue"
+                      : "border-gray-100 dark:border-gray-800 dark:text-gray-500"
+                    }`}
+                  disabled={!textSource}
+                  onClick={handleInputToggle}
+                >
+                  <div className="px-6 py-1">Spreadsheet</div>
+                </button>
+              </div>
+            }
             {textSource ? (
               <>
-                <div className="flex mt-5">
+                <div className="flex mt-12">
                   <div className="pb-10">
                     <h2 className="text-xl font-semibold mb-4">
                       Type or paste in your text here to generate a map. <br />{" "}
@@ -160,11 +162,10 @@ export default function StartDataSource() {
                   <div className="flex w-full center justify-between">
                     <div className="text-sm text-gray-600 dark:text-gray-300">
                       <span
-                        className={`${
-                          textareaValue.trim().length > maxLengthInput
+                        className={`${textareaValue.trim().length > maxLengthInput
                             ? "text-red-500"
                             : ""
-                        }`}
+                          }`}
                       >
                         {textareaValue.trim().length}/{maxLengthInput}{" "}
                         Characters used
@@ -172,12 +173,11 @@ export default function StartDataSource() {
                     </div>
                     <div>
                       <Button
-                        className={`w-full transition ${
-                          textareaValue.trim() === "" ||
-                          textareaValue.trim().length > maxLengthInput
+                        className={`w-full transition ${textareaValue.trim() === "" ||
+                            textareaValue.trim().length > maxLengthInput
                             ? "bg-gray-500"
                             : ""
-                        }`}
+                          }`}
                         variant={"blue"}
                         onClick={handleInputButtonClick}
                         disabled={
@@ -233,9 +233,8 @@ export default function StartDataSource() {
 
                   <div className="flex gap-2 justify-end">
                     <Button
-                      className={`w-full transition ${
-                        !uploadedFile ? "bg-gray-500 cursor-not-allowed" : ""
-                      }`}
+                      className={`w-full transition ${!uploadedFile ? "bg-gray-500 cursor-not-allowed" : ""
+                        }`}
                       variant={"blue"}
                       onClick={handleInputButtonClick}
                       disabled={!uploadedFile}

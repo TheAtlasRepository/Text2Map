@@ -87,6 +87,7 @@ export default function StartChatGPt() {
                         <div className="mt-8">
                             {/* <form className="flex flex-col items-center"> */}
                                 <Textarea
+                                    name="TextAreaInput"
                                     className="mb-4"
                                     placeholder="Ask a question"
                                     value={state.textareaValue}

@@ -1,0 +1,32 @@
+version: 'version 1.0.0'
+
+networks:
+  text2map-network:
+    driver: bridge
+
+services:
+  text2map-api:
+    container_name: Text2Map-API
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    networks:
+      - text2map-network
+    ports:
+      - "8000:8000"
+    environment:
+      - UVICORN_WORKERS=1
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+
+  next-app:
+    container_name: Text2Map-Website
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+    networks:
+      - text2map-network
+    ports:
+      - "80:3000"
+      - "433:3000"
+    depends_on:
+      - text2map-api

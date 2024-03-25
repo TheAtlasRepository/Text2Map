@@ -22,9 +22,6 @@ export default function AskingView({ onEditSave, editedText, setGeoJsonPath, set
   const isInitialRender = useRef(true);
   const prevEditedTextRef = useRef<string | undefined>('');
 
-  const renderJsonData = (): string | null => {
-    return jsonData ? ReactDOMServer.renderToStaticMarkup(<div className="dark:text-white"><JsonRenderer jsonData={jsonData} /></div>) : null;
-  };
 
   // Ask user if he wants to reload the page
   useEffect(() => {
@@ -48,12 +45,12 @@ export default function AskingView({ onEditSave, editedText, setGeoJsonPath, set
 
   // Save the text to the backend
   useEffect(() => {
-    if (!isInitialRender.current) {
-      handleSaveChat(editedText, setEditingText, setCenterCoordinates, setLoading, setJsonData, setMarkers, setLocalEditedText, prevEditedTextRef
-      );
-    } else {
-      isInitialRender.current = false;
-    }
+    if (!isInitialRender.current) { return; } 
+    // Set state so call is made only once if run in local dev outside docker
+    isInitialRender.current = false;
+  
+    handleSaveChat(editedText, setEditingText, setCenterCoordinates, setLoading, setJsonData, setMarkers, setLocalEditedText, prevEditedTextRef);
+    console.log("Text sendt to backend!");
   }, [editedText]);
 
   // Handle the case where the user clicks the "Edit & add text" button
@@ -85,6 +82,7 @@ export default function AskingView({ onEditSave, editedText, setGeoJsonPath, set
           <div className="flex items-center justify-between w-full dark:text-white">
             {editingText ? (
               <Input
+                name="EditField"
                 type="text"
                 value={localEditedText}
                 onChange={(e) => setLocalEditedText(e.target.value)}
@@ -121,6 +119,7 @@ export default function AskingView({ onEditSave, editedText, setGeoJsonPath, set
           </ScrollArea>
           <div className="flex justify-center space-x-2 mt-auto">
             <Input
+              name="ChatInput"
               placeholder="Type your message here..."
               type="text"
               value={inputText}
