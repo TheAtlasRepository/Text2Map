@@ -15,8 +15,8 @@ const JsonRenderer: React.FC<JsonRendererProps> = ({ jsonData }) => {
  if (Array.isArray(chatHistory) && chatHistory.length > 0) {
     const formattedContent = chatHistory.map((item, index) => {
       const role = item.sender === 'user' ? 'User' : 'Assistant';
-      return <p key={index}><strong>{role}:</strong> {item.message}</p>;
-    });
+      return <p className="pb-3" key={index}><strong>{role}:</strong> {item.message}</p>;
+    }).reverse();
 
     // Combine all the React components
     const reactContent = [gptContent, ...formattedContent];
