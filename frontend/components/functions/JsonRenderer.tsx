@@ -10,7 +10,7 @@ const JsonRenderer: React.FC<JsonRendererProps> = ({ jsonData }) => {
   }
 
  const gptContent = jsonData.GPT ? <p><strong>GPT:</strong> {jsonData.GPT}</p> : '';
- const chatHistory = jsonData.chat_history;
+ const chatHistory = jsonData.chat_history ?? null;
 
  if (Array.isArray(chatHistory) && chatHistory.length > 0) {
     const formattedContent = chatHistory.map((item, index) => {

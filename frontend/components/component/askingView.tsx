@@ -1,6 +1,6 @@
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Button, } from "@/components/ui/button";
-import { Input } from "@/components/ui/input"
+import { Input } from "@/components/ui/input";
 import { useState, useEffect, useRef } from "react";
 import { ScrollArea } from "../ui/scroll-area";
 import MapComponent from "./mapComponent";
@@ -8,6 +8,7 @@ import JsonRenderer from "../functions/JsonRenderer";
 import ReactDOMServer from 'react-dom/server';
 import { handleSaveChat, handleSendChat } from '../functions/ApiUtils';
 import { Bbl } from '../ui/bbl';
+import { InputDisplay } from './inputDisplay';
 
 export default function AskingView({ onEditSave, editedText, setGeoJsonPath, setMarkersToolbar }: { onEditSave: (text: string) => void, editedText: string, setGeoJsonPath: (path: string) => void, setMarkersToolbar: (markers: { latitude: number; longitude: number; type: string; }[]) => void }) {
   const [selectedMarkerIndex, setSelectedMarkerIndex] = useState<number | null>(null);
@@ -45,10 +46,10 @@ export default function AskingView({ onEditSave, editedText, setGeoJsonPath, set
 
   // Save the text to the backend
   useEffect(() => {
-    if (!isInitialRender.current) { return; } 
+    if (!isInitialRender.current) { return; }
     // Set state so call is made only once if run in local dev outside docker
     isInitialRender.current = false;
-  
+
     handleSaveChat(editedText, setEditingText, setCenterCoordinates, setLoading, setJsonData, setMarkers, setLocalEditedText, prevEditedTextRef);
     console.log("Text sendt to backend!");
   }, [editedText]);
@@ -76,9 +77,9 @@ export default function AskingView({ onEditSave, editedText, setGeoJsonPath, set
   };
 
   return (
-    <div className="bg-white overflow-y-auto dark:bg-gray-800">
+    <div className="bg-white dark:bg-gray-800 dark:text-white overflow-y-auto">
       <div className="flex">
-        <aside className="w-1/3 p-4 space-y-4 border-r flex flex-col" style={{ flex: '0 0 auto', height: 'calc(100vh - 57px)' }}>
+         {/* <aside className="w-1/3 p-4 space-y-4 border-r flex flex-col" style={{ flex: '0 0 auto', height: 'calc(100vh - 57px)' }}>
           <div className="flex items-center justify-between w-full dark:text-white">
             {editingText ? (
               <Input
@@ -101,7 +102,7 @@ export default function AskingView({ onEditSave, editedText, setGeoJsonPath, set
           )}
           {!editingText && (
             <div className="flex justify-center space-x-2 mt-auto self-center0">
-              <Button onClick={handleEditClick} variant="secondary" className="flex items-center justify-center space-x-2" > {/*variant="secondary">Needs darkmode*/}
+              <Button onClick={handleEditClick} variant="secondary" className="flex items-center justify-center space-x-2" >
                 <span>Edit & add text</span>
               </Button>
             </div>
@@ -129,7 +130,14 @@ export default function AskingView({ onEditSave, editedText, setGeoJsonPath, set
               Send
             </Button>
           </div>
-        </aside>
+        </aside> */}
+
+        <InputDisplay
+          displayState={1} // For manual text-input
+          input={localEditedText}
+          jsonData={jsonData}
+          markers={markers}
+        />
         <main className="flex-auto relative w-2/3">
           <div style={{ height: 'calc(100vh - 57px)' }}>
             <MapComponent
