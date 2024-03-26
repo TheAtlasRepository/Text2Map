@@ -6,13 +6,13 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { CloseIcon, PaintbrushIcon } from "../ui/icons";
 import { Textarea } from "@/components/ui/textarea"
-import React, {useState} from "react";
+import React, { useState } from "react";
 
-export function EditMarker({ onClose, onTitleChange, title }: { 
+export function EditMarker({ onClose, onTitleChange, title }: {
   onClose: () => void;
   onTitleChange: (newTitle: string) => void;
   title: string;
- }) {
+}) {
 
   const [inputTitle, setInputTitle] = useState(title);
 
@@ -23,18 +23,31 @@ export function EditMarker({ onClose, onTitleChange, title }: {
 
   return (
     <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg max-w-2xl w-full p-6 space-y-4 relative">
+      <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full p-6 space-y-4 relative">
         <button className="absolute top-4 right-4">
-          <CloseIcon className="h-6 w-6" onClick={onClose}/>
+          <CloseIcon className="h-6 w-6" onClick={onClose} />
         </button>
         <h2 className="text-xl font-semibold">Edit location</h2>
         <div className="flex flex-col space-y-3">
           <div className="flex items-center space-x-3">
-            <Input placeholder="Location name / Address / Lat. - Long." value={inputTitle} onChange={(e) => setInputTitle(e.target.value)}/>
+            <Input placeholder="Location name / Address / Lat. - Long." value={inputTitle} onChange={(e) => setInputTitle(e.target.value)} />
           </div>
           <Textarea placeholder="Add details and information about this location..." />
         </div>
-        <Button className="w-full" onClick={handleUpdate}>Update</Button>
+        <div className="flex gap-5">
+          <Button
+            className="w-1/2"
+            variant={"secondary"}
+            onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            className="w-1/2"
+            variant={"blue"}
+            onClick={handleUpdate}>
+            Update
+          </Button>
+        </div>
       </div>
     </div>
   )
