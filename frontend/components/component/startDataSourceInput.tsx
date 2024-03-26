@@ -1,5 +1,5 @@
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { Button } from "../ui/button";
+import { Textarea } from "../ui/textarea";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { handleSendTextInput } from "../functions/ApiUtils";
@@ -7,7 +7,7 @@ import { ScrollArea } from "../ui/scroll-area";
 import { ArrowLongIcon, UploadIcon } from "../ui/icons";
 import { Toolbar } from "../ui/toolbar";
 import MapComponent from "./mapComponent";
-import Navbar from "@/components/ui/navbar";
+import { InputDisplay } from "../component/inputDisplay";
 
 export default function StartDataSource() {
   const maxLengthInput = 3000; // Max length for input
@@ -115,8 +115,8 @@ export default function StartDataSource() {
               <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-1 inline-flex gap-1">
                 <button
                   className={`rounded-lg border ${textSource
-                      ? "bg-white dark:bg-slate-800 text-blue-500 border-blue-500 border-underline-blue"
-                      : "border-gray-100 dark:border-gray-800 dark:text-gray-400"
+                    ? "bg-white dark:bg-slate-800 text-blue-500 border-blue-500 border-underline-blue"
+                    : "border-gray-100 dark:border-gray-800 dark:text-gray-400"
                     }`}
                   disabled={textSource}
                   onClick={handleInputToggle}
@@ -125,8 +125,8 @@ export default function StartDataSource() {
                 </button>
                 <button
                   className={`rounded-lg border ${!textSource
-                      ? "bg-white dark:bg-slate-800 border-blue-500 text-blue-500 border-underline-blue"
-                      : "border-gray-100 dark:border-gray-800 dark:text-gray-500"
+                    ? "bg-white dark:bg-slate-800 border-blue-500 text-blue-500 border-underline-blue"
+                    : "border-gray-100 dark:border-gray-800 dark:text-gray-500"
                     }`}
                   disabled={!textSource}
                   onClick={handleInputToggle}
@@ -163,8 +163,8 @@ export default function StartDataSource() {
                     <div className="text-sm text-gray-600 dark:text-gray-300">
                       <span
                         className={`${textareaValue.trim().length > maxLengthInput
-                            ? "text-red-500"
-                            : ""
+                          ? "text-red-500"
+                          : ""
                           }`}
                       >
                         {textareaValue.trim().length}/{maxLengthInput}{" "}
@@ -174,9 +174,9 @@ export default function StartDataSource() {
                     <div>
                       <Button
                         className={`w-full transition ${textareaValue.trim() === "" ||
-                            textareaValue.trim().length > maxLengthInput
-                            ? "bg-gray-500"
-                            : ""
+                          textareaValue.trim().length > maxLengthInput
+                          ? "bg-gray-500"
+                          : ""
                           }`}
                         variant={"blue"}
                         onClick={handleInputButtonClick}
@@ -257,14 +257,12 @@ export default function StartDataSource() {
       ) : (
         <div className="bg-white dark:bg-gray-800 dark:text-white overflow-y-auto">
           <div className="flex">
-            <aside
-              className="w-1/3 p-4 space-y-4 border-r flex flex-col"
-              style={{ flex: "0 0 auto", height: "calc(100vh - 57px)" }}
-            >
-              <ScrollArea>
-                <div>{inputText}</div>
-              </ScrollArea>
-            </aside>
+            <InputDisplay
+              displayState={2} // For manual text-input
+              input={inputText}
+              jsonData={jsonData}
+              markers={markers}
+            />
             <main className="flex-auto relative w-2/3">
               <div style={{ height: "calc(100vh - 57px)" }}>
                 <MapComponent
