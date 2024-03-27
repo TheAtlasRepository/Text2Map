@@ -10,18 +10,28 @@ import { handleSaveChat, handleSendChat } from '../functions/ApiUtils';
 import { Bbl } from '../ui/bbl';
 import { InputDisplay } from './inputDisplay';
 
-export default function AskingView({ onEditSave, editedText, setGeoJsonPath, setMarkersToolbar }: { onEditSave: (text: string) => void, editedText: string, setGeoJsonPath: (path: string) => void, setMarkersToolbar: (markers: { latitude: number; longitude: number; type: string; }[]) => void }) {
-  const [selectedMarkerIndex, setSelectedMarkerIndex] = useState<number | null>(null);
-  const [editingText, setEditingText] = useState(false);
-  const [localEditedText, setLocalEditedText] = useState('');
-  const [jsonData, setJsonData] = useState<any>(null);
+export default function AskingView({
+  inputText,
+  onSaveEditText,
+  setGeoJsonPath,
+  setMarkersToolbar
+}: {
+  inputText: string,
+  onSaveEditText: (text: string) => void,
+  setGeoJsonPath: React.Dispatch<React.SetStateAction<string | null>>,
+  setMarkersToolbar: React.Dispatch<React.SetStateAction<{ latitude: number; longitude: number; type: string; }[]>>
+}) {
   const [loading, setLoading] = useState(true);
-  const [inputText, setInputText] = useState('');
+  //const [newText, setNewText] = useState('');
+  //const [editingText, setEditingText] = useState(false);
+  //const [localEditedText, setLocalEditedText] = useState('');
+
+  const [jsonData, setJsonData] = useState<any>(null);
+  const [selectedMarkerIndex, setSelectedMarkerIndex] = useState<number | null>(null);
   const [markers, setMarkers] = useState<{ latitude: number; longitude: number; type: string; }[]>([]);
-  
 
   const isInitialRender = useRef(true);
-  const prevEditedTextRef = useRef<string | undefined>('');
+  //const prevEditedTextRef = useRef<string | undefined>('');
 
 
   // Ask user if he wants to reload the page
@@ -44,32 +54,27 @@ export default function AskingView({ onEditSave, editedText, setGeoJsonPath, set
     }
   }, [jsonData?.selected_countries_geojson_path]);
 
-  // Save the text to the backend
+  // Send the request to the backend
   useEffect(() => {
+    // If this is commented out, the effect runs more than once
     if (!isInitialRender.current) { return; }
     // Set state so call is made only once if run in local dev outside docker
     isInitialRender.current = false;
 
-    handleSaveChat(editedText, setEditingText, setCenterCoordinates, setLoading, setJsonData, setMarkers, setLocalEditedText, prevEditedTextRef);
+    //handleSaveChat(inputText, setEditingText, setLoading, setJsonData, setMarkers, setLocalEditedText, prevEditedTextRef);
+    //handleSaveChat(inputText, setLoading, setJsonData, setMarkers);
+    //sendChatRequest(inputText);
     console.log("Text sendt to backend!");
-  }, [editedText]);
+    setLoading(false);
+  }, [inputText]);
 
-  // Handle the case where the user clicks the "Edit & add text" button
-  const handleEditClick = () => {
-    setEditingText(true);
-  };
 
-  // Save the text to the backend
-  const handleSaveTextWrapper = () => {
-    handleSaveChat(localEditedText, setEditingText, setCenterCoordinates, setLoading, setJsonData, setMarkers, setLocalEditedText, prevEditedTextRef);
-  };
-
-  // Send the text to the backend
-  const handleSendTextWrapper = () => {
-    if (typeof inputText === 'string' && inputText.trim() !== "") {
-      handleSendChat(inputText, setJsonData, setCenterCoordinates, setMarkers, setInputText, setLoading);
+  // Handler for sending additional chat requests to the backend
+  const handleSendTextWrapper = (request: string) => {
+    if (request.trim() !== "") {
+      handleSendChat(request, setJsonData, setMarkers, setLoading);
       // Set the inputText to an empty string after sending the request
-      setInputText("");
+      //setNewText("");
     } else {
       // Handle case where inputText is not a string or is empty
       console.log('Input text is not a string or is empty. Not sending the request.');
@@ -134,9 +139,12 @@ export default function AskingView({ onEditSave, editedText, setGeoJsonPath, set
 
         <InputDisplay
           displayState={1} // For manual text-input
-          input={localEditedText}
+          loading={loading}
+          input={inputText}
           jsonData={jsonData}
           markers={markers}
+          onSaveEditText={onSaveEditText}
+          onSendRequest={handleSendTextWrapper}
         />
         <main className="flex-auto relative w-2/3">
           <div style={{ height: 'calc(100vh - 57px)' }}>

@@ -37,16 +37,12 @@ export default function StartDataSource() {
     null
   );
 
-  const handleTextareaChange = (e: any) => {
-    setTextareaValue(e.target.value);
-    //localStorage.setItem('textValue', e.target.value);
-  };
 
-  const handleInputButtonClick = () => {
-    if (textSource && textareaValue.trim() !== "") {
+  const handleInputButtonClick = (input: string) => {
+    if (textSource && input.trim() !== "") {
       console.log("Trimmed input is not empty, so create map!");
-      setInputText(textareaValue);
-      handlePostText(textareaValue);
+      setInputText(input);
+      handlePostText(input);
       setMapView(true);
     } else if (!textSource && uploadedFile) {
       console.log("File uploaded. Generate map!");
@@ -74,14 +70,15 @@ export default function StartDataSource() {
   };
 
   const handlePostText = (text: string) => {
-    handleSendTextInput(
-      text,
-      setJsonData,
-      setMarkers,
-      setLoading
-    );
-
-    //setInputText("");
+    // Commented out for debugging
+    
+    // handleSendTextInput(
+    //   text,
+    //   setJsonData,
+    //   setMarkers,
+    //   setLoading
+    // );
+    setLoading(false); // Added for debugging
   };
 
   const handleEditClick = () => {
@@ -95,10 +92,6 @@ export default function StartDataSource() {
       window.onbeforeunload = null;
     };
   }, []);
-
-  // const handleSaveTextWrapper = () => {
-  //     handleSaveChat(localEditedText, setEditingText, setLoading, setJsonData, setMarkers, setLocalEditedText, prevEditedTextRef);
-  // };
 
   return (
     <div>
@@ -153,7 +146,7 @@ export default function StartDataSource() {
                     className="mb-4"
                     placeholder="Aa"
                     value={textareaValue}
-                    onChange={handleTextareaChange}
+                    onChange={(e) => setTextareaValue(e.target.value)}
                   />
                   <div className="flex w-full center justify-between">
                     <div className="text-sm text-gray-600 dark:text-gray-300">
@@ -175,7 +168,7 @@ export default function StartDataSource() {
                           : ""
                           }`}
                         variant={"blue"}
-                        onClick={handleInputButtonClick}
+                        onClick={() => handleInputButtonClick(textareaValue)}
                         disabled={
                           textareaValue.trim() === "" ||
                           textareaValue.trim().length > maxLengthInput
@@ -232,7 +225,7 @@ export default function StartDataSource() {
                       className={`w-full transition ${!uploadedFile ? "bg-gray-500 cursor-not-allowed" : ""
                         }`}
                       variant={"blue"}
-                      onClick={handleInputButtonClick}
+                      onClick={() => handleInputButtonClick(textareaValue)}
                       disabled={!uploadedFile}
                     >
                       Generate Map
@@ -255,9 +248,11 @@ export default function StartDataSource() {
           <div className="flex">
             <InputDisplay
               displayState={2} // For manual text-input
+              loading={loading}
               input={inputText}
               jsonData={jsonData}
               markers={markers}
+              onSaveEditText={handleInputButtonClick}
             />
             <main className="flex-auto relative w-2/3">
               <div style={{ height: "calc(100vh - 57px)" }}>

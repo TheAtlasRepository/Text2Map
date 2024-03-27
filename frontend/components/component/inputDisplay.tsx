@@ -8,70 +8,67 @@ import { Pencil } from '../ui/icons';
 import { Textarea } from '../ui/textarea';
 import autosizeTextArea from '../functions/AutosizeTextArea';
 
-
-/**
- * 
- * @param displayState Display for Chat, text or CSV
- * @param input Input text
- * @param JsonData Input jsonData
- * @param markers List of markers to display related info
- * @returns 
- */
-const InputDisplay = (props: {
+// Type for defining input params for the 
+type InputDisplayProps = {
   displayState: number,
+  loading: boolean,
   input: any,
   jsonData?: any,
   markers: { latitude: number; longitude: number; type: string }[];
-}) => {
-  const [loading, setLoading] = useState(false);
+  onSaveEditText: (text: string) => void,
+  onSendRequest?: (text: string) => void
+}
+
+/**
+ * @param displayState Display for Chat = 1, text = 2 or CSV = [not implemented]
+ * @param loading Loading state value
+ * @param input Input text
+ * @param JsonData Input jsonData
+ * @param markers List of markers to display related info
+ * @param {function} onSaveEditText Save event for when text is saved
+ * @returns 
+ */
+const InputDisplay = (props: InputDisplayProps) => {
   const [numberOfLocations, setNumberOfLocations] = useState(0);
-  const [displayText, setDisplayText] = useState(props.input);
-  const [editTextState, setEditTextState] = useState(false);
   const [editText, setEditText] = useState(props.input);
-  const [inputNewText, setInputNewText] = useState('');
-  const [jsonData, setJsonData] = useState(props.jsonData);
+  const [editTextState, setEditTextState] = useState(false);
+  const [newText, setNewText] = useState('');
 
   //const newInputRef = useRef<HTMLTextAreaElement>(null);
   const editInputRef = useRef<HTMLTextAreaElement>(null);
 
-  const handleChange = (e: any) => {
-    setEditText(e.target.value);
-
-  };
-
   //AutosizeTextArea
-  // autosizeTextArea(newInputRef.current, inputNewText);
-  autosizeTextArea(editInputRef.current, editText);
-
+  // autosizeTextArea(newInputRef.current, newText);
+  autosizeTextArea(editInputRef.current, editText, props.loading);
 
   useEffect(() => {
     setNumberOfLocations(props.markers.length);
   }, [props.markers]);
 
-  useEffect(() => {
-    console.log('jsonData got changed: ', props.jsonData);
 
-  }, [props.jsonData])
-
-  // Handle the case where the user clicks the "Edit & add text" button
+  // Handle the case where the user clicks the "Edit text" button
   const handleEditClick = () => {
     setEditTextState(true);
-    setEditText(displayText);
   };
 
+  // Handle the case when edit is canceled
   const handleCancelEdit = () => {
-    setEditTextState(false)
+    setEditText(props.input);
+    setEditTextState(false);
   }
 
-  // Save the text to the backend
+  // Handle the save event and pass value up to parent
   const handleSaveEdit = () => {
-    setDisplayText(editText.trim())
-    setEditTextState(false)
-    //handleSaveChat(localEditedText, setEditingText, setCenterCoordinates, setLoading, setJsonData, setMarkers, setLocalEditedText, prevEditedTextRef);
+    props.onSaveEditText(editText.trim());
+    setEditTextState(false);
   };
 
-  const handleSendNewText = () => {
+  const handleAddToChat = () => {
     // Send inputNewText
+    if (props.displayState === 1 && props.onSendRequest) {
+      props.onSendRequest(newText);
+      setNewText("");
+    }
   }
 
 
@@ -93,65 +90,65 @@ const InputDisplay = (props: {
       <div className="flex flex-col h-full">
         <ScrollArea>
           <div className="px-3 py-5 dark:text-white">
-            {loading ? (
+            {props.loading ? (
               <Bbl />
             ) : (
               <div className="whitespace-pre-wrap">
-                {props.displayState === 1 && editTextState &&
-                  // Textarea displayed for chat
-                  <Textarea
-                    name="EditChat"
-                    value={editText}
-                    rows={1}
-                    onChange={handleChange}
-                    ref={editInputRef}
-                  />
-                }
-                {props.displayState === 2 &&
-                  // Textarea displayed for manual text
-                  <Textarea
-                    name="DisplayEditText"
-                    value={editText}
-                    rows={5}
-                    hiddenState={editTextState ? 0 : 1}
-                    onChange={handleChange}
-                    ref={editInputRef}
-                    readOnly={!editTextState}
-                  />
-                }
-                {editTextState &&
-                  <div className="flex pt-2 mb-4 space-x-4">
-                    <Button onClick={handleCancelEdit} variant="secondary">
-                      Cancel
-                    </Button>
-                    <Button onClick={handleSaveEdit} variant="blue">
-                      Save
-                    </Button>
-                  </div>
-                }
-
-                {props.displayState === 1 &&
-                  // DisplayState 2 for chat
+                {(props.displayState === 1 || props.displayState === 2) &&
+                  // Textarea displayed for editing text or main chat input
+                  // Remains invisible and read-only when not in use, and opens when editing is enabled
+                  // Can not be unloaded, as the size updates upon next statechange, resulting in a squished textarea on first load
                   <>
-                    <JsonRenderer jsonData={jsonData} />
+                    <Textarea
+                      name="EditText"
+                      value={editText}
+                      style={{ display: editTextState ? "" : "none" }}
+                      hiddenState={editTextState ? 0 : 1}
+                      onChange={(e) => setEditText(e.target.value)}
+                      ref={editInputRef}
+                      readOnly={!editTextState}
+                    />
+
+                    {editTextState &&
+                      <div className="flex pt-2 mb-4 space-x-2">
+                        <Button onClick={handleCancelEdit} variant="secondary">
+                          Cancel
+                        </Button>
+                        <Button onClick={handleSaveEdit} variant="blue">
+                          Save & resend
+                        </Button>
+                      </div>
+                    }
+
+                    {props.displayState === 1 &&
+                      // Display chat always, as the user can only edit initial input
+                      <JsonRenderer jsonData={props.jsonData} />
+                    }
+                    {props.displayState === 2 && !editTextState &&
+                      // Display text when not editing, because the textarea displays the same.
+                      <div>{editText}</div>
+                    }
                   </>
                 }
               </div>
             )}
           </div>
         </ScrollArea>
-        <div className="p-3 flex justify-center mt-auto space-x-2">
-          <Input
-            name="ChatInput"
-            placeholder={props.displayState === 2 ? "Type your message here..." : "Add more text here..."}
-            type="text"
-            value={inputNewText}
-            onChange={(e) => setInputNewText(e.target.value)}
-          />
-          <Button variant="secondary" onClick={handleSendNewText} disabled={inputNewText?.trim() === ""}>
-            Send
-          </Button>
-        </div>
+        {props.displayState === 1 &&
+          // Displays ChatInput when displaying chat
+          <div className="p-3 flex justify-center mt-auto space-x-2">
+            <Input
+              name="ChatInput"
+              placeholder="Type your message here..."
+              type="text"
+              value={newText}
+              onChange={(e) => setNewText(e.target.value)}
+            />
+            <Button variant="secondary" onClick={handleAddToChat} disabled={newText?.trim() === ""}>
+              Send
+            </Button>
+          </div>
+        }
       </div>
     </aside>
   );
