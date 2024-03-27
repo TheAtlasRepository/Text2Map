@@ -36,9 +36,6 @@ export default function StartDataSource() {
   const [selectedMarkerIndex, setSelectedMarkerIndex] = useState<number | null>(
     null
   );
-  const [centerCoordinates, setCenterCoordinates] = useState<
-    [number, number] | null
-  >(null);
 
   const handleTextareaChange = (e: any) => {
     setTextareaValue(e.target.value);
@@ -80,7 +77,6 @@ export default function StartDataSource() {
     handleSendTextInput(
       text,
       setJsonData,
-      setCenterCoordinates,
       setMarkers,
       setLoading
     );
@@ -267,7 +263,6 @@ export default function StartDataSource() {
               <div style={{ height: "calc(100vh - 57px)" }}>
                 <MapComponent
                   markers={markers}
-                  centerCoordinates={centerCoordinates}
                   selectedMarkerIndex={selectedMarkerIndex}
                   setSelectedMarkerIndex={setSelectedMarkerIndex}
                   geojsonData={jsonData?.selected_countries_geojson_path}

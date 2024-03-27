@@ -11,7 +11,7 @@ import { EditMarker } from '../component/edit-marker';
  */
 type MapComponentProps = {
   markers: { latitude: number; longitude: number; type: string }[];
-  centerCoordinates: [number, number] | null;
+  //centerCoordinates: [number, number] | null;
   selectedMarkerIndex: number | null;
   setSelectedMarkerIndex: React.Dispatch<React.SetStateAction<number | null>>;
   geojsonData?: any;
@@ -22,7 +22,6 @@ type MapComponentProps = {
  * Map Component for displaying map with added formatting
  * 
  * @param markers 
- * @param centerCoordinates 
  * @param selectedMarkerIndex 
  * @param setSelectedMarkerIndex 
  * @param geojsonData 
@@ -30,7 +29,6 @@ type MapComponentProps = {
  */
 const MapComponent: React.FC<MapComponentProps> = ({
   markers: markersProp,
-  centerCoordinates,
   selectedMarkerIndex,
   setSelectedMarkerIndex,
   geojsonData,
@@ -87,11 +85,12 @@ const MapComponent: React.FC<MapComponentProps> = ({
 
   // Run once when centerCoorcinates changes, then fly to coordinates.
   useEffect(() => {
-    if (mapRef.current && centerCoordinates != null) {
-      console.log('Flying to: ', centerCoordinates);
-      mapRef.current.flyTo({ center: centerCoordinates, zoom: 4 });
+    if (mapRef.current && markers != null) {
+      let firstPoint: [number, number] = [markers[0].longitude, markers[0].latitude];
+      console.log('Flying to: ', firstPoint);
+      mapRef.current.flyTo({ center: firstPoint, zoom: 4 });
     }
-  }, [centerCoordinates])
+  }, [markers])
 
   return (
     <ReactMapGL

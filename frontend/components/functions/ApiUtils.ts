@@ -7,7 +7,6 @@ export const handleDataFetching = async (
     url: string,
     payload: any,
     setJsonData: React.Dispatch<React.SetStateAction<any>>,
-    setCenter: React.Dispatch<React.SetStateAction<[number, number] | null>>,
     setMarkers: React.Dispatch<React.SetStateAction<{ latitude: number; longitude: number; type: string }[]>>,
     setLoading: React.Dispatch<React.SetStateAction<boolean>>,
     setLocalEditedText?: React.Dispatch<React.SetStateAction<string>>,
@@ -61,11 +60,6 @@ export const handleDataFetching = async (
             let center: [number, number] = [centerCoordinates[0], centerCoordinates[1]];
              setCenter(center);
              */
-
-            // This is a quick cange to put the first coordinate set as the focus-point on the map.
-            let firstPoint = coordinatesArray[0];
-            let center: [number, number] = [firstPoint[0],firstPoint[1]];
-            setCenter(center);
             
             // Proceed with the rest of your logic, e.g., extracting coordinates, setting markers, etc.
 
@@ -104,7 +98,6 @@ export const handleDataFetching = async (
 export const handleSaveChat = async (
     localEditedText: string,
     setEditingText: React.Dispatch<React.SetStateAction<boolean>>,
-    setCenter: React.Dispatch<React.SetStateAction<[number, number] | null>>,
     setLoading: React.Dispatch<React.SetStateAction<boolean>>,
     setJsonData: React.Dispatch<React.SetStateAction<any>>,
     setMarkers: React.Dispatch<React.SetStateAction<{ latitude: number; longitude: number; type: string }[]>>,
@@ -117,7 +110,6 @@ export const handleSaveChat = async (
             `${BASE_URL}/newChat?message=${localEditedText}`,
             { editedText: localEditedText },
             setJsonData,
-            setCenter,
             setMarkers,
             setLoading,
             setLocalEditedText
@@ -140,7 +132,6 @@ export const handleSaveChat = async (
 export const handleSendChat = async (
     inputText: string,
     setJsonData: React.Dispatch<React.SetStateAction<any>>,
-    setCenter: React.Dispatch<React.SetStateAction<[number, number] | null>>,
     setMarkers: React.Dispatch<React.SetStateAction<{ latitude: number; longitude: number; type: string }[]>>,
     setInputText: React.Dispatch<React.SetStateAction<string>>,
     setLoading: React.Dispatch<React.SetStateAction<boolean>>
@@ -153,7 +144,6 @@ export const handleSendChat = async (
             `${BASE_URL}/moreChat?message=${inputText}&thread_id=${thread_id}`,
             { inputText },
             setJsonData,
-            setCenter,
             setMarkers,
             setLoading,
             // Set the input text to empty after sending the request
@@ -168,7 +158,6 @@ export const handleSendChat = async (
 export const handleSendTextInput = async (
     inputText: string,
     setJsonData: React.Dispatch<React.SetStateAction<any>>,
-    setCenter: React.Dispatch<React.SetStateAction<[number, number] | null>>,
     setMarkers: React.Dispatch<React.SetStateAction<{ latitude: number; longitude: number; type: string }[]>>,
     setLoading: React.Dispatch<React.SetStateAction<boolean>>
 ) => {
@@ -177,7 +166,6 @@ export const handleSendTextInput = async (
             `${BASE_URL}/newText?text=${inputText}`,
             { inputText },
             setJsonData,
-            setCenter,
             setMarkers,
             setLoading
         );

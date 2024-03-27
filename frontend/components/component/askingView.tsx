@@ -18,7 +18,7 @@ export default function AskingView({ onEditSave, editedText, setGeoJsonPath, set
   const [loading, setLoading] = useState(true);
   const [inputText, setInputText] = useState('');
   const [markers, setMarkers] = useState<{ latitude: number; longitude: number; type: string; }[]>([]);
-  const [centerCoordinates, setCenterCoordinates] = useState<[number, number] | null>(null);
+  
 
   const isInitialRender = useRef(true);
   const prevEditedTextRef = useRef<string | undefined>('');
@@ -142,7 +142,6 @@ export default function AskingView({ onEditSave, editedText, setGeoJsonPath, set
           <div style={{ height: 'calc(100vh - 57px)' }}>
             <MapComponent
               markers={markers}
-              centerCoordinates={centerCoordinates}
               selectedMarkerIndex={selectedMarkerIndex}
               setSelectedMarkerIndex={setSelectedMarkerIndex}
               geojsonData={jsonData?.selected_countries_geojson_path}
