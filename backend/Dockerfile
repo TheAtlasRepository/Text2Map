@@ -8,9 +8,8 @@ ENV PYTHONUNBUFFERED 1
 # Set the working directory in the container
 WORKDIR /app
 
-# Copy only necessary files
-COPY app app
-COPY requirements.txt .
+# Copy the project files to the working directory
+COPY .. .
 
 # Install dependencies, Spacy model, and poppler-utils
 RUN apt-get update \
