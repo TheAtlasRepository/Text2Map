@@ -9,8 +9,8 @@ pexels-api
 pycountry
 shapely
 uvicorn[standard]
-shapely
 geopy
 python-dotenv
+poppler-utils
 
 ###### Requirements with Version Specifiers ######
