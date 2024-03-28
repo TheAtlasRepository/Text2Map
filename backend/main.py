@@ -1,6 +1,8 @@
 import uvicorn
 import dotenv
 import argparse
+import os
+import spacy.cli
 from fastapi import FastAPI, APIRouter, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from routers import askchat, imageSearch # Adjust the import based on your actual router module
@@ -10,6 +12,19 @@ app = FastAPI(
     title="Text/CSV 2 Map API",
     description="API for converting text or CSV data into a map visualization",
 )
+
+def download_spacy_model():
+    model_name = "en_core_web_trf"
+    model_path = os.path.join("app", model_name)  # Path to store the model
+
+    if not os.path.exists(model_path):
+        print(f"Downloading Spacy model: {model_name}")
+        try:
+            spacy.cli.download(model_name)  
+            print(f"Model downloaded and saved to: {model_path}")
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Model download failed: {e}")
+
 
 def main():
     # Load the environment variables

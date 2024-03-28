@@ -18,10 +18,6 @@ jobs:
           echo "HOST_PORT=8000" > backend/.env          
           echo "OPENAI_API_KEY=${{secrets.OPENAI_API_KEY}}" >> backend/.env
           echo "CORS_ORIGINS='http://localhost,${{ vars.CORS_ORIGINS }}'" >> backend/.env
-        
-      - name: Build and Install Dependencies (with caching and temp space)
-        run: |
-          TMPDIR=${{ runner.temp }}/build_temp pip install --cache-dir=${{ runner.temp }}/pip_cache -r backend/requirements.txt
 
       - name: BackendAPI - Build, Push and Release a Docker container to Heroku.
         uses: gonuit/heroku-docker-deploy@v1.3.3
@@ -35,7 +31,7 @@ jobs:
           dockerfile_directory: ./backend 
           dockerfile_name: Dockerfile 
           docker_options: "--no-cache" 
-          
+
   Build-and-deploy-WEB-heroku:
     runs-on: ubuntu-latest
 
