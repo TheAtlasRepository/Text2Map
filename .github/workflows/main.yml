@@ -2,9 +2,8 @@ name: Deploy to Heroku
 
 on:
   push:
-    tags:
-      - 'v.[0-9]+.[0-9]+.[0-9]'
-      - '!v.[0-9]+.[0-9]+.[0-9]+**'
+    branches:
+      - dev
 jobs:
   Build-and-deploy-backend-API-heroku:
     runs-on: ubuntu-latest
