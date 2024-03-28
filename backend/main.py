@@ -59,15 +59,8 @@ def main():
     app.include_router(askchat.router)
     app.include_router(imageSearch.router)
 
-    # Check if the mode is production
-    if args.mode == 'prod':
-        print("Running in production mode")
-        uvicorn.run(app, host=host, port=port)
-    else:
-        print("Running in development mode")
-        config = uvicorn.Config(app, host=host, port=port, log_level="info", reload=True, reload_dirs=["backend"])
-        server = uvicorn.Server(config)
-        server.run()
+    print("Running in production mode")
+    uvicorn.run(app, host=host, port=port)
 
 if __name__ == '__main__':
     main()
