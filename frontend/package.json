@@ -26,7 +26,8 @@
     "rehype-raw": "^7.0.0",
     "remark-gfm": "^4.0.0",
     "tailwind-merge": "^2.2.0",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "autoprefixer": "^10.4.19"
   },
   "devDependencies": {
     "@types/estree": "^1.0.5",
