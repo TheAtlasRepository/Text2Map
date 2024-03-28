@@ -48,8 +48,6 @@ WORKDIR /app
 COPY --from=build /app /app
 COPY --from=build /venv /venv
 
-ENV PATH="/venv/bin:$PATH"
-
 # Copy .env file if needed
 RUN if [ ! -f /app/.env ] && [ -f .env ]; then cp .env /app/; fi
 
