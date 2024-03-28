@@ -11,5 +11,6 @@ shapely
 uvicorn[standard]
 shapely
 geopy
+python-dotenv
 
 ###### Requirements with Version Specifiers ######

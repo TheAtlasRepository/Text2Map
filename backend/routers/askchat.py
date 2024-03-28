@@ -8,18 +8,21 @@ from geopy.exc import GeocoderUnavailable
 import aiohttp
 from aiohttp import ClientSession
 import asyncio
-import json
+import os
 import urllib
 import spacy
 import re
 import urllib.parse
 import unicodedata
 from geopy.exc import GeocoderTimedOut
+from dotenv import load_dotenv
 
+load_dotenv()
 
 router = APIRouter()
 
-client = OpenAI()
+openai_api_key = os.getenv('OPENAI_API_KEY')
+client = OpenAI(api_key=openai_api_key)
 
 chat_history = []
 
