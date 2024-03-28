@@ -45,8 +45,14 @@ ENV PYTHONUNBUFFERED 1
 
 WORKDIR /app
 
-COPY --from=build /app /app
-COPY --from=build /venv /venv
+# Create and activate virtual environment 
+RUN python -m venv /venv
+ENV PATH="/venv/bin:$PATH"
+
+COPY --from=build /app /app 
+
+# Install dependencies within the production image's virtual environment
+RUN pip install --no-cache-dir -r requirements.txt 
 
 # Copy .env file if needed
 RUN if [ ! -f /app/.env ] && [ -f .env ]; then cp .env /app/; fi
