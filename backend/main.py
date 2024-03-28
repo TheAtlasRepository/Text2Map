@@ -73,6 +73,8 @@ def main():
     # Include routers
     app.include_router(askchat.router)
     app.include_router(imageSearch.router)
+    
+    download_spacy_model()
 
     print("Running in production mode")
     uvicorn.run(app, host=host, port=port)
