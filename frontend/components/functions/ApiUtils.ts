@@ -1,7 +1,7 @@
 import { extractCoordinates, Coordinate } from '../functions/CoordinateExtractor'; // Adjust the import path
 import axios from 'axios';
 
-const BASE_URL = "http://localhost:8000";
+const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 export const handleDataFetching = async (
     url: string,
