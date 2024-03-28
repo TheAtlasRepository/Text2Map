@@ -13,28 +13,29 @@ jobs:
         uses: actions/checkout@v4
 
       #backend steps
-      - name: create backend .env file
-        #Backend .env
+      - name: Create backend .env file 
         run: |
-          echo "HOST_PORT=8000" > backend/.env
+          echo "HOST_PORT=8000" > backend/.env          
           echo "OPENAI_API_KEY=${{secrets.OPENAI_API_KEY}}" >> backend/.env
           echo "CORS_ORIGINS='http://localhost,${{ vars.CORS_ORIGINS }}'" >> backend/.env
-      
-      #TODO: add tests step
-      #build backend docker image
+        
+      - name: Build and Install Dependencies (with caching and temp space)
+        run: |
+          TMPDIR=${{ runner.temp }}/build_temp pip install --cache-dir=${{ runner.temp }}/pip_cache -r backend/requirements.txt
+
       - name: BackendAPI - Build, Push and Release a Docker container to Heroku.
         uses: gonuit/heroku-docker-deploy@v1.3.3
         with:
           #Heroku configuration
-          email: ${{ secrets.HEROKU_EMAIL }} # The email address associated with your Heroku account.
+          email: ${{ secrets.HEROKU_EMAIL }} 
           heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
           heroku_app_name: ${{ secrets.HEROKU_API_APP_NAME }}
-          process_type: web # For more information look at https://devcenter.heroku.com/articles/process-model
+          process_type: web 
           #Docker configuration
-          dockerfile_directory: ./backend # Dockerfile directory.
-          dockerfile_name: Dockerfile # Dockerfile name.
-          docker_options: "--no-cache" # Additional options of docker build command.
-
+          dockerfile_directory: ./backend 
+          dockerfile_name: Dockerfile 
+          docker_options: "--no-cache" 
+          
   Build-and-deploy-WEB-heroku:
     runs-on: ubuntu-latest
 
