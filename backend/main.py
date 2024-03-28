@@ -3,10 +3,14 @@ import dotenv
 import argparse
 from fastapi import FastAPI, APIRouter, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from askchat import router as askchat_router # Adjust the import based on your actual router module
+from routers import askchat, imageSearch # Adjust the import based on your actual router module
 
-# Purpose: Entry point for the backend server
-# Intended to start the backend server and run the application
+# Initialize FastAPI application at the module level
+app = FastAPI(
+    title="Text/CSV 2 Map API",
+    description="API for converting text or CSV data into a map visualization",
+)
+
 def main():
     # Load the environment variables
     port = 8000
@@ -27,12 +31,6 @@ def main():
                 port = int(port)
             except:
                 pass
-
-    # Initialize FastAPI application
-    app = FastAPI(
-        title="Text/CSV 2 Map API",
-        description="API for converting text or CSV data into a map visualization",
-    )
 
     # Configure CORS settings
     origins = [
@@ -58,7 +56,8 @@ def main():
     )
 
     # Include routers
-    app.include_router(askchat_router, prefix="/askchat", tags=["askchat"])
+    app.include_router(askchat.router)
+    app.include_router(imageSearch.router)
 
     # Check if the mode is production
     if args.mode == 'prod':
