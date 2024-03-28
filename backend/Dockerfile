@@ -1,28 +1,32 @@
-# Use Python 3.9.13 as the base image
+# Base Image
 FROM python:3.9.13 
 
-# Set environment variables
+# Environment Variables
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-# Set the working directory in the container
+# Working Directory
 WORKDIR /app
 
-# Copy the project files to the working directory
-COPY .. .
+# Copy Project Files
+COPY .. /app
 
-# Install the dependencies
-RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+# Create and activate virtual environment
+RUN python -m venv /venv
+ENV PATH="/venv/bin:$PATH"
 
-# Install the Spacy model
+# Install Dependencies
+RUN pip install --no-cache-dir --upgrade pip 
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Install Spacy Model
 RUN python -m spacy download en_core_web_trf
 
-#install poppler-utils
-RUN apt-get update && apt-get install -y poppler-utils
+# Install System Dependencies
+RUN apt-get update && apt-get install -y poppler-utils 
 
-# Expose port 8000
+# Expose Port 
 EXPOSE 8000
 
-# Command to run the application with uvicorn in production mode
+# Application Startup Command
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0" , "--port", "8000"]
