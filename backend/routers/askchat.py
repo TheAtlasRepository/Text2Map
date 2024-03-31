@@ -383,6 +383,9 @@ async def postMoreChat(message: str, thread_id: str):
         if keep_retrieving_run.status == "completed":
             print("\n")
             break
+        elif keep_retrieving_run.status == "failed":
+            print("Run failed. Stopping...")
+            break
     
     all_messages = client.beta.threads.messages.list(thread_id=thread_id)
     
