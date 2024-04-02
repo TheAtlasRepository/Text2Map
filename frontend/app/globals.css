@@ -158,6 +158,10 @@ body {
 .border-underline-blue {
   box-shadow: 0 2px 0 0 rgb(59, 130, 246);
 }
+.scroll_overflow_shadow {
+  mask-image: linear-gradient(black 95%, transparent 100%);
+  -webkit-mask-image: linear-gradient(black 95%, transparent 100%);
+}
 
 .editMarkerOverlay {
   z-index: 1000; /* Adjust the z-index as needed */
