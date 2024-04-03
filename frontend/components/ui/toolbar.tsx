@@ -1,15 +1,23 @@
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import { useRouter } from 'next/navigation';
 import { Button } from "./button";
 import { ChevronArrowIcon } from "./icons";
 import FormModal from "./FormModal";
 
+type toolbarProps = {
+  viewAllOptions?: boolean,
+  geoJsonPath?: any,
+  markers?: any,
+  onDiscardClick: () => void,
+  onExportClick?: () => void,
+  onShareClick?: () => void,
+}
+
+
 /**
  * Navbar component
  * 
- * @param {object | any} props Component props
  * @param {boolean} viewAllOptions Viewstate for full or lite toolbar
- * 
  * @param {function} onDiscardClick Discard button callback function
  * @param {function} onExportClick Discard button callback function
  * @param {function} onShareClick Discard button callback function
@@ -17,7 +25,7 @@ import FormModal from "./FormModal";
  * @returns Toolbar
  */
 
-const Toolbar = (props: any) => {
+const Toolbar = (props: toolbarProps) => {
   const router = useRouter();
   const [mapName, setMapName] = useState('Unsaved map'); // State to hold the map name
   const [dropdownVisible, setDropdownVisible] = useState(false); // State to hold the dropdown visibility
@@ -42,6 +50,15 @@ const Toolbar = (props: any) => {
   const handleFeedbackClick = () => {
     setFormModalOpen(true);
   };
+
+  // Opens a confirmation window
+  const handleDiscard = () => {
+    const confirmText = "Do you want to discard current map? Progress will be lost.";
+    if(!window.confirm(confirmText)) return;
+    console.log("Confirmed!");
+    props.onDiscardClick();
+  }
+
 
   const handleExportClickWMarkers = () => {
     if (props.geoJsonPath && props.markers) {
@@ -106,7 +123,7 @@ const Toolbar = (props: any) => {
       {props.viewAllOptions ? (
         <>
           <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={() => props.onDiscardClick()}>Discard</Button>
+            <Button variant="ghost" onClick={handleDiscard}>Discard</Button>
             <input
               type="text"
               value={mapName}

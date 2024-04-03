@@ -3,7 +3,6 @@ import { Textarea } from "../ui/textarea";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { handleSendTextInput } from "../functions/ApiUtils";
-import { ScrollArea } from "../ui/scroll-area";
 import { ArrowLongIcon, UploadIcon } from "../ui/icons";
 import { Toolbar } from "../ui/toolbar";
 import MapComponent from "./mapComponent";
@@ -18,18 +17,11 @@ export default function StartDataSource() {
   const [mapView, setMapView] = useState(false);
   const [textSource, toggleTextSource] = useState(true);
   const [inputText, setInputText] = useState("");
-  const [newInputText, setNewInputText] = useState("");
   const [textareaValue, setTextareaValue] = useState("");
-  // const [textareaValue, setTextareaValue] = useState(() => {
-  //     const savedText = localStorage.getItem('textValue');
-  //     return savedText || '';
-  // });
   const [uploadedFile, setUploadedFile] = useState(false);
 
   const [jsonData, setJsonData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [editingText, setEditingText] = useState(false);
-  const [localEditedText, setLocalEditedText] = useState("");
   const [markers, setMarkers] = useState<
     { latitude: number; longitude: number; type: string }[]
   >([]);
@@ -38,9 +30,10 @@ export default function StartDataSource() {
   );
 
 
+  // Handle for processing a given input
   const handleInputButtonClick = (input: string) => {
     if (textSource && input.trim() !== "") {
-      console.log("Trimmed input is not empty, so create map!");
+      console.log("Recieved text! Creating map!");
       setInputText(input);
       handlePostText(input);
       setMapView(true);
@@ -69,20 +62,14 @@ export default function StartDataSource() {
     setMapView(false);
   };
 
+  // handler for posting a given text to the backend
   const handlePostText = (text: string) => {
-    // Commented out for debugging
-    
-    // handleSendTextInput(
-    //   text,
-    //   setJsonData,
-    //   setMarkers,
-    //   setLoading
-    // );
-    setLoading(false); // Added for debugging
-  };
-
-  const handleEditClick = () => {
-    setEditingText(true);
+    handleSendTextInput(
+      text,
+      setJsonData,
+      setMarkers,
+      setLoading
+    );
   };
 
   // Ask user if he wants to reload the page
@@ -247,7 +234,7 @@ export default function StartDataSource() {
         <div className="bg-white dark:bg-gray-800 dark:text-white overflow-y-auto">
           <div className="flex">
             <InputDisplay
-              displayState={2} // For manual text-input
+              displayState={2} // 2 for manual text-input
               loading={loading}
               input={inputText}
               jsonData={jsonData}
