@@ -1,13 +1,7 @@
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { Button, } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useState, useEffect, useRef } from "react";
-import { ScrollArea } from "../ui/scroll-area";
 import MapComponent from "./mapComponent";
-import JsonRenderer from "../functions/JsonRenderer";
-import ReactDOMServer from 'react-dom/server';
-import { handleSaveChat, handleSendChat } from '../functions/ApiUtils';
-import { Bbl } from '../ui/bbl';
+import { handleSendChatRequest, handleAddRequestToChat } from '../functions/ApiUtils';
 import { InputDisplay } from './inputDisplay';
 
 export default function AskingView({
@@ -61,89 +55,38 @@ export default function AskingView({
     // Set state so call is made only once if run in local dev outside docker
     isInitialRender.current = false;
 
-    //handleSaveChat(inputText, setEditingText, setLoading, setJsonData, setMarkers, setLocalEditedText, prevEditedTextRef);
-    //handleSaveChat(inputText, setLoading, setJsonData, setMarkers);
-    //sendChatRequest(inputText);
-    console.log("Text sendt to backend!");
-    setLoading(false);
+    handleSendChatRequest(inputText, setJsonData, setMarkers, setLoading);
   }, [inputText]);
 
+  const handleSaveEditText = (editText: string) => {
+    onSaveEditText(editText); // Pass value upwards
+    
+    // Ensure request is resendt
+    handleSendChatRequest(editText, setJsonData, setMarkers, setLoading);
+  }
 
   // Handler for sending additional chat requests to the backend
   const handleSendTextWrapper = (request: string) => {
-    if (request.trim() !== "") {
-      handleSendChat(request, setJsonData, setMarkers, setLoading);
-      // Set the inputText to an empty string after sending the request
-      //setNewText("");
-    } else {
+    if (request.trim() === "") {
       // Handle case where inputText is not a string or is empty
       console.log('Input text is not a string or is empty. Not sending the request.');
+      return;
     }
+
+    // If all is good, send call to handler
+    handleAddRequestToChat(request, setJsonData, setMarkers, setLoading);
   };
 
   return (
     <div className="bg-white dark:bg-gray-800 dark:text-white overflow-y-auto">
       <div className="flex">
-         {/* <aside className="w-1/3 p-4 space-y-4 border-r flex flex-col" style={{ flex: '0 0 auto', height: 'calc(100vh - 57px)' }}>
-          <div className="flex items-center justify-between w-full dark:text-white">
-            {editingText ? (
-              <Input
-                name="EditField"
-                type="text"
-                value={localEditedText}
-                onChange={(e) => setLocalEditedText(e.target.value)}
-                className="p-2 text-lg font-semibold"
-              />
-            ) : (
-              <h1 className="p-2 rounded text-2xl font-semibold">{localEditedText}</h1>
-            )}
-          </div>
-          {editingText && (
-            <div className="flex items-center justify-center space-x-2 mt-auto">
-              <Button onClick={handleSaveTextWrapper} variant="secondary">
-                Save
-              </Button>
-            </div>
-          )}
-          {!editingText && (
-            <div className="flex justify-center space-x-2 mt-auto self-center0">
-              <Button onClick={handleEditClick} variant="secondary" className="flex items-center justify-center space-x-2" >
-                <span>Edit & add text</span>
-              </Button>
-            </div>
-          )}
-          <ScrollArea>
-            <div className="dark:text-white">
-              {loading ? (
-                <Bbl />
-              ) : (
-                <div>
-                  <JsonRenderer jsonData={jsonData} />
-                </div>
-              )}
-            </div>
-          </ScrollArea>
-          <div className="flex justify-center space-x-2 mt-auto">
-            <Input
-              name="ChatInput"
-              placeholder="Type your message here..."
-              type="text"
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-            />
-            <Button className="dark:bg-gray-300 dark:hover:bg-gray-500" onClick={handleSendTextWrapper} disabled={inputText?.trim() === ""}>
-              Send
-            </Button>
-          </div>
-        </aside> */}
-
         <InputDisplay
-          displayState={1} // For manual text-input
+          displayState={1} // 1 for chat-input
           loading={loading}
           input={inputText}
           jsonData={jsonData}
           markers={markers}
-          onSaveEditText={onSaveEditText}
+          onSaveEditText={handleSaveEditText}
           onSendRequest={handleSendTextWrapper}
         />
         <main className="flex-auto relative w-2/3">

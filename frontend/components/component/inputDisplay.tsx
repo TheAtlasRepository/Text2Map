@@ -63,7 +63,7 @@ const InputDisplay = (props: InputDisplayProps) => {
   };
 
   const handleAddToChat = () => {
-    // Send inputNewText
+    // Send inputNewText only if the displaystate is ment to display the field
     if (props.displayState === 1 && props.onSendRequest) {
       props.onSendRequest(newText);
       setNewText("");
@@ -86,11 +86,10 @@ const InputDisplay = (props: InputDisplayProps) => {
           <Pencil className="inline w-5 h-5 mr-2" />Edit text
         </Button>
       </div>
-      <div className="overflow-y-auto scroll_overflow_shadow" style={{ boxShadow: 'rgb(31, 41, 55) 0px -30px 15px -20px inset' }}>
-        <div className=" dark:text-white">
           {props.loading ? (
             <Bbl />
           ) : (
+        <div className="dark:text-white overflow-y-auto scroll_overflow_shadow">
             <div className="whitespace-pre-wrap">
               {(props.displayState === 1 || props.displayState === 2) &&
                 // Textarea displayed for editing text or main chat input
@@ -137,10 +136,10 @@ const InputDisplay = (props: InputDisplayProps) => {
                 </>
               }
             </div>
-          )}
         </div>
+      )}
 
-      </div>
+
       {props.displayState === 1 &&
         // Displays ChatInput when displaying chat
         <div className="p-3 flex justify-center mt-auto space-x-2">

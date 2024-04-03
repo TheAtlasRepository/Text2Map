@@ -32,33 +32,14 @@ export const handleDataFetching = async (
       // Now you have the GeoJSON data
       console.log('GeoJSON data:', geoJsonData);
 
-      // Extract entities and filter out unnecessary strings
-      const filteredEntities = data.entities
-        .map((entry: any) => entry.filter((item: any) => Array.isArray(item) && item.length === 2))
-        .flat();
-
-      console.log('Filtered Entities:', filteredEntities);
-
-      const coordinates: Coordinate[] = extractCoordinates(filteredEntities);
-      console.log('Extracted Coordinates:', coordinates);
-
-      // place the markers on the map
-      const coordinatesArray = coordinates.map((coordinate) => [coordinate.longitude, coordinate.latitude]);
-      console.log('Coordinates Array:', coordinatesArray);
-
-      // Calculate the center coordinates
-      const centerCoordinates = coordinatesArray.reduce(
-        (accumulator, currentValue) => [accumulator[0] + currentValue[0], accumulator[1] + currentValue[1]],
-        [0, 0]
+      // Filter out unnecessary strings and extract to coordinates. 
+      const coordinates: Coordinate[] = extractCoordinates(data.entities
+        .map((entry: any) => entry
+        .filter((item: any) => Array
+        .isArray(item) && item.length === 2))
+        .flat()
       );
-
-      console.log('Center Coordinates:', centerCoordinates);
-
-      // An odd convertion to ensure that centerCoordinates is a tuple of two numbers; a type of [number, number] instead of number[].
-      /* 
-      let center: [number, number] = [centerCoordinates[0], centerCoordinates[1]];
-       setCenter(center);
-       */
+      console.log('Extracted Coordinates:', coordinates);
 
       // Proceed with the rest of your logic, e.g., extracting coordinates, setting markers, etc.
 
@@ -86,11 +67,11 @@ export const handleDataFetching = async (
   }
 };
 
-export const handleSaveChat = async (
+export const handleSendChatRequest = async (
   inputText: string,
-  setLoading: React.Dispatch<React.SetStateAction<boolean>>,
   setJsonData: React.Dispatch<React.SetStateAction<any>>,
   setMarkers: React.Dispatch<React.SetStateAction<{ latitude: number; longitude: number; type: string }[]>>,
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>
 ) => {
   if (inputText.trim() !== '') {
     const responseData = await handleDataFetching(
@@ -115,7 +96,7 @@ export const handleSaveChat = async (
 };
 
 
-export const handleSendChat = async (
+export const handleAddRequestToChat = async (
   inputText: string,
   setJsonData: React.Dispatch<React.SetStateAction<any>>,
   setMarkers: React.Dispatch<React.SetStateAction<{ latitude: number; longitude: number; type: string }[]>>,
