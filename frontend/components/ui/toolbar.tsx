@@ -105,7 +105,7 @@ const Toolbar = (props: any) => {
     <header className="flex items-center justify-between p-2 px-4 border-b dark:border-b-gray-600 dark:text-gray-300">
       {props.viewAllOptions ? (
         <>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center gap-4">
             <Button variant="ghost" onClick={() => props.onDiscardClick()}>Discard</Button>
             <input
               type="text"
@@ -115,7 +115,7 @@ const Toolbar = (props: any) => {
               placeholder="Unsaved map"
             />
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center gap-4">
             <div className="relative">
               <Button variant="blue" onClick={toggleDropdown}>Export map</Button>
               {dropdownVisible && (
@@ -131,7 +131,7 @@ const Toolbar = (props: any) => {
           </div>
         </>
       ) : (
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center gap-4">
           <Button variant="ghost" onClick={() => router.push("/")}>
             <div className="flex items-center space-x-2">
               <ChevronArrowIcon className="inline-flex h-5 w-5" left={1} />Back
