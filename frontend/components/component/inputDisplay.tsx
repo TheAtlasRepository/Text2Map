@@ -37,8 +37,7 @@ const InputDisplay = (props: InputDisplayProps) => {
   const editInputRef = useRef<HTMLTextAreaElement>(null);
 
   //AutosizeTextArea
-  // autosizeTextArea(newInputRef.current, newText);
-  autosizeTextArea(editInputRef.current, editText, props.loading);
+  autosizeTextArea(editInputRef.current, editText);
 
   useEffect(() => {
     setNumberOfLocations(props.markers.length);
@@ -58,6 +57,11 @@ const InputDisplay = (props: InputDisplayProps) => {
 
   // Handle the save event and pass value up to parent
   const handleSaveEdit = () => {
+    if (editText.trim() == props.input) {
+      console.log("New text was same as old one. No need to repeat request.");
+      return;
+    }
+
     props.onSaveEditText(editText.trim());
     setEditTextState(false);
   };
@@ -86,56 +90,53 @@ const InputDisplay = (props: InputDisplayProps) => {
           <Pencil className="inline w-5 h-5 mr-2" />Edit text
         </Button>
       </div>
-          {props.loading ? (
-            <Bbl />
-          ) : (
+      {props.loading ? (
+        <Bbl />
+      ) : (
         <div className="dark:text-white overflow-y-auto scroll_overflow_shadow">
-            <div className="whitespace-pre-wrap">
-              {(props.displayState === 1 || props.displayState === 2) &&
-                // Textarea displayed for editing text or main chat input
-                // Remains invisible and read-only when not in use, and opens when editing is enabled
-                // Can not be unloaded, as the size updates upon next statechange, resulting in a squished textarea on first load
-                <>
-                  <div
-                    className="sticky top-0 py-3 px-3 bg-white dark:bg-gray-800 border-b dark:border-b-gray-600"
-                    style={{ display: editTextState ? "" : "none" }} // This hides the border and padding from the page when not in use
-                  >
-                    <Textarea
-                      name="EditText"
-                      value={editText}
-                      style={{ display: editTextState ? "" : "none" }}
-                      hiddenState={editTextState ? 0 : 1}
-                      onChange={(e) => setEditText(e.target.value)}
-                      ref={editInputRef}
-                      readOnly={!editTextState}
-                    />
+          {(props.displayState === 1 || props.displayState === 2) &&
+            // This setup makes Textarea invisible and read-only when not in use, and displays it when editing is enabled
+            // For autosizing to work, Textarea can not be unloaded, as the size updates upon next statechange, resulting in a squished textarea on first load
+            // By making Textarea invisible, positioned relative, and with 0 height, it maintains the same dimentiones when hidden. This ensures that Textarea displays correctly when editing is enabled
+            <>
+              <div className={editTextState
+                ? "sticky top-0 py-3 px-3 bg-white dark:bg-gray-800 border-b dark:border-b-gray-600"
+                : "relative h-0 px-3 opacity-0 pointer-events-none"
+              }>
+                <Textarea
+                  name="EditText"
+                  value={editText}
+                  className='resize-none'
+                  onChange={(e) => setEditText(e.target.value)}
+                  ref={editInputRef}
+                  readOnly={!editTextState}
+                />
 
-                    {editTextState &&
-                      <div className="flex pt-2 space-x-2">
-                        <Button onClick={handleCancelEdit} variant="secondary">
-                          Cancel
-                        </Button>
-                        <Button onClick={handleSaveEdit} variant="blue" disabled={editText.trim() === ""}>
-                          Save & resend
-                        </Button>
-                      </div>
-                    }
+                {editTextState &&
+                  <div className="flex pt-2 space-x-2">
+                    <Button onClick={handleCancelEdit} variant="secondary">
+                      Cancel
+                    </Button>
+                    <Button onClick={handleSaveEdit} variant="blue" disabled={editText.trim() === ""}>
+                      Save & resend
+                    </Button>
                   </div>
+                }
+              </div>
 
 
-                  <div className="mb-10 p-3">
-                    {props.displayState === 1 &&
-                      // Display chat always, as the user can only edit initial input
-                      <JsonRenderer jsonData={props.jsonData} />
-                    }
-                    {props.displayState === 2 && !editTextState &&
-                      // Display text when not editing, because the textarea displays the same.
-                      <div>{editText}</div>
-                    }
-                  </div>
-                </>
-              }
-            </div>
+              <div className="mb-10 p-3 whitespace-pre-wrap">
+                {props.displayState === 1 &&
+                  // Display chat always, as the user can only edit initial input
+                  <JsonRenderer jsonData={props.jsonData} />
+                }
+                {props.displayState === 2 && !editTextState &&
+                  // Display text when not editing, because the textarea displays the same.
+                  <div>{editText}</div>
+                }
+              </div>
+            </>
+          }
         </div>
       )}
 
