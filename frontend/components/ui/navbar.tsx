@@ -26,9 +26,9 @@ const Navbar: React.FC<NavbarProps> = ({ activePage }) => {
             <Link href="/Privacy">Your Data</Link>  
           </button>
 
-          <button className={`btn-nav ${activePage === 'Contact' ? 'btn-nav-active' : ''}`}>
+          {/* <button className={`btn-nav ${activePage === 'Contact' ? 'btn-nav-active' : ''}`}>
             <Link href="/Contact">Contact</Link>  
-          </button>
+          </button> */}
 
           <button className={`btn-nav ${activePage === 'Text & CSV To Map' ? 'btn-nav-active' : ''}`}>
             <Link href="/Text2Map">Image & PDF To Map</Link>
