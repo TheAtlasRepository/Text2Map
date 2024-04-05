@@ -106,7 +106,6 @@ const InputDisplay = (props: InputDisplayProps) => {
                 <Textarea
                   name="EditText"
                   value={editText}
-                  className='resize-none'
                   onChange={(e) => setEditText(e.target.value)}
                   ref={editInputRef}
                   readOnly={!editTextState}
