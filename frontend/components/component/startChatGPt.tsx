@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import AskingView from "./askingView";
 import { Toolbar } from "../ui/toolbar";
 import { Textarea } from "../ui/textarea";
+import autosizeTextArea from "../functions/AutosizeTextArea";
 
 
 // Define the StartChatGPt component
@@ -12,6 +13,10 @@ export default function StartChatGPt() {
   const [textareaValue, setTextareaValue] = useState("");
   const [inputText, setInputText] = useState("");
   const [askigState, setAskingState] = useState(false);
+
+  //AutosizeTextArea
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  autosizeTextArea(textareaRef.current, textareaValue);
 
   // Handler for the onEditSave prop
   const saveEditText = (text: string) => {
@@ -91,6 +96,7 @@ export default function StartChatGPt() {
                   name="TextAreaInput"
                   className="mb-4"
                   placeholder="Ask a question"
+                  ref={textareaRef}
                   value={textareaValue}
                   onChange={handleTextareaChange}
                 />

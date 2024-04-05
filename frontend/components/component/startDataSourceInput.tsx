@@ -1,17 +1,15 @@
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { handleSendTextInput } from "../functions/ApiUtils";
 import { ArrowLongIcon, UploadIcon } from "../ui/icons";
 import { Toolbar } from "../ui/toolbar";
 import MapComponent from "./mapComponent";
 import { InputDisplay } from "../component/inputDisplay";
+import autosizeTextArea from '../functions/AutosizeTextArea';
 
 export default function StartDataSource() {
   const maxLengthInput = 3000; // Max length for input
-  const router = useRouter();
-
   const CSV_Available = false; // Value to toggle the CSV option
 
   const [mapView, setMapView] = useState(false);
@@ -25,9 +23,11 @@ export default function StartDataSource() {
   const [markers, setMarkers] = useState<
     { latitude: number; longitude: number; type: string }[]
   >([]);
-  const [selectedMarkerIndex, setSelectedMarkerIndex] = useState<number | null>(
-    null
-  );
+  const [selectedMarkerIndex, setSelectedMarkerIndex] = useState<number | null>(null);
+
+  //AutosizeTextArea
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  autosizeTextArea(textareaRef.current, textareaValue);
 
 
   // Handle for processing a given input
@@ -132,6 +132,7 @@ export default function StartDataSource() {
                     name="TextAreaInput"
                     className="mb-4"
                     placeholder="Aa"
+                    ref={textareaRef}
                     value={textareaValue}
                     onChange={(e) => setTextareaValue(e.target.value)}
                   />
