@@ -23,5 +23,6 @@ dependencies = [
 ]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
-    "Framework :: FastAPI"
+    "Framework :: FastAPI",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)"
 ]
