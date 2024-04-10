@@ -18,7 +18,6 @@ export default function AskingView({
 }) {
   const [loading, setLoading] = useState(true);
   const [jsonData, setJsonData] = useState<any>(null);
-  const [selectedMarkerId, setSelectedMarkerId] = useState<number | null>(null);
   const [markers, setMarkers] = useState<MapMarker[]>([]);
   const isInitialRender = useRef(true);
 

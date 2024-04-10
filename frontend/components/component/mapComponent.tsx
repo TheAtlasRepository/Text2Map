@@ -101,7 +101,7 @@ const MapComponent: React.FC<MapComponentProps> = (
         <>
           {/* Render GeoJSON */}
           {gotGeoJson &&
-          <Source id="selectedCountries" type="geojson" data={props.geojsonData}>
+            <Source id="selectedCountries" type="geojson" data={props.geojsonData}>
               {/* Layer for Countries */}
               <Layer
                 id="countries-layer"
@@ -135,45 +135,48 @@ const MapComponent: React.FC<MapComponentProps> = (
                   "fill-outline-color": "#000000",
                 }}
               />
-          </Source>
+            </Source>
           }
 
           {/* Render markers */}
           {markers.map(marker => (
-            <Marker
-              key={marker.numId}
-              latitude={marker.latitude}
-              longitude={marker.longitude}
-              offset={[0, -25] as [number, number]}
-            >
-              <Coordinate
-                latitude={marker.latitude}
-                longitude={marker.longitude}
-                type={marker.type}
-                isSelected={selectedMarkerId === marker.numId}
-                onClick={() => handleMarkerSelect(marker.numId, marker.latitude, marker.longitude)}
-              />
-              {selectedMarkerId === marker.numId && (
-                <Popup
+            <>
+              {marker.toggled &&
+                <Marker
+                  key={marker.numId}
                   latitude={marker.latitude}
                   longitude={marker.longitude}
-                  closeButton={false}
-                  closeOnClick={false}
-                  className="custom-popup"
-                  anchor="bottom"
-                  offset={[0, -60] as [number, number]}
+                  offset={[0, -25] as [number, number]}
                 >
-                  <InfoPanel
-                    title={marker.type}
+                  <Coordinate
+                    latitude={marker.latitude}
+                    longitude={marker.longitude}
                     type={marker.type}
-                    onClosed={() => setSelectedMarkerId(null)}
-                    onDeleteMarker={() => handleDeleteMarker(marker.numId)}
-                    onEditMarker={toggleEditMarkerOverlay}
-                    onMarkerTitleChange={handleMarkerTitleChange}
+                    isSelected={selectedMarkerId === marker.numId}
+                    onClick={() => handleMarkerSelect(marker.numId, marker.latitude, marker.longitude)}
                   />
-                </Popup>
-              )}
-            </Marker>
+                  {selectedMarkerId === marker.numId && (
+                    <Popup
+                      latitude={marker.latitude}
+                      longitude={marker.longitude}
+                      closeButton={false}
+                      closeOnClick={false}
+                      className="custom-popup"
+                      anchor="bottom"
+                      offset={[0, -60] as [number, number]}
+                    >
+                      <InfoPanel
+                        title={marker.type}
+                        type={marker.type}
+                        onClosed={() => setSelectedMarkerId(null)}
+                        onDeleteMarker={() => handleDeleteMarker(marker.numId)}
+                        onEditMarker={toggleEditMarkerOverlay}
+                        onMarkerTitleChange={handleMarkerTitleChange}
+                      />
+                    </Popup>
+                  )}
+                </Marker>
+              }</>
           ))}
         </>
       }
