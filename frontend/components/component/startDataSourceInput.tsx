@@ -22,7 +22,7 @@ export default function StartDataSource() {
   const [jsonData, setJsonData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [markers, setMarkers] = useState<MapMarker[]>([]);
-  const [selectedMarkerIndex, setSelectedMarkerIndex] = useState<number | null>(null);
+  const [selectedMarkerId, setSelectedMarkerId] = useState<number | null>(null);
 
   //AutosizeTextArea
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -245,8 +245,8 @@ export default function StartDataSource() {
               <div style={{ height: "calc(100vh - 57px)" }}>
                 <MapComponent
                   markers={markers}
-                  selectedMarkerId={selectedMarkerIndex}
-                  setSelectedMarkerId={setSelectedMarkerIndex}
+                  selectedMarkerId={selectedMarkerId}
+                  setSelectedMarkerId={setSelectedMarkerId}
                   geojsonData={jsonData?.selected_countries_geojson_path}
                 />
               </div>

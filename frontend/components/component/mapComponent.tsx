@@ -22,8 +22,8 @@ type MapComponentProps = {
  * Map Component for displaying map with added formatting
  * 
  * @param markers 
- * @param selectedMarkerIndex 
- * @param setSelectedMarkerIndex 
+ * @param selectedMarkerId 
+ * @param setSelectedMarkerId 
  * @param geojsonData 
  * @returns 
  */
@@ -44,8 +44,8 @@ const MapComponent: React.FC<MapComponentProps> = ({
   };
 
   // Logic for when a marker is selected
-  const handleMarkerSelect = (index: number, lat: number, lon: number) => {
-    setSelectedMarkerId(index)
+  const handleMarkerSelect = (id: number, lat: number, lon: number) => {
+    setSelectedMarkerId(id)
 
     if (mapRef.current) {
       // console.log('lat and lon: ', lat, lon);
@@ -55,8 +55,8 @@ const MapComponent: React.FC<MapComponentProps> = ({
 
   const handleMarkerTitleChange = (newTitle: string) => {
     // Update the marker title and type in the MapComponent's state
-    setMarkers(markers.map((marker, index) => {
-      if (index === selectedMarkerId) {
+    setMarkers(markers.map(marker => {
+      if (marker.numId === selectedMarkerId) {
         return { ...marker, type: newTitle, title: newTitle }; // Assuming you want to update both title and type
       }
       return marker;
@@ -67,10 +67,10 @@ const MapComponent: React.FC<MapComponentProps> = ({
     setIsEditMarkerOverlayVisible(!isEditMarkerOverlayVisible);
   }
 
-  const handleDeleteMarker = (index: number) => {
+  const handleDeleteMarker = (id: number) => {
     // Assuming markers is a state variable
-    setMarkers(markers.filter((_, i) => i !== index));
-    setSelectedMarkerId(null); // Optionally, clear the selected marker index
+    setMarkers(markers.filter(marker => marker.numId !== id));
+    setSelectedMarkerId(null); // Optionally, clear the selected marker by id
   };
 
   useEffect(() => {
