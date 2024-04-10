@@ -4,12 +4,13 @@ import AskingView from "./askingView";
 import { Toolbar } from "../ui/toolbar";
 import { Textarea } from "../ui/textarea";
 import autosizeTextArea from "../functions/AutosizeTextArea";
+import { MapMarker } from "../types/MapMarker";
 
 
 // Define the StartChatGPt component
 export default function StartChatGPt() {
   const [geoJsonPath, setGeoJsonPath] = useState<string | null>(null);
-  const [markers, setMarkersToolbar] = useState<{ latitude: number; longitude: number; type: string; }[]>([]);
+  const [markers, setMarkersToolbar] = useState<MapMarker[]>([]);
   const [textareaValue, setTextareaValue] = useState("");
   const [inputText, setInputText] = useState("");
   const [askigState, setAskingState] = useState(false);

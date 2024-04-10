@@ -1,5 +1,6 @@
 import { extractCoordinates, Coordinate } from '../functions/CoordinateExtractor'; // Adjust the import path
 import axios from 'axios';
+import { MapMarker } from '../types/MapMarker';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
@@ -7,7 +8,7 @@ export const handleDataFetching = async (
   url: string,
   payload: any,
   setJsonData: React.Dispatch<React.SetStateAction<any>>,
-  setMarkers: React.Dispatch<React.SetStateAction<{ latitude: number; longitude: number; type: string }[]>>,
+  setMarkers: React.Dispatch<React.SetStateAction<MapMarker[]>>,
   setLoading: React.Dispatch<React.SetStateAction<boolean>>,
   additionalLogic?: (data: any) => void
 ) => {
@@ -35,8 +36,8 @@ export const handleDataFetching = async (
       // Filter out unnecessary strings and extract to coordinates. 
       const coordinates: Coordinate[] = extractCoordinates(data.entities
         .map((entry: any) => entry
-        .filter((item: any) => Array
-        .isArray(item) && item.length === 2))
+          .filter((item: any) => Array
+            .isArray(item) && item.length === 2))
         .flat()
       );
       console.log('Extracted Coordinates:', coordinates);
@@ -44,7 +45,7 @@ export const handleDataFetching = async (
       // Proceed with the rest of your logic, e.g., extracting coordinates, setting markers, etc.
 
       setJsonData(data);
-      setMarkers(coordinates as { latitude: number; longitude: number; type: string }[]);
+      setMarkers(coordinates as MapMarker[]);
 
       if (additionalLogic) {
         additionalLogic(data);
@@ -70,7 +71,7 @@ export const handleDataFetching = async (
 export const handleSendChatRequest = async (
   inputText: string,
   setJsonData: React.Dispatch<React.SetStateAction<any>>,
-  setMarkers: React.Dispatch<React.SetStateAction<{ latitude: number; longitude: number; type: string }[]>>,
+  setMarkers: React.Dispatch<React.SetStateAction<MapMarker[]>>,
   setLoading: React.Dispatch<React.SetStateAction<boolean>>
 ) => {
   if (inputText.trim() !== '') {
@@ -99,7 +100,7 @@ export const handleSendChatRequest = async (
 export const handleAddRequestToChat = async (
   inputText: string,
   setJsonData: React.Dispatch<React.SetStateAction<any>>,
-  setMarkers: React.Dispatch<React.SetStateAction<{ latitude: number; longitude: number; type: string }[]>>,
+  setMarkers: React.Dispatch<React.SetStateAction<MapMarker[]>>,
   setLoading: React.Dispatch<React.SetStateAction<boolean>>
 ) => {
   if (inputText.trim() !== '') {
@@ -122,7 +123,7 @@ export const handleAddRequestToChat = async (
 export const handleSendTextInput = async (
   inputText: string,
   setJsonData: React.Dispatch<React.SetStateAction<any>>,
-  setMarkers: React.Dispatch<React.SetStateAction<{ latitude: number; longitude: number; type: string }[]>>,
+  setMarkers: React.Dispatch<React.SetStateAction<MapMarker[]>>,
   setLoading: React.Dispatch<React.SetStateAction<boolean>>
 ) => {
   if (inputText.trim() !== '') {

@@ -7,6 +7,7 @@ import { Toolbar } from "../ui/toolbar";
 import MapComponent from "./mapComponent";
 import { InputDisplay } from "../component/inputDisplay";
 import autosizeTextArea from '../functions/AutosizeTextArea';
+import { MapMarker } from "../types/MapMarker";
 
 export default function StartDataSource() {
   const maxLengthInput = 3000; // Max length for input
@@ -20,9 +21,7 @@ export default function StartDataSource() {
 
   const [jsonData, setJsonData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [markers, setMarkers] = useState<
-    { latitude: number; longitude: number; type: string }[]
-  >([]);
+  const [markers, setMarkers] = useState<MapMarker[]>([]);
   const [selectedMarkerIndex, setSelectedMarkerIndex] = useState<number | null>(null);
 
   //AutosizeTextArea
@@ -246,8 +245,8 @@ export default function StartDataSource() {
               <div style={{ height: "calc(100vh - 57px)" }}>
                 <MapComponent
                   markers={markers}
-                  selectedMarkerIndex={selectedMarkerIndex}
-                  setSelectedMarkerIndex={setSelectedMarkerIndex}
+                  selectedMarkerId={selectedMarkerIndex}
+                  setSelectedMarkerId={setSelectedMarkerIndex}
                   geojsonData={jsonData?.selected_countries_geojson_path}
                 />
               </div>

@@ -5,15 +5,15 @@ import Coordinate from '../functions/Coordinates';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import InfoPanel from '../component/info-panel';
 import { EditMarker } from '../component/edit-marker';
+import { MapMarker } from '../types/MapMarker';
 
 /**
  * Input props for the map component
  */
 type MapComponentProps = {
-  markers: { latitude: number; longitude: number; type: string }[];
-  //centerCoordinates: [number, number] | null;
-  selectedMarkerIndex: number | null;
-  setSelectedMarkerIndex: React.Dispatch<React.SetStateAction<number | null>>;
+  markers: MapMarker[];
+  selectedMarkerId: number | null;
+  setSelectedMarkerId: React.Dispatch<React.SetStateAction<number | null>>;
   geojsonData?: any;
 };
 
@@ -29,8 +29,8 @@ type MapComponentProps = {
  */
 const MapComponent: React.FC<MapComponentProps> = ({
   markers: markersProp,
-  selectedMarkerIndex,
-  setSelectedMarkerIndex,
+  selectedMarkerId: selectedMarkerId,
+  setSelectedMarkerId: setSelectedMarkerId,
   geojsonData,
 }) => {
   const mapRef = useRef<MapRef>(null);
@@ -45,7 +45,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
 
   // Logic for when a marker is selected
   const handleMarkerSelect = (index: number, lat: number, lon: number) => {
-    setSelectedMarkerIndex(index)
+    setSelectedMarkerId(index)
 
     if (mapRef.current) {
       // console.log('lat and lon: ', lat, lon);
@@ -56,7 +56,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
   const handleMarkerTitleChange = (newTitle: string) => {
     // Update the marker title and type in the MapComponent's state
     setMarkers(markers.map((marker, index) => {
-      if (index === selectedMarkerIndex) {
+      if (index === selectedMarkerId) {
         return { ...marker, type: newTitle, title: newTitle }; // Assuming you want to update both title and type
       }
       return marker;
@@ -70,7 +70,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
   const handleDeleteMarker = (index: number) => {
     // Assuming markers is a state variable
     setMarkers(markers.filter((_, i) => i !== index));
-    setSelectedMarkerIndex(null); // Optionally, clear the selected marker index
+    setSelectedMarkerId(null); // Optionally, clear the selected marker index
   };
 
   useEffect(() => {
@@ -143,9 +143,9 @@ const MapComponent: React.FC<MapComponentProps> = ({
           }
 
           {/* Render markers */}
-          {markers.map((marker, index) => (
+          {markers.map(marker => (
             <Marker
-              key={index}
+              key={marker.numId}
               latitude={marker.latitude}
               longitude={marker.longitude}
               offset={[0, -25] as [number, number]}
@@ -154,10 +154,10 @@ const MapComponent: React.FC<MapComponentProps> = ({
                 latitude={marker.latitude}
                 longitude={marker.longitude}
                 type={marker.type}
-                isSelected={selectedMarkerIndex === index}
-                onClick={() => handleMarkerSelect(index, marker.latitude, marker.longitude)}
+                isSelected={selectedMarkerId === marker.numId}
+                onClick={() => handleMarkerSelect(marker.numId, marker.latitude, marker.longitude)}
               />
-              {selectedMarkerIndex === index && (
+              {selectedMarkerId === marker.numId && (
                 <Popup
                   latitude={marker.latitude}
                   longitude={marker.longitude}
@@ -170,8 +170,8 @@ const MapComponent: React.FC<MapComponentProps> = ({
                   <InfoPanel
                     title={marker.type}
                     type={marker.type}
-                    onClosed={() => setSelectedMarkerIndex(null)}
-                    onDeleteMarker={() => handleDeleteMarker(index)}
+                    onClosed={() => setSelectedMarkerId(null)}
+                    onDeleteMarker={() => handleDeleteMarker(marker.numId)}
                     onEditMarker={toggleEditMarkerOverlay}
                     onMarkerTitleChange={handleMarkerTitleChange}
                   />
@@ -181,12 +181,12 @@ const MapComponent: React.FC<MapComponentProps> = ({
           ))}
         </>
       }
-      {isEditMarkerOverlayVisible && selectedMarkerIndex !== null && (
+      {isEditMarkerOverlayVisible && selectedMarkerId !== null && (
         <div className="editMarkerOverlay">
           <EditMarker
             onClose={toggleEditMarkerOverlay}
             onTitleChange={handleMarkerTitleChange}
-            title={markers[selectedMarkerIndex].type}
+            title={markers[selectedMarkerId].type}
           />
         </div>
       )}

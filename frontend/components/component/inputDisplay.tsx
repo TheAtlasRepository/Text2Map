@@ -6,6 +6,7 @@ import { Bbl } from '../ui/bbl';
 import { Pencil } from '../ui/icons';
 import { Textarea } from '../ui/textarea';
 import autosizeTextArea from '../functions/AutosizeTextArea';
+import { MapMarker } from '../types/MapMarker';
 
 // Type for defining input params for the 
 type InputDisplayProps = {
@@ -13,7 +14,7 @@ type InputDisplayProps = {
   loading: boolean,
   input: any,
   jsonData?: any,
-  markers: { latitude: number; longitude: number; type: string }[];
+  markers: MapMarker[];
   onSaveEditText: (text: string) => void,
   onSendRequest?: (text: string) => void
 }

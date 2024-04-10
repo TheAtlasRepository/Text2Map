@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from "./button";
 import { ChevronArrowIcon } from "./icons";
 import FormModal from "./FormModal";
+import { MapMarker } from "../types/MapMarker";
 
 type toolbarProps = {
   viewAllOptions?: boolean,
@@ -32,7 +33,7 @@ const Toolbar = (props: toolbarProps) => {
   const [isFormModalOpen, setFormModalOpen] = useState(false);
 
   //Convert Markers to GeoJSON
-  const markersToGeoJsonFeatures = (markers: { latitude: number; longitude: number; type: string }[]) => {
+  const markersToGeoJsonFeatures = (markers: MapMarker[]) => {
     console.log(markers);
     return markers.map(marker => ({
       type: 'Feature',
