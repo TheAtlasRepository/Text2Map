@@ -71,6 +71,10 @@ export default function AskingView({
     handleAddRequestToChat(request, setJsonData, setMarkers, setLoading);
   };
 
+  const handleSetMarkers = (markers: MapMarker[]) => {
+    setMarkers(markers);
+  }
+
   return (
     <div className="bg-white dark:bg-gray-800 dark:text-white overflow-y-auto">
       <div className="flex">
@@ -80,6 +84,7 @@ export default function AskingView({
           input={inputText}
           jsonData={jsonData}
           markers={markers}
+          onSetMarkers={handleSetMarkers}
           onSaveEditText={handleSaveEditText}
           onSendRequest={handleSendTextWrapper}
         />
@@ -87,8 +92,6 @@ export default function AskingView({
           <div style={{ height: 'calc(100vh - 57px)' }}>
             <MapComponent
               markers={markers}
-              selectedMarkerId={selectedMarkerId}
-              setSelectedMarkerId={setSelectedMarkerId}
               geojsonData={jsonData?.selected_countries_geojson_path}
             />
           </div>

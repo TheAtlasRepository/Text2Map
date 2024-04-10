@@ -12,8 +12,8 @@ import { MapMarker } from '../types/MapMarker';
  */
 type MapComponentProps = {
   markers: MapMarker[];
-  selectedMarkerId: number | null;
-  setSelectedMarkerId: React.Dispatch<React.SetStateAction<number | null>>;
+  // selectedMarkerId: number | null;
+  // setSelectedMarkerId: React.Dispatch<React.SetStateAction<number | null>>;
   geojsonData?: any;
 };
 
@@ -22,21 +22,17 @@ type MapComponentProps = {
  * Map Component for displaying map with added formatting
  * 
  * @param markers 
- * @param selectedMarkerId 
- * @param setSelectedMarkerId 
  * @param geojsonData 
  * @returns 
  */
-const MapComponent: React.FC<MapComponentProps> = ({
-  markers: markersProp,
-  selectedMarkerId: selectedMarkerId,
-  setSelectedMarkerId: setSelectedMarkerId,
-  geojsonData,
-}) => {
+const MapComponent: React.FC<MapComponentProps> = (
+  props: MapComponentProps
+) => {
   const mapRef = useRef<MapRef>(null);
-  const [markers, setMarkers] = useState(markersProp);
+  const [markers, setMarkers] = useState(props.markers);
   const [isLoaded, setIsLoaded] = useState(false);
   const [gotGeoJson, setGotGeoJsonState] = useState(false);
+  const [selectedMarkerId, setSelectedMarkerId] = useState<number | null>(null);
   const [isEditMarkerOverlayVisible, setIsEditMarkerOverlayVisible] = useState(false);
 
   const handleOnLoad = () => {
@@ -74,11 +70,11 @@ const MapComponent: React.FC<MapComponentProps> = ({
   };
 
   useEffect(() => {
-    setMarkers(markersProp);
-  }, [markersProp]);
+    setMarkers(props.markers);
+  }, [props.markers]);
 
   useEffect(() => {
-    if (geojsonData != undefined && !gotGeoJson) {
+    if (props.geojsonData != undefined && !gotGeoJson) {
       setGotGeoJsonState(true);
     }
   })
@@ -105,7 +101,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
         <>
           {/* Render GeoJSON */}
           {gotGeoJson &&
-          <Source id="selectedCountries" type="geojson" data={geojsonData}>
+          <Source id="selectedCountries" type="geojson" data={props.geojsonData}>
               {/* Layer for Countries */}
               <Layer
                 id="countries-layer"

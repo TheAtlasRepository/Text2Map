@@ -3,4 +3,5 @@ export type MapMarker = {
   longitude: number;
   type: string;
   numId: number;
+  toggled: boolean;
 }

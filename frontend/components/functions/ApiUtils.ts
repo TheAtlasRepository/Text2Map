@@ -1,4 +1,4 @@
-import { extractCoordinates, Coordinate } from '../functions/CoordinateExtractor'; // Adjust the import path
+import { extractCoordinates } from '../functions/CoordinateExtractor'; // Adjust the import path
 import axios from 'axios';
 import { MapMarker } from '../types/MapMarker';
 
@@ -34,7 +34,7 @@ export const handleDataFetching = async (
       console.log('GeoJSON data:', geoJsonData);
 
       // Filter out unnecessary strings and extract to coordinates. 
-      const coordinates: Coordinate[] = extractCoordinates(data.entities
+      const coordinates: MapMarker[] = extractCoordinates(data.entities
         .map((entry: any) => entry
           .filter((item: any) => Array
             .isArray(item) && item.length === 2))
@@ -45,7 +45,7 @@ export const handleDataFetching = async (
       // Proceed with the rest of your logic, e.g., extracting coordinates, setting markers, etc.
 
       setJsonData(data);
-      setMarkers(coordinates as MapMarker[]);
+      setMarkers(coordinates);
 
       if (additionalLogic) {
         additionalLogic(data);

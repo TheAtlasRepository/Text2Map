@@ -7,6 +7,7 @@ import { Pencil } from '../ui/icons';
 import { Textarea } from '../ui/textarea';
 import autosizeTextArea from '../functions/AutosizeTextArea';
 import { MapMarker } from '../types/MapMarker';
+import MarkerList from './markerList';
 
 // Type for defining input params for the 
 type InputDisplayProps = {
@@ -15,6 +16,7 @@ type InputDisplayProps = {
   input: any,
   jsonData?: any,
   markers: MapMarker[];
+  onSetMarkers: (markers: MapMarker[]) => void,
   onSaveEditText: (text: string) => void,
   onSendRequest?: (text: string) => void
 }
@@ -30,11 +32,10 @@ type InputDisplayProps = {
  */
 const InputDisplay = (props: InputDisplayProps) => {
   const [numberOfLocations, setNumberOfLocations] = useState(0);
+  const [markerListDisplayState, setMarkerListDisplayState] = useState(false);
   const [editText, setEditText] = useState(props.input);
   const [editTextState, setEditTextState] = useState(false);
   const [newText, setNewText] = useState('');
-
-  //const newInputRef = useRef<HTMLTextAreaElement>(null);
   const editInputRef = useRef<HTMLTextAreaElement>(null);
 
   //AutosizeTextArea
@@ -44,6 +45,9 @@ const InputDisplay = (props: InputDisplayProps) => {
     setNumberOfLocations(props.markers.length);
   }, [props.markers]);
 
+  // Handlers for updating inputs
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => { setEditText(e.target.value) }
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => { setNewText(e.target.value) }
 
   // Handle the case where the user clicks the "Edit text" button
   const handleEditClick = () => {
@@ -75,17 +79,34 @@ const InputDisplay = (props: InputDisplayProps) => {
     }
   }
 
+  // Changes the toggle state on a given marker by id
+  const toggleMarker = (id: number, state: boolean) => {
+    // Find the index of the marker
+    const todoMarkerIndex = props.markers.findIndex((marker) => marker.numId === id);
+
+    // Create a new marker identical to old one, but with changed state
+    const updatedMarker = { ...props.markers[todoMarkerIndex], toggled: !state };
+
+    // Create a copy of the entire list, and insert the updated marker at the same position, then update the state.
+    // Object.values() is called to convert resulting object back to a usable array. 
+    props.onSetMarkers(
+      Object.values({ ...props.markers, [todoMarkerIndex]: updatedMarker }) as MapMarker[]);
+  }
+
 
   return (
     <aside className="w-1/3 flex flex-col" style={{ height: 'calc(100vh - 57px)' }}>
       <div className="p-2 px-4 flex items-center justify-between border-b dark:border-b-gray-600 dark:bg-slate-900">
-        <div className="items-center">
+        <button
+          className="py-2 pr-3 overflow-hidden text-nowrap"
+          onClick={() => setMarkerListDisplayState(!markerListDisplayState)}
+        >
           {numberOfLocations} Locations
-        </div>
+        </button>
         <Button
           onClick={handleEditClick}
           variant="secondary"
-          className="flex items-center justify-center"
+          className="flex items-center justify-center text-nowrap"
           disabled={editTextState}
         >
           <Pencil className="inline w-5 h-5 mr-2" />Edit text
@@ -107,7 +128,7 @@ const InputDisplay = (props: InputDisplayProps) => {
                 <Textarea
                   name="EditText"
                   value={editText}
-                  onChange={(e) => setEditText(e.target.value)}
+                  onChange={handleTextareaChange}
                   ref={editInputRef}
                   readOnly={!editTextState}
                 />
@@ -126,13 +147,22 @@ const InputDisplay = (props: InputDisplayProps) => {
 
 
               <div className="mb-10 p-3 whitespace-pre-wrap">
-                {props.displayState === 1 &&
-                  // Display chat always, as the user can only edit initial input
-                  <JsonRenderer jsonData={props.jsonData} />
-                }
-                {props.displayState === 2 && !editTextState &&
-                  // Display text when not editing, because the textarea displays the same.
-                  <div>{editText}</div>
+                {markerListDisplayState ? (
+                  <MarkerList
+                    markers={props.markers}
+                    onToggleClick={toggleMarker} />
+                ) : (
+                  <>
+                    {props.displayState === 1 &&
+                      // Display chat always, as the user can only edit initial input
+                      <JsonRenderer jsonData={props.jsonData} />
+                    }
+                    {props.displayState === 2 && !editTextState &&
+                      // Display text when not editing, because the textarea displays the same.
+                      <div>{editText}</div>
+                    }
+                  </>
+                )
                 }
               </div>
             </>
@@ -149,7 +179,7 @@ const InputDisplay = (props: InputDisplayProps) => {
             placeholder="Type your message here..."
             type="text"
             value={newText}
-            onChange={(e) => setNewText(e.target.value)}
+            onChange={handleInputChange}
           />
           <Button variant="secondary" onClick={handleAddToChat} disabled={newText?.trim() === ""}>
             Send
