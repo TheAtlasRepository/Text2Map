@@ -158,10 +158,6 @@ body {
 .border-underline-blue {
   box-shadow: 0 2px 0 0 rgb(59, 130, 246);
 }
-.scroll_overflow_shadow {
-  mask-image: linear-gradient(black 95%, transparent 100%);
-  -webkit-mask-image: linear-gradient(black 95%, transparent 100%);
-}
 
 .editMarkerOverlay {
   z-index: 1000; /* Adjust the z-index as needed */
@@ -200,4 +196,15 @@ body {
 
 .custom-popup .mapboxgl-popup-tip {
   display: none;
+}
+
+.marker_column {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto min-content;
+  align-items: center;
+}
+
+.reversed_shadow {
+  box-shadow: 0 -10px 15px -8px #0f172a, 0 -4px 6px -4px #0f172a;
 }

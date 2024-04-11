@@ -3,7 +3,7 @@ import { Button, } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import JsonRenderer from "../functions/JsonRenderer";
 import { Bbl } from '../ui/bbl';
-import { Pencil, ChevronDownArrowIcon, ChevronUpArrowIcon} from '../ui/icons';
+import { Pencil, ChevronDownArrowIcon, ChevronUpArrowIcon } from '../ui/icons';
 import { Textarea } from '../ui/textarea';
 import autosizeTextArea from '../functions/AutosizeTextArea';
 import { MapMarker } from '../types/MapMarker';
@@ -95,20 +95,20 @@ const InputDisplay = (props: InputDisplayProps) => {
 
 
   return (
-    <aside className="w-1/3 flex flex-col" style={{ height: 'calc(100vh - 57px)' }}>
-      <div className="p-2 px-3 flex items-center justify-between border-b dark:border-b-gray-600 dark:bg-slate-900">
+    <aside className="w-1/3 min-w-min max-w-[500px] flex flex-col" style={{ height: 'calc(100vh - 57px)' }}>
+      <div className="p-2 px-3 gap-2 z-30 flex items-center justify-between border-b dark:border-b-gray-600 dark:bg-slate-900 shadow-md dark:shadow-slate-900">
         <button
-          className="p-2 overflow-hidden text-nowrap border rounded-lg border-gray-600 hover:bg-gray-800"
+          className="p-2 overflow-hidden text-nowrap border rounded-lg border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-800"
           onClick={() => setMarkerListDisplayState(!markerListDisplayState)}
         >
           <span className="mr-2">
             {numberOfLocations} Locations
           </span>
-          {!markerListDisplayState ? <ChevronDownArrowIcon /> : <ChevronUpArrowIcon /> }
+          {!markerListDisplayState ? <ChevronDownArrowIcon /> : <ChevronUpArrowIcon />}
         </button>
         <Button
           onClick={handleEditClick}
-          variant="secondary"
+          variant="fancy_blue"
           className="flex items-center justify-center text-nowrap"
           disabled={editTextState}
         >
@@ -118,14 +118,14 @@ const InputDisplay = (props: InputDisplayProps) => {
       {props.loading ? (
         <Bbl />
       ) : (
-        <div className="dark:text-white overflow-y-auto scroll_overflow_shadow">
+        <div className="dark:text-white overflow-y-auto h-full">
           {(props.displayState === 1 || props.displayState === 2) &&
             // This setup makes Textarea invisible and read-only when not in use, and displays it when editing is enabled
             // For autosizing to work, Textarea can not be unloaded, as the size updates upon next statechange, resulting in a squished textarea on first load
             // By making Textarea invisible, positioned relative, and with 0 height, it maintains the same dimentiones when hidden. This ensures that Textarea displays correctly when editing is enabled
             <>
               <div className={editTextState
-                ? "sticky top-0 py-3 px-3 bg-white dark:bg-gray-800 border-b dark:border-b-gray-600"
+                ? "sticky top-0 py-3 px-3 z-20 bg-white dark:bg-gray-800 border-b dark:border-b-gray-600"
                 : "relative h-0 px-3 opacity-0 pointer-events-none"
               }>
                 <Textarea
@@ -148,24 +148,21 @@ const InputDisplay = (props: InputDisplayProps) => {
                 }
               </div>
 
-
-              <div className="mb-10 p-3 whitespace-pre-wrap">
-                {markerListDisplayState ? (
+              {markerListDisplayState &&
+                <div className="relative top-0 z-10">
                   <MarkerList
                     markers={props.markers}
                     onToggleClick={toggleMarker} />
-                ) : (
-                  <>
-                    {props.displayState === 1 &&
-                      // Display chat always, as the user can only edit initial input
-                      <JsonRenderer jsonData={props.jsonData} />
-                    }
-                    {props.displayState === 2 && !editTextState &&
-                      // Display text when not editing, because the textarea displays the same.
-                      <div>{editText}</div>
-                    }
-                  </>
-                )
+                </div>
+              }
+              <div className={`p-3 mb-4 whitespace-pre-wrap ${markerListDisplayState ? "blur-sm" : ""}`}>
+                {props.displayState === 1 &&
+                  // Display chat always, as the user can only edit initial input
+                  <JsonRenderer jsonData={props.jsonData} />
+                }
+                {props.displayState === 2 && !editTextState &&
+                  // Display text when not editing, because the textarea displays the same.
+                  <div>{editText}</div>
                 }
               </div>
             </>
@@ -176,7 +173,7 @@ const InputDisplay = (props: InputDisplayProps) => {
 
       {props.displayState === 1 &&
         // Displays ChatInput when displaying chat
-        <div className="p-3 flex justify-center mt-auto space-x-2">
+        <div className="p-3 z-20 flex justify-center mt-auto space-x-2 reversed_shadow shadow-md">
           <Input
             name="ChatInput"
             placeholder="Type your message here..."
