@@ -6,12 +6,14 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import InfoPanel from '../component/info-panel';
 import { EditMarker } from '../component/edit-marker';
 import { MapMarker } from '../types/MapMarker';
+import markerToggle from '../functions/markerToggle';
 
 /**
  * Input props for the map component
  */
 type MapComponentProps = {
   markers: MapMarker[];
+  setMarkers: React.Dispatch<React.SetStateAction<MapMarker[]>>,
   // selectedMarkerId: number | null;
   // setSelectedMarkerId: React.Dispatch<React.SetStateAction<number | null>>;
   geojsonData?: any;
@@ -29,12 +31,12 @@ const MapComponent: React.FC<MapComponentProps> = (
   props: MapComponentProps
 ) => {
   const mapRef = useRef<MapRef>(null);
-  const [markers, setMarkers] = useState<MapMarker[]>([]);
+  //const [markers, setMarkers] = useState<MapMarker[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [gotGeoJson, setGotGeoJsonState] = useState(false);
   const [selectedMarkerId, setSelectedMarkerId] = useState<number | null>(null);
   const [isEditMarkerOverlayVisible, setIsEditMarkerOverlayVisible] = useState(false);
-  const initialFlyto = useRef(true);
+  const initialFlytoRef = useRef(true);
 
   const handleOnLoad = () => {
     setIsLoaded(true);
@@ -52,7 +54,7 @@ const MapComponent: React.FC<MapComponentProps> = (
 
   const handleMarkerTitleChange = (newTitle: string) => {
     // Update the marker title and type in the MapComponent's state
-    setMarkers(markers.map(marker => {
+    props.setMarkers(props.markers.map(marker => {
       if (marker.numId === selectedMarkerId) {
         return { ...marker, type: newTitle, title: newTitle }; // Assuming you want to update both title and type
       }
@@ -64,11 +66,12 @@ const MapComponent: React.FC<MapComponentProps> = (
     setIsEditMarkerOverlayVisible(!isEditMarkerOverlayVisible);
   }
 
-  const handleDeleteMarker = (id: number) => {
-    // Assuming markers is a state variable
-    setMarkers(markers.filter(marker => marker.numId !== id));
+
+  const handleHideMarker = (id: number) => {
+    const markers = props.markers;
+    props.setMarkers(markerToggle(id, markers));
     setSelectedMarkerId(null); // Optionally, clear the selected marker by id
-  };
+  }
 
   // This is necessary to update the display of markers once they are retrieved 
   useEffect(() => {
@@ -84,17 +87,17 @@ const MapComponent: React.FC<MapComponentProps> = (
   // Run once when markers changes, then fly to coordinates.
   useEffect(() => {
     // If initialFlyTo is false, do nothing
-    if (!initialFlyto.current) { return; }
+    if (!initialFlytoRef.current) { return; }
 
-    if (mapRef.current && markers.length != 0) {
+    if (mapRef.current && props.markers.length != 0) {
       // Set state to false so it wont repeat
-      initialFlyto.current = false;
+      initialFlytoRef.current = false;
 
-      let firstPoint: [number, number] = [markers[0].longitude, markers[0].latitude];
+      let firstPoint: [number, number] = [props.markers[0].longitude, props.markers[0].latitude];
       console.log('Flying to: ', firstPoint);
       mapRef.current.flyTo({ center: firstPoint, zoom: 4 });
     }
-  }, [markers])
+  }, [props.markers])
 
   return (
     <ReactMapGL
@@ -147,7 +150,7 @@ const MapComponent: React.FC<MapComponentProps> = (
           }
 
           {/* Render markers */}
-          {markers.map(marker => (
+          {props.markers.map(marker => (
             <>
               {marker.toggled &&
                 <Marker
@@ -174,10 +177,9 @@ const MapComponent: React.FC<MapComponentProps> = (
                       offset={[0, -60] as [number, number]}
                     >
                       <InfoPanel
-                        title={marker.type}
-                        type={marker.type}
+                        marker={marker}
                         onClosed={() => setSelectedMarkerId(null)}
-                        onDeleteMarker={() => handleDeleteMarker(marker.numId)}
+                        onHideMarker={handleHideMarker}
                         onEditMarker={toggleEditMarkerOverlay}
                         onMarkerTitleChange={handleMarkerTitleChange}
                       />
@@ -193,7 +195,7 @@ const MapComponent: React.FC<MapComponentProps> = (
           <EditMarker
             onClose={toggleEditMarkerOverlay}
             onTitleChange={handleMarkerTitleChange}
-            title={markers[selectedMarkerId].type}
+            title={props.markers[selectedMarkerId].type}
           />
         </div>
       )}

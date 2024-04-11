@@ -5,7 +5,7 @@ import { ChevronRightArrowIcon } from '../ui/icons';
 interface MarkerListProps {
   markers: MapMarker[],
   onFlytoClick: (coordinates: [number, number]) => void,
-  onToggleClick: (id: number, state: boolean) => void
+  onToggleClick: (id: number) => void
 }
 
 const MarkerList: React.FC<MarkerListProps> = (
@@ -30,7 +30,7 @@ const MarkerList: React.FC<MarkerListProps> = (
           ? "bg-green-600 p-2"
           : "bg-red-600 p-2"
         }
-        onClick={() => props.onToggleClick(marker.numId, marker.toggled)}>
+        onClick={() => props.onToggleClick(marker.numId)}>
         <span>Toggle</span>
       </button>
     </div>

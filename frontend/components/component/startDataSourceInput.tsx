@@ -243,13 +243,14 @@ export default function StartDataSource() {
               input={inputText}
               jsonData={jsonData} // Should probably shorten to just jsonData.chat-history
               markers={markers}
-              onSetMarkers={handleSetMarkers}
+              setMarkers={setMarkers}
               onSaveEditText={handleInputButtonClick}
             />
             <main className="flex-auto relative w-2/3">
               <div style={{ height: "calc(100vh - 57px)" }}>
                 <MapComponent
                   markers={markers}
+                  setMarkers={setMarkers}
                   geojsonData={jsonData?.selected_countries_geojson_path}
                 />
               </div>

@@ -3,11 +3,12 @@ import { Button, } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import JsonRenderer from "../functions/JsonRenderer";
 import { Bbl } from '../ui/bbl';
-import { Pencil, ChevronDownArrowIcon, ChevronUpArrowIcon } from '../ui/icons';
+import { PencilIcon, ChevronDownArrowIcon, ChevronUpArrowIcon } from '../ui/icons';
 import { Textarea } from '../ui/textarea';
 import autosizeTextArea from '../functions/AutosizeTextArea';
 import { MapMarker } from '../types/MapMarker';
 import MarkerList from './markerList';
+import markerToggle from '../functions/markerToggle';
 
 // Type for defining input params for the 
 type InputDisplayProps = {
@@ -16,7 +17,7 @@ type InputDisplayProps = {
   input: any,
   jsonData?: any,
   markers: MapMarker[];
-  onSetMarkers: (markers: MapMarker[]) => void,
+  setMarkers: React.Dispatch<React.SetStateAction<MapMarker[]>>,
   onSaveEditText: (text: string) => void,
   onSendRequest?: (text: string) => void
 }
@@ -79,18 +80,9 @@ const InputDisplay = (props: InputDisplayProps) => {
     }
   }
 
-  // Changes the toggle state on a given marker by id
-  const toggleMarker = (id: number, state: boolean) => {
-    // Find the index of the marker
-    const todoMarkerIndex = props.markers.findIndex((marker) => marker.numId === id);
-
-    // Create a new marker identical to old one, but with changed state
-    const updatedMarker = { ...props.markers[todoMarkerIndex], toggled: !state };
-
-    // Create a copy of the entire list, and insert the updated marker at the same position, then update the state.
-    // Object.values() is called to convert resulting object back to a usable array. 
-    props.onSetMarkers(
-      Object.values({ ...props.markers, [todoMarkerIndex]: updatedMarker }) as MapMarker[]);
+  const handleToggleMarker = (id: number) => {
+    const markers = props.markers;
+    props.setMarkers(markerToggle(id, markers))
   }
 
 
@@ -112,7 +104,7 @@ const InputDisplay = (props: InputDisplayProps) => {
           className="flex items-center justify-center text-nowrap"
           disabled={editTextState}
         >
-          <Pencil className="mr-2" />Edit text
+          <PencilIcon className="mr-2" />Edit text
         </Button>
       </div>
       {props.loading ? (
@@ -152,7 +144,7 @@ const InputDisplay = (props: InputDisplayProps) => {
                 <div className="relative top-0 z-10">
                   <MarkerList
                     markers={props.markers}
-                    onToggleClick={toggleMarker} />
+                    onToggleClick={handleToggleMarker} />
                 </div>
               }
               <div className={`p-3 mb-4 whitespace-pre-wrap ${markerListDisplayState ? "blur-sm" : ""}`}>
