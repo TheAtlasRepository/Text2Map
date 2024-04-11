@@ -48,12 +48,12 @@ export default function InfoPanel(props: {
       </div>
       <div className="absolute top-0 left-0 mt-2 ml-2">
         <button className="bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 rounded-full p-2 focus:outline-none" onClick={props.onDeleteMarker}>
-          <TrashHeroIcon />
+          <TrashHeroIcon className="h-6 w-6" />
         </button>
       </div>
       <div className="absolute top-0 right-0 mt-2 mr-2">
         <button className="bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 rounded-full p-2 focus:outline-none" onClick={props.onClosed}>
-          <CloseIcon />
+          <CloseIcon className="h-6 w-6"/>
         </button>
       </div>
     </div>

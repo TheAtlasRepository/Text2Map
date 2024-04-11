@@ -1,5 +1,6 @@
 import React from 'react';
 import { MapMarker } from '../types/MapMarker';
+import { ChevronRightArrowIcon } from '../ui/icons';
 
 interface MarkerListProps {
   markers: MapMarker[],
@@ -19,8 +20,10 @@ const MarkerList: React.FC<MarkerListProps> = (
       <button
         className="p-2 text-start overflow-hidden text-nowrap hover:bg-gray-700 "
         onClick={() => props.onFlytoClick([marker.latitude, marker.longitude])}>
-        <span className="pr-auto">
-          {marker.type}</span>
+        <div className="marker_column">
+          {marker.type}
+          <ChevronRightArrowIcon />
+        </div>
       </button>
       <button
         className={marker.toggled

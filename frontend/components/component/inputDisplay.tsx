@@ -3,7 +3,7 @@ import { Button, } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import JsonRenderer from "../functions/JsonRenderer";
 import { Bbl } from '../ui/bbl';
-import { Pencil } from '../ui/icons';
+import { Pencil, ChevronDownArrowIcon, ChevronUpArrowIcon} from '../ui/icons';
 import { Textarea } from '../ui/textarea';
 import autosizeTextArea from '../functions/AutosizeTextArea';
 import { MapMarker } from '../types/MapMarker';
@@ -96,12 +96,15 @@ const InputDisplay = (props: InputDisplayProps) => {
 
   return (
     <aside className="w-1/3 flex flex-col" style={{ height: 'calc(100vh - 57px)' }}>
-      <div className="p-2 px-4 flex items-center justify-between border-b dark:border-b-gray-600 dark:bg-slate-900">
+      <div className="p-2 px-3 flex items-center justify-between border-b dark:border-b-gray-600 dark:bg-slate-900">
         <button
-          className="py-2 pr-3 overflow-hidden text-nowrap"
+          className="p-2 overflow-hidden text-nowrap border rounded-lg border-gray-600 hover:bg-gray-800"
           onClick={() => setMarkerListDisplayState(!markerListDisplayState)}
         >
-          {numberOfLocations} Locations
+          <span className="mr-2">
+            {numberOfLocations} Locations
+          </span>
+          {!markerListDisplayState ? <ChevronDownArrowIcon /> : <ChevronUpArrowIcon /> }
         </button>
         <Button
           onClick={handleEditClick}
@@ -109,7 +112,7 @@ const InputDisplay = (props: InputDisplayProps) => {
           className="flex items-center justify-center text-nowrap"
           disabled={editTextState}
         >
-          <Pencil className="inline w-5 h-5 mr-2" />Edit text
+          <Pencil className="mr-2" />Edit text
         </Button>
       </div>
       {props.loading ? (

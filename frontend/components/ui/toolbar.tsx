@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useRouter } from 'next/navigation';
 import { Button } from "./button";
-import { ChevronArrowIcon } from "./icons";
+import { ChevronLeftArrowIcon } from "./icons";
 import FormModal from "./FormModal";
 import { MapMarker } from "../types/MapMarker";
 
@@ -152,7 +152,7 @@ const Toolbar = (props: toolbarProps) => {
         <div className="flex items-center gap-4">
           <Button variant="ghost" onClick={() => router.push("/")}>
             <div className="flex items-center space-x-2">
-              <ChevronArrowIcon className="inline-flex h-5 w-5" left={1} />Back
+              <ChevronLeftArrowIcon />Back
             </div>
           </Button>
         </div>
