@@ -29,11 +29,12 @@ const MapComponent: React.FC<MapComponentProps> = (
   props: MapComponentProps
 ) => {
   const mapRef = useRef<MapRef>(null);
-  const [markers, setMarkers] = useState(props.markers);
+  const [markers, setMarkers] = useState<MapMarker[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [gotGeoJson, setGotGeoJsonState] = useState(false);
   const [selectedMarkerId, setSelectedMarkerId] = useState<number | null>(null);
   const [isEditMarkerOverlayVisible, setIsEditMarkerOverlayVisible] = useState(false);
+  const initialFlyto = useRef(true);
 
   const handleOnLoad = () => {
     setIsLoaded(true);
@@ -69,6 +70,7 @@ const MapComponent: React.FC<MapComponentProps> = (
     setSelectedMarkerId(null); // Optionally, clear the selected marker by id
   };
 
+  // This is necessary to update the display of markers once they are retrieved 
   useEffect(() => {
     setMarkers(props.markers);
   }, [props.markers]);
@@ -77,11 +79,17 @@ const MapComponent: React.FC<MapComponentProps> = (
     if (props.geojsonData != undefined && !gotGeoJson) {
       setGotGeoJsonState(true);
     }
-  })
+  }, [props.geojsonData])
 
-  // Run once when centerCoorcinates changes, then fly to coordinates.
+  // Run once when markers changes, then fly to coordinates.
   useEffect(() => {
-    if (mapRef.current && markers != null) {
+    // If initialFlyTo is false, do nothing
+    if (!initialFlyto.current) { return; }
+
+    if (mapRef.current && markers.length != 0) {
+      // Set state to false so it wont repeat
+      initialFlyto.current = false;
+
       let firstPoint: [number, number] = [markers[0].longitude, markers[0].latitude];
       console.log('Flying to: ', firstPoint);
       mapRef.current.flyTo({ center: firstPoint, zoom: 4 });
