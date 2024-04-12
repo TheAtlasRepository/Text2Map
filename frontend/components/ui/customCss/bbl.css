@@ -13,7 +13,7 @@
 }
 
 .globe {
-  border: 2px solid #FFFFFF;
+  border: 2px solid currentColor;
   border-radius: 50%;
   height: 140px;
   left: 50%;
@@ -25,10 +25,6 @@
   
   svg {
     animation: rotation 5s linear 0s infinite;
-    
-    path {
-      stroke: #FFFFFF;
-    }
   }
 }
 
