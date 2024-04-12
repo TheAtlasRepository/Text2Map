@@ -4,7 +4,7 @@
  */
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { CloseIcon, PaintbrushIcon } from "../ui/icons";
+import { CloseIcon } from "../ui/icons";
 import { Textarea } from "@/components/ui/textarea"
 import React, { useState } from "react";
 

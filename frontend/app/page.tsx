@@ -24,7 +24,7 @@ export default function Home() {
               <Card className="w-full max-w-[400px]">
                 <CardHeader>
                   <div className="flex items-center space-x-2">
-                    <TextDocumentIcon />
+                    <TextDocumentIcon className="h-6 w-6" />
                     <CardTitle>Use a text or data source</CardTitle>
                   </div>
                 </CardHeader>
@@ -44,7 +44,7 @@ export default function Home() {
               <Card className="w-full max-w-[400px]">
                 <CardHeader>
                   <div className="flex items-center space-x-2">
-                    <DoubleBubbleIcon />
+                    <DoubleBubbleIcon className="h-6 w-6" />
                     <CardTitle>Ask ChatGPT a question</CardTitle>
                   </div>
                 </CardHeader>

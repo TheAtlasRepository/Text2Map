@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { useRouter } from 'next/navigation';
 import { Button } from "./button";
-import { ChevronArrowIcon } from "./icons";
+import { ChevronLeftArrowIcon, ExportIcon } from "./icons";
 import FormModal from "./FormModal";
+import { MapMarker } from "../types/MapMarker";
 
 type toolbarProps = {
   viewAllOptions?: boolean,
@@ -32,7 +33,7 @@ const Toolbar = (props: toolbarProps) => {
   const [isFormModalOpen, setFormModalOpen] = useState(false);
 
   //Convert Markers to GeoJSON
-  const markersToGeoJsonFeatures = (markers: { latitude: number; longitude: number; type: string }[]) => {
+  const markersToGeoJsonFeatures = (markers: MapMarker[]) => {
     console.log(markers);
     return markers.map(marker => ({
       type: 'Feature',
@@ -54,7 +55,7 @@ const Toolbar = (props: toolbarProps) => {
   // Opens a confirmation window
   const handleDiscard = () => {
     const confirmText = "Do you want to discard current map? Progress will be lost.";
-    if(!window.confirm(confirmText)) return;
+    if (!window.confirm(confirmText)) return;
     console.log("Confirmed!");
     props.onDiscardClick();
   }
@@ -133,17 +134,28 @@ const Toolbar = (props: toolbarProps) => {
             />
           </div>
           <div className="flex items-center gap-4">
-            <div className="relative">
-              <Button variant="blue" onClick={toggleDropdown}>Export map</Button>
+            <Button
+              variant="blue"
+              className="flex justify-center text-nowrap"
+              onClick={toggleDropdown}>
+              <ExportIcon className="mr-2" />
+              Export map
+            </Button>
+            <Button
+              variant="green"
+              className="flex justify-center text-nowrap"
+              onClick={handleFeedbackClick}>
+              Feedback
+            </Button>
+            {/* <Button variant="secondary" disabled>Save map</Button> */}
+            <div className="absolute top-14">
               {dropdownVisible && (
-                <div className="absolute top-full mt-2 w-full min-w-max rounded-md z-10 flex flex-col">
-                  <Button variant="default" onClick={handleExportClick} className="mb-2">Export GeoJSON</Button>
-                  <Button variant="default" onClick={handleExportClickWMarkers} className="mb-2">Export GeoJSON with markers</Button>
+                <div className="absolute p-2 w-full gap-2 min-w-max bg-white dark:bg-gray-800 rounded-b-lg z-10 flex flex-col">
+                  <Button variant="secondary" onClick={handleExportClick}>Export GeoJSON</Button>
+                  <Button variant="secondary" onClick={handleExportClickWMarkers}>Export GeoJSON with markers</Button>
                 </div>
               )}
             </div>
-            <Button variant="green" onClick={handleFeedbackClick}>Feedback</Button>
-            {/* <Button variant="secondary" disabled>Save map</Button> */}
             {isFormModalOpen && <FormModal onClose={() => setFormModalOpen(false)} />}
           </div>
         </>
@@ -151,7 +163,7 @@ const Toolbar = (props: toolbarProps) => {
         <div className="flex items-center gap-4">
           <Button variant="ghost" onClick={() => router.push("/")}>
             <div className="flex items-center space-x-2">
-              <ChevronArrowIcon className="inline-flex h-5 w-5" left={1} />Back
+              <ChevronLeftArrowIcon />Back
             </div>
           </Button>
         </div>

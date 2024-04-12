@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import MapComponent from "./mapComponent";
 import { handleSendChatRequest, handleAddRequestToChat } from '../functions/ApiUtils';
 import { InputDisplay } from './inputDisplay';
+import { MapMarker } from '../types/MapMarker';
 
 export default function AskingView({
   inputText,
@@ -13,20 +14,13 @@ export default function AskingView({
   inputText: string,
   onSaveEditText: (text: string) => void,
   setGeoJsonPath: React.Dispatch<React.SetStateAction<string | null>>,
-  setMarkersToolbar: React.Dispatch<React.SetStateAction<{ latitude: number; longitude: number; type: string; }[]>>
+  setMarkersToolbar: React.Dispatch<React.SetStateAction<MapMarker[]>>
 }) {
   const [loading, setLoading] = useState(true);
-  //const [newText, setNewText] = useState('');
-  //const [editingText, setEditingText] = useState(false);
-  //const [localEditedText, setLocalEditedText] = useState('');
-
   const [jsonData, setJsonData] = useState<any>(null);
-  const [selectedMarkerIndex, setSelectedMarkerIndex] = useState<number | null>(null);
-  const [markers, setMarkers] = useState<{ latitude: number; longitude: number; type: string; }[]>([]);
-
+  const [markers, setMarkers] = useState<MapMarker[]>([]);
+  const [selectedMarker, setSelectedMarker] = useState<MapMarker | null>(null);
   const isInitialRender = useRef(true);
-  //const prevEditedTextRef = useRef<string | undefined>('');
-
 
   // Ask user if he wants to reload the page
   useEffect(() => {
@@ -77,6 +71,10 @@ export default function AskingView({
     handleAddRequestToChat(request, setJsonData, setMarkers, setLoading);
   };
 
+  const handleSelectMarker = (marker: MapMarker) => {
+    setSelectedMarker(marker);
+  }
+
   return (
     <div className="bg-white dark:bg-gray-800 dark:text-white overflow-y-auto">
       <div className="flex">
@@ -86,6 +84,8 @@ export default function AskingView({
           input={inputText}
           jsonData={jsonData}
           markers={markers}
+          setMarkers={setMarkers}
+          onSelectClick={handleSelectMarker}
           onSaveEditText={handleSaveEditText}
           onSendRequest={handleSendTextWrapper}
         />
@@ -93,8 +93,9 @@ export default function AskingView({
           <div style={{ height: 'calc(100vh - 57px)' }}>
             <MapComponent
               markers={markers}
-              selectedMarkerIndex={selectedMarkerIndex}
-              setSelectedMarkerIndex={setSelectedMarkerIndex}
+              setMarkers={setMarkers}
+              selectedMarker={selectedMarker}
+              setSelectedMarker={setSelectedMarker}
               geojsonData={jsonData?.selected_countries_geojson_path}
             />
           </div>

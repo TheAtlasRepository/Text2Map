@@ -24,9 +24,9 @@ export function Bbl() {
   }, [items.length]);
 
   return (
-    <div className="fixed inset-0 flex flex-col items-center justify-center min-h-screen gap-4 text-center bg-opacity-75" style={{ zIndex: 9999, backgroundColor: "#0e101b" }}>
+    <div className="fixed inset-0 flex flex-col items-center justify-center min-h-screen gap-4 text-center bg-opacity-85 z-50 bg-gray-200 dark:bg-slate-900 dark:bg-opacity-95">
       <div className="space-y-2">
-        <div className="inline-flex items-center space-x-2 text-3xl">
+        <div className="inline-flex items-center gap-2 text-3xl">
           <span>Creating your</span>
           <div className="inline-block font-bold">map</div>
         </div>

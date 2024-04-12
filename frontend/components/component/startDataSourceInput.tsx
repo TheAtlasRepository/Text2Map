@@ -7,6 +7,7 @@ import { Toolbar } from "../ui/toolbar";
 import MapComponent from "./mapComponent";
 import { InputDisplay } from "../component/inputDisplay";
 import autosizeTextArea from '../functions/AutosizeTextArea';
+import { MapMarker } from "../types/MapMarker";
 
 export default function StartDataSource() {
   const maxLengthInput = 3000; // Max length for input
@@ -20,10 +21,8 @@ export default function StartDataSource() {
 
   const [jsonData, setJsonData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [markers, setMarkers] = useState<
-    { latitude: number; longitude: number; type: string }[]
-  >([]);
-  const [selectedMarkerIndex, setSelectedMarkerIndex] = useState<number | null>(null);
+  const [markers, setMarkers] = useState<MapMarker[]>([]);
+  const [selectedMarker, setSelectedMarker] = useState<MapMarker | null>(null);
 
   //AutosizeTextArea
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -71,6 +70,14 @@ export default function StartDataSource() {
       setLoading
     );
   };
+
+  const handleSetMarkers = (markers: MapMarker[]) => {
+    setMarkers(markers);
+  }
+
+  const handleSelectMarker = (marker: MapMarker) => {
+    setSelectedMarker(marker);
+  }
 
   // Ask user if he wants to reload the page
   useEffect(() => {
@@ -238,16 +245,19 @@ export default function StartDataSource() {
               displayState={2} // 2 for manual text-input
               loading={loading}
               input={inputText}
-              jsonData={jsonData}
+              jsonData={jsonData} // Should probably shorten to just jsonData.chat-history
               markers={markers}
+              setMarkers={setMarkers}
+              onSelectClick={handleSelectMarker}
               onSaveEditText={handleInputButtonClick}
             />
             <main className="flex-auto relative w-2/3">
               <div style={{ height: "calc(100vh - 57px)" }}>
                 <MapComponent
                   markers={markers}
-                  selectedMarkerIndex={selectedMarkerIndex}
-                  setSelectedMarkerIndex={setSelectedMarkerIndex}
+                  setMarkers={setMarkers}
+                  selectedMarker={selectedMarker}
+                  setSelectedMarker={setSelectedMarker}
                   geojsonData={jsonData?.selected_countries_geojson_path}
                 />
               </div>
