@@ -1,7 +1,7 @@
 import React from "react";
 import { cn } from "@/lib/utils"
 
-const baseClasses: string = "h-5 w-5 inline-flex"
+const baseClasses: string = "h-5 w-5 inline-flex self-center"
 const svgParams = {
   xmlns: "http://www.w3.org/2000/svg",
   fill: "none",
@@ -139,10 +139,10 @@ const PencilIcon = (props: any) => {
   )
 }
 
-const MagnifyIcon = (props: any) => {
+const ExportIcon = (props: any) => {
   return (
     <svg {...svgParams} {...props} className={cn(baseClasses, props.className)} >
-      <path d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+      <path d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
     </svg>
   )
 }
@@ -155,4 +155,4 @@ const EyeSlashIcon = (props: any) => {
   )
 }
 
-export { UploadIcon, DownloadIcon, TextDocumentIcon, DoubleBubbleIcon, ChevronLeftArrowIcon, ChevronRightArrowIcon, ChevronUpArrowIcon, ChevronDownArrowIcon, FatArrowIcon, ArrowLongIcon, TrashHeroIcon, CloseIcon, EditIcon, PaintbrushIcon, PencilIcon, MagnifyIcon, EyeSlashIcon }
+export { UploadIcon, DownloadIcon, TextDocumentIcon, DoubleBubbleIcon, ChevronLeftArrowIcon, ChevronRightArrowIcon, ChevronUpArrowIcon, ChevronDownArrowIcon, FatArrowIcon, ArrowLongIcon, TrashHeroIcon, CloseIcon, EditIcon, PaintbrushIcon, PencilIcon, ExportIcon, EyeSlashIcon }
