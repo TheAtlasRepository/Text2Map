@@ -1,27 +1,23 @@
-
 import React from 'react';
+import { MapMarker } from '../types/MapMarker';
 
 type CoordinateProps = {
-  latitude: number;
-  longitude: number;
-  type: string;
+  marker: MapMarker;
   isSelected: boolean;
-  onClick: () => void;
+  onClick: (marker: MapMarker) => void;
 };
 
 const Coordinate: React.FC<CoordinateProps> = ({
-  latitude,
-  longitude,
-  type,
+  marker,
   isSelected,
   onClick,
 }) => {
   return (
     <div
       className={`custom-marker ${isSelected ? 'selected' : ''}`}
-      onClick={onClick}
+      onClick={() => onClick(marker)}
     >
-      <span>{type}</span>
+      <span>{marker.type}</span>
     </div>
   );
 };

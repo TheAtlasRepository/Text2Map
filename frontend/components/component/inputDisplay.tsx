@@ -18,6 +18,7 @@ type InputDisplayProps = {
   jsonData?: any,
   markers: MapMarker[];
   setMarkers: React.Dispatch<React.SetStateAction<MapMarker[]>>,
+  onSelectClick: (marker: MapMarker) => void,
   onSaveEditText: (text: string) => void,
   onSendRequest?: (text: string) => void
 }
@@ -144,6 +145,7 @@ const InputDisplay = (props: InputDisplayProps) => {
                 <div className="relative top-0 z-10">
                   <MarkerList
                     markers={props.markers}
+                    onSelectClick={props.onSelectClick}
                     onToggleClick={handleToggleMarker} />
                 </div>
               }

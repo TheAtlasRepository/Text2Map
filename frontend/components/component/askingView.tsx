@@ -19,6 +19,7 @@ export default function AskingView({
   const [loading, setLoading] = useState(true);
   const [jsonData, setJsonData] = useState<any>(null);
   const [markers, setMarkers] = useState<MapMarker[]>([]);
+  const [selectedMarker, setSelectedMarker] = useState<MapMarker | null>(null);
   const isInitialRender = useRef(true);
 
   // Ask user if he wants to reload the page
@@ -70,8 +71,8 @@ export default function AskingView({
     handleAddRequestToChat(request, setJsonData, setMarkers, setLoading);
   };
 
-  const handleSetMarkers = (markers: MapMarker[]) => {
-    setMarkers(markers);
+  const handleSelectMarker = (marker: MapMarker) => {
+    setSelectedMarker(marker);
   }
 
   return (
@@ -83,7 +84,8 @@ export default function AskingView({
           input={inputText}
           jsonData={jsonData}
           markers={markers}
-          onSetMarkers={handleSetMarkers}
+          setMarkers={setMarkers}
+          onSelectClick={handleSelectMarker}
           onSaveEditText={handleSaveEditText}
           onSendRequest={handleSendTextWrapper}
         />
@@ -91,6 +93,9 @@ export default function AskingView({
           <div style={{ height: 'calc(100vh - 57px)' }}>
             <MapComponent
               markers={markers}
+              setMarkers={setMarkers}
+              selectedMarker={selectedMarker}
+              setSelectedMarker={setSelectedMarker}
               geojsonData={jsonData?.selected_countries_geojson_path}
             />
           </div>

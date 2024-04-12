@@ -22,7 +22,7 @@ export default function StartDataSource() {
   const [jsonData, setJsonData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [markers, setMarkers] = useState<MapMarker[]>([]);
-  // const [selectedMarkerId, setSelectedMarkerId] = useState<number | null>(null);
+  const [selectedMarker, setSelectedMarker] = useState<MapMarker | null>(null);
 
   //AutosizeTextArea
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -73,6 +73,10 @@ export default function StartDataSource() {
 
   const handleSetMarkers = (markers: MapMarker[]) => {
     setMarkers(markers);
+  }
+
+  const handleSelectMarker = (marker: MapMarker) => {
+    setSelectedMarker(marker);
   }
 
   // Ask user if he wants to reload the page
@@ -244,6 +248,7 @@ export default function StartDataSource() {
               jsonData={jsonData} // Should probably shorten to just jsonData.chat-history
               markers={markers}
               setMarkers={setMarkers}
+              onSelectClick={handleSelectMarker}
               onSaveEditText={handleInputButtonClick}
             />
             <main className="flex-auto relative w-2/3">
@@ -251,6 +256,8 @@ export default function StartDataSource() {
                 <MapComponent
                   markers={markers}
                   setMarkers={setMarkers}
+                  selectedMarker={selectedMarker}
+                  setSelectedMarker={setSelectedMarker}
                   geojsonData={jsonData?.selected_countries_geojson_path}
                 />
               </div>

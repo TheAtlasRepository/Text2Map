@@ -4,7 +4,7 @@ import { ChevronRightArrowIcon } from '../ui/icons';
 
 interface MarkerListProps {
   markers: MapMarker[],
-  onFlytoClick: (coordinates: [number, number]) => void,
+  onSelectClick: (marker: MapMarker) => void,
   onToggleClick: (id: number) => void
 }
 
@@ -19,7 +19,7 @@ const MarkerList: React.FC<MarkerListProps> = (
     >
       <button
         className="p-2 pl-4 text-start overflow-hidden text-nowrap hover:bg-gray-200 dark:hover:bg-gray-700"
-        onClick={() => props.onFlytoClick([marker.latitude, marker.longitude])}>
+        onClick={() => props.onSelectClick(marker)}>
         <div className="marker_column">
           {marker.type}
           <ChevronRightArrowIcon />

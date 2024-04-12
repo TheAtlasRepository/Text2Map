@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import ReactMapGL, { Marker, Popup, Source, Layer } from 'react-map-gl';
-import type { FillLayer, MapRef } from 'react-map-gl';
+import type { MapRef } from 'react-map-gl';
 import Coordinate from '../functions/Coordinates';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import InfoPanel from '../component/info-panel';
@@ -14,8 +14,8 @@ import markerToggle from '../functions/markerToggle';
 type MapComponentProps = {
   markers: MapMarker[];
   setMarkers: React.Dispatch<React.SetStateAction<MapMarker[]>>,
-  // selectedMarkerId: number | null;
-  // setSelectedMarkerId: React.Dispatch<React.SetStateAction<number | null>>;
+  selectedMarker: MapMarker | null;
+  setSelectedMarker: React.Dispatch<React.SetStateAction<MapMarker | null>>;
   geojsonData?: any;
 };
 
@@ -23,7 +23,10 @@ type MapComponentProps = {
 /**
  * Map Component for displaying map with added formatting
  * 
- * @param markers 
+ * @param markers Array of markers to display
+ * @param setMarkers 
+ * @param selectMarker
+ * @param setSelectedMarker
  * @param geojsonData 
  * @returns 
  */
@@ -31,10 +34,8 @@ const MapComponent: React.FC<MapComponentProps> = (
   props: MapComponentProps
 ) => {
   const mapRef = useRef<MapRef>(null);
-  //const [markers, setMarkers] = useState<MapMarker[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [gotGeoJson, setGotGeoJsonState] = useState(false);
-  const [selectedMarkerId, setSelectedMarkerId] = useState<number | null>(null);
   const [isEditMarkerOverlayVisible, setIsEditMarkerOverlayVisible] = useState(false);
   const initialFlytoRef = useRef(true);
 
@@ -43,19 +44,14 @@ const MapComponent: React.FC<MapComponentProps> = (
   };
 
   // Logic for when a marker is selected
-  const handleMarkerSelect = (id: number, lat: number, lon: number) => {
-    setSelectedMarkerId(id)
-
-    if (mapRef.current) {
-      // console.log('lat and lon: ', lat, lon);
-      mapRef.current.flyTo({ center: [lon, lat], speed: 0.5 });
-    }
+  const handleMarkerSelect = (marker: MapMarker) => {
+    props.setSelectedMarker(marker);
   }
 
   const handleMarkerTitleChange = (newTitle: string) => {
     // Update the marker title and type in the MapComponent's state
     props.setMarkers(props.markers.map(marker => {
-      if (marker.numId === selectedMarkerId) {
+      if (marker.numId === props.selectedMarker?.numId) {
         return { ...marker, type: newTitle, title: newTitle }; // Assuming you want to update both title and type
       }
       return marker;
@@ -70,13 +66,8 @@ const MapComponent: React.FC<MapComponentProps> = (
   const handleHideMarker = (id: number) => {
     const markers = props.markers;
     props.setMarkers(markerToggle(id, markers));
-    setSelectedMarkerId(null); // Optionally, clear the selected marker by id
+    props.setSelectedMarker(null); // Optionally, clear the selected marker by id
   }
-
-  // This is necessary to update the display of markers once they are retrieved 
-  useEffect(() => {
-    setMarkers(props.markers);
-  }, [props.markers]);
 
   useEffect(() => {
     if (props.geojsonData != undefined && !gotGeoJson) {
@@ -98,6 +89,17 @@ const MapComponent: React.FC<MapComponentProps> = (
       mapRef.current.flyTo({ center: firstPoint, zoom: 4 });
     }
   }, [props.markers])
+
+
+  // Flyto location!
+  useEffect(() => {
+    if(props.selectedMarker === null) { return; }
+
+    if (mapRef.current) {
+      // console.log('lat and lon: ', lat, lon);
+      mapRef.current.flyTo({ center: [props.selectedMarker.longitude, props.selectedMarker.latitude], speed: 0.6, zoom: 7 });
+    }
+  }, [props.selectedMarker])
 
   return (
     <ReactMapGL
@@ -160,13 +162,11 @@ const MapComponent: React.FC<MapComponentProps> = (
                   offset={[0, -25] as [number, number]}
                 >
                   <Coordinate
-                    latitude={marker.latitude}
-                    longitude={marker.longitude}
-                    type={marker.type}
-                    isSelected={selectedMarkerId === marker.numId}
-                    onClick={() => handleMarkerSelect(marker.numId, marker.latitude, marker.longitude)}
+                    marker={marker}
+                    isSelected={props.selectedMarker?.numId === marker.numId}
+                    onClick={handleMarkerSelect}
                   />
-                  {selectedMarkerId === marker.numId && (
+                  {props.selectedMarker?.numId === marker.numId && (
                     <Popup
                       latitude={marker.latitude}
                       longitude={marker.longitude}
@@ -178,7 +178,7 @@ const MapComponent: React.FC<MapComponentProps> = (
                     >
                       <InfoPanel
                         marker={marker}
-                        onClosed={() => setSelectedMarkerId(null)}
+                        onClosed={() => props.setSelectedMarker(null)}
                         onHideMarker={handleHideMarker}
                         onEditMarker={toggleEditMarkerOverlay}
                         onMarkerTitleChange={handleMarkerTitleChange}
@@ -190,12 +190,12 @@ const MapComponent: React.FC<MapComponentProps> = (
           ))}
         </>
       }
-      {isEditMarkerOverlayVisible && selectedMarkerId !== null && (
+      {isEditMarkerOverlayVisible && props.selectedMarker !== null && (
         <div className="editMarkerOverlay">
           <EditMarker
             onClose={toggleEditMarkerOverlay}
             onTitleChange={handleMarkerTitleChange}
-            title={props.markers[selectedMarkerId].type}
+            title={props.selectedMarker?.type}
           />
         </div>
       )}
