@@ -16,9 +16,8 @@ const JsonRenderer: React.FC<JsonRendererProps> = ({ jsonData }) => {
     const formattedContent = chatHistory.map((item, index) => {
       const role = item.sender === 'user' ? 'User' : 'Assistant';
       const message = item.message
-        .replace(/    |(?:(?<=:))  /g,'\n') //GPT sometimes returns four spaces followed by a dash, and sometimes double spaces after colon. This adds a linebreak to list elements up better.
-        .replace(/(?:(?<!:)  (?!\d+\.))/g,'\n\n') // This adds linebreaks between paragraphs, unless a colon is presented.
-        .replace(/(?:(?<=: )\d+\.|(?<=\. )\d+\.|(?<=\.  )\d+\.)|(?<=\.   )\d+\./g,'\n$&'); // This adds linebreak for numbered elements and helps to breaks up the returned text.
+        .replace(/    |(?:(?<=:)  |(?<=:) (?=\d+\.)|(?<=\.) +(?=\d+\.))/g,'\n') //GPT sometimes returns four spaces followed by a dash, and sometimes double spaces after colon. This adds a linebreak to list elements up better.
+        .replace(/(?:(?<!:)  (?!\d+\.)|(?<!\.)  (?=\d+\.))/g,'\n\n') // This adds linebreaks between paragraphs, unless a colon is presented.
 
       return <p className="pb-3" key={index}><strong>{role}:</strong> {message}</p>;
     }).reverse();
