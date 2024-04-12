@@ -1,6 +1,6 @@
 import React from 'react';
 import { MapMarker } from '../types/MapMarker';
-import { ChevronRightArrowIcon } from '../ui/icons';
+import { Input } from '../ui/input';
 
 interface MarkerListProps {
   markers: MapMarker[],
@@ -14,7 +14,7 @@ const MarkerList: React.FC<MarkerListProps> = (
   // Building the list as an element 
   const list = props.markers.map(marker =>
     <div
-      className="border-b marker_column dark:border-b-gray-600"
+      className="border-b marker_column pr-2 dark:border-b-gray-600"
       key={marker.numId}
     >
       <button
@@ -22,24 +22,24 @@ const MarkerList: React.FC<MarkerListProps> = (
         onClick={() => props.onSelectClick(marker)}>
         <div className="marker_column">
           {marker.type}
-          <ChevronRightArrowIcon />
         </div>
       </button>
-      <button
-        className={marker.toggled
-          ? "bg-green-600 p-2"
-          : "bg-red-600 p-2"
-        }
-        onClick={() => props.onToggleClick(marker.numId)}>
-        <span>Toggle</span>
-      </button>
+
+      <label className="toggle_switch" title={`Toggle marker for ${marker.type}`} aria-label={`Toggle marker for ${marker.type}`} >
+        <Input
+          type="checkbox"
+          name={marker.type}
+          checked={marker.toggled}
+          onChange={() => props.onToggleClick(marker.numId)} />
+        <span className="toggle_switch_slider"></span>
+      </label>
     </div>
   )
 
   // Returned structure
   return (
     <div className="absolute w-full pb-20">
-      <div className="bg-white dark:bg-gray-800 pb-5 shadow-md dark:shadow-slate-900">
+      <div className="bg-white dark:bg-gray-800 pt-2 pb-5 shadow-md dark:shadow-slate-900">
         {list}
       </div>
     </div>

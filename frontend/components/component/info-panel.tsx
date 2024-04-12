@@ -11,11 +11,12 @@ const InfoPanel = (props: {
   onMarkerTitleChange: (newTitle: string) => void;
 }) => {
   const [imageLink, setImageLink] = useState("");
+  const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
   useEffect(() => {
     // Fetch data from API
     try {
-      fetch('http://127.0.0.1:8000/imagesearch?query=' + props.marker.type)
+      fetch(BASE_URL + "/imagesearch?query=" + props.marker.type)
         .then(response => response.json())
         .then(data => {
           // Update the image link state variable
@@ -42,17 +43,16 @@ const InfoPanel = (props: {
         <a href="#">
           <h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">{props.marker.type}</h5>
         </a>
-        <Button 
-        // className="bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-full p-2 focus:outline-none" 
-        variant={"secondary"}
-        onClick={props.onEditMarker}>
-        
+        <Button
+          variant={"secondary"}
+          onClick={props.onEditMarker}>
+
           Edit Marker
         </Button>
       </div>
       <div className="absolute top-0 left-0 mt-2 ml-2">
         <button
-          className="bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 rounded-full p-2 focus:outline-none"
+          className="bg-gray-100 hover:bg-white/90 dark:bg-gray-800 dark:hover:bg-gray-700 rounded-full p-2 focus:outline-none"
           title="Hide marker"
           onClick={() => props.onHideMarker(props.marker.numId)}>
           <EyeSlashIcon className="h-6 w-6" />
@@ -60,7 +60,7 @@ const InfoPanel = (props: {
       </div>
       <div className="absolute top-0 right-0 mt-2 mr-2">
         <button
-          className="bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 rounded-full p-2 focus:outline-none"
+          className="bg-gray-100 hover:bg-white/90 dark:bg-gray-800 dark:hover:bg-gray-700 rounded-full p-2 focus:outline-none"
           title="Close popup"
           onClick={props.onClosed}>
           <CloseIcon className="h-6 w-6" />
