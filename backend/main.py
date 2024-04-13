@@ -11,7 +11,8 @@ router = APIRouter()
 origins = [
     "http://localhost",
     "http://localhost:8080",
-    "http://localhost:3000"
+    "http://localhost:3000",
+    "https://text2map-frontend-a527f4a635fc.herokuapp.com"
 ]
 
 # Add CORS middleware

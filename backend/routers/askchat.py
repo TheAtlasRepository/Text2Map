@@ -120,7 +120,7 @@ async def get_geometry_online(address: str) -> shape:
 
     if adm_level == "ADM0":
         try:
-            url = f"https://geob-rust-api.fly.dev/geojson?iso3={iso3}"
+            url = f"https://geob-rust-api-cf77d36d0349.herokuapp.com/geojson?iso3={iso3}"
             print(f"URL: {url}")
                 
             async with aiohttp.ClientSession() as session:
@@ -155,7 +155,7 @@ async def get_geometry_online(address: str) -> shape:
             address = address.split(",")[0]
             address = unicodedata.normalize('NFD', address)
             address = urllib.parse.quote(address, safe='')
-            url = f"https://geob-rust-api.fly.dev/geojson?iso3={iso3}&query={address}"
+            url = f"https://geob-rust-api-cf77d36d0349.herokuapp.com/geojson?iso3={iso3}&query={address}"
             print(f"URL: {url}")
                 
             async with aiohttp.ClientSession() as session:
