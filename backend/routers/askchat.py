@@ -127,8 +127,8 @@ async def get_geometry_online(address: str) -> shape:
                 async with session.get(url) as response:
                     data = await response.json()
 
-                if response.status == 200 and 'features' in data and len(data['features']) > 0 and 'geometry' in data['features'][0]:
-                    geometry = shape(data['features'][0]['geometry'])
+                if response.status == 200 and 'geometry' in data:
+                    geometry = shape(data['geometry'])
                     print(f"Fetched geometry for {formatted_address}")
 
                     # If the geometry is a MultiPolygon, convert it to a Polygon
@@ -162,8 +162,8 @@ async def get_geometry_online(address: str) -> shape:
                 async with session.get(url) as response:
                     data = await response.json()
 
-                if response.status == 200 and 'features' in data and len(data['features']) > 0 and 'geometry' in data['features'][0]:
-                    geometry = shape(data['features'][0]['geometry'])
+                if response.status == 200 and 'geometry' in data:
+                    geometry = shape(data['geometry'])
                     print(f"Fetched geometry for {formatted_address}")
                     return geometry                
                 else:

@@ -4,6 +4,9 @@ import { MapMarker } from '../types/MapMarker';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
+// If ran locally, use the following URL
+//const BASE_URL = 'http://localhost:8000';
+
 export const handleDataFetching = async (
   url: string,
   payload: any,
