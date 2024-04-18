@@ -96,7 +96,7 @@ export const handleSendChatRequest = async (
 
     console.log('Response data:', responseData);
 
-    const threadId = responseData.thread_id;
+    const threadId = responseData?.thread_id;
     if (!threadId) {
       console.error('No threadId provided in the backend response.');
       return;
