@@ -239,7 +239,7 @@ body {
   transition: .4s;
 
   @media (prefers-color-scheme: dark) {
-    background-color: rgb(75 85 99);
+    background-color: rgb(65 65 70);
   }
 }
 
@@ -254,6 +254,10 @@ body {
   background-color: white;
   -webkit-transition: .4s;
   transition: 0.2s;
+
+  @media (prefers-color-scheme: dark) {
+    background-color: rgb(116, 116, 116);
+  }
 }
 
 input:checked + .toggle_switch_slider {
@@ -264,4 +268,5 @@ input:checked + .toggle_switch_slider:before {
   -webkit-transform: translateX(26px);
   -ms-transform: translateX(26px);
   transform: translateX(26px);
+  background-color: white;
 }
