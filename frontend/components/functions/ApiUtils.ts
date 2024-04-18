@@ -43,6 +43,14 @@ export const handleDataFetching = async (
             .isArray(item) && item.length === 2))
         .flat()
       );
+
+      // Sort the order of locations returned.
+      coordinates.sort((a, b) => {
+        if (a.type < b.type) { return -1; }
+        if (a.type < b.type) { return 1; }
+        return 0;
+      })
+      // Print out locations
       console.log('Extracted Coordinates:', coordinates);
 
       // Proceed with the rest of your logic, e.g., extracting coordinates, setting markers, etc.
@@ -88,7 +96,7 @@ export const handleSendChatRequest = async (
 
     console.log('Response data:', responseData);
 
-    const threadId = responseData.thread_id;
+    const threadId = responseData?.thread_id;
     if (!threadId) {
       console.error('No threadId provided in the backend response.');
       return;
