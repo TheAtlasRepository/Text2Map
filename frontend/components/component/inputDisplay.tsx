@@ -91,7 +91,8 @@ const InputDisplay = (props: InputDisplayProps) => {
     <aside className="w-1/3 min-w-min max-w-[500px] flex flex-col" style={{ height: 'calc(100vh - 57px)' }}>
       <div className="p-2 px-3 gap-2 z-30 flex justify-between border-b dark:border-b-gray-600 dark:bg-slate-900 shadow-md dark:shadow-slate-900">
         <button
-          className="p-2 inline-flex overflow-hidden text-nowrap border rounded-lg border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-800"
+          className={`p-2 inline-flex overflow-hidden text-nowrap border rounded-lg border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-800 
+            ${markerListDisplayState ? "bg-gray-200 dark:bg-gray-800" : ""}`}
           onClick={() => setMarkerListDisplayState(!markerListDisplayState)}
         >
           <span className="mr-2">
