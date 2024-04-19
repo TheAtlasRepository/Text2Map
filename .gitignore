@@ -1,3 +1,4 @@
 backend/__pycache__/*
 backend/routers/__pycache__/*
 .env
+.DS_Store
