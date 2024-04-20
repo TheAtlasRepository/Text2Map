@@ -2,10 +2,10 @@ import { extractCoordinates } from '../functions/CoordinateExtractor'; // Adjust
 import axios from 'axios';
 import { MapMarker } from '../types/MapMarker';
 
-const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+//const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 // If ran locally, use the following URL
-//const BASE_URL = 'http://localhost:8000';
+const BASE_URL = 'http://localhost:8000';
 
 export const handleDataFetching = async (
   url: string,
