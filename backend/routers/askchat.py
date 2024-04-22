@@ -22,9 +22,9 @@ router = APIRouter()
 openai_api_key = os.getenv('OPENAI_API_KEY')
 client = OpenAI(api_key=openai_api_key)
 
-chat_history = []
 
-my_assistant = client.beta.assistants.retrieve("asst_adZiTCNOb0TH56032BKlXc5I")
+chat_assistant = client.beta.assistants.retrieve("asst_adZiTCNOb0TH56032BKlXc5I")
+reader_assistant = client.beta.assistants.retrieve("asst_vCdrvpZmGFeNdjKv7VnPmUXc")
 
 
 # Define a cache to store previously fetched geometries
@@ -39,6 +39,7 @@ async def fetch_geojson(session: ClientSession, url: str) -> dict:
             return await response.json(content_type=None)
        
 async def address_to_coordinates(address, bing_maps_key = "Akp4jrj9Y3XZZmmVVwpiK2Op2v7wB7xaHr4mqDWOQ8xD-ObvUUOrG_4Xae2rYiml"):
+    print("Running address_to_coordinates using: ", address)
     encoded_address = urllib.parse.quote(address.encode('utf-8'), safe='')
     route_url = f"http://dev.virtualearth.net/REST/V1/Locations?q={encoded_address}&key={bing_maps_key}"
     
@@ -49,6 +50,7 @@ async def address_to_coordinates(address, bing_maps_key = "Akp4jrj9Y3XZZmmVVwpiK
     # Check if 'resourceSets' and 'resources' exist and are not empty
     if 'resourceSets' in data and data['resourceSets'] and 'resources' in data['resourceSets'][0] and data['resourceSets'][0]['resources']:
         resource = data['resourceSets'][0]['resources'][0]
+        print("This is the raw resource picked out from data: ", resource)
     else:
         print(f"No resources found for address: {address}")
         return None, None, None, None, None # Return None for all values if no resources are found
@@ -247,9 +249,25 @@ async def get_geometry(address):
 # Function for handeling manual text input
 @router.post("/newText", response_model=dict)
 async def postNewText(text: str):
+    """
+    Send text to the assistant and have locations extracted
+
+    Arguments:
+    - string (text): text with locations
+
+    Returns:
+    - dictionary: Object with entities and geojson paths
+    """
+    
     print("Sending text: " + text)
 
-    response = await run_text_through_prosessor(text)
+    # Create a new thread
+    thread_id = client.beta.threads.create().id
+    # print the thread_id
+    print(f"Thread ID: {thread_id}")
+    response_data, formatted_messages = await requestToGPT(text, thread_id, "READER")
+
+    response = await run_text_through_prosessor(response_data)
     
     # Return the new GeoJSON file path to the frontend
     return {
@@ -262,26 +280,23 @@ async def postNewText(text: str):
 @router.post("/newChat", response_model=dict)
 async def postNewChat(message: str):
     """
-    # Send a message to the assistant and return the response.
+    Send a message to the assistant and return the response.
     
-    ## Arguments
-    - message the message to send to the assistant
-    ## Return: 
+    Arguments
+    - string (message): the message to send to the assistant
+    
+    Return: 
     - returns the response from the assistant as a dictionary which includes the entities, selected_countries_geojson_path, chat_history, and thread_id
     """
     
-    global chat_history
-    # Create a new thread
-    new_thread = client.beta.threads.create() 
-    chat_history = [{"role": "user", "content": message}]
-    # create a global variable to store the thread_id
-    thread_id = new_thread.id
+    # Create a new thread id
+    thread_id = client.beta.threads.create().id
     # print the thread_id
     print(f"Thread ID: {thread_id}")
     # Pass the thread_id to postMoreChat
     response = await postMoreChat(message, thread_id)
-    chat_history.append({"role": "assistant", "content": response["chat_history"][-1]["message"]})
-
+    
+    
     return {
         "entities": response["entities"],
         "selected_countries_geojson_path": response["selected_countries_geojson_path"],
@@ -294,22 +309,61 @@ async def postNewChat(message: str):
 @router.post("/moreChat", response_model=dict)
 async def postMoreChat(message: str, thread_id: str):
     """
-    # Send a message to the assistant and return the response.
+    Send a message to the assistant and return the response.
     
-    ## Arguments
+    Arguments
     - message the message to send to the assistant
     - thread_id the id of the thread to send the message to
-    ## Return: 
+    
+    Return: 
     - returns the response from the assistant as a dictionary which includes the entities, selected_countries_geojson_path, chat_history, and thread_id
     """
     print("Sending message: " + message + " to thread " + thread_id)
 
     # Send a message to the assistant
-    msg = client.beta.threads.messages.create(thread_id, role="user", content=message)
+    response_data, formatted_messages = await requestToGPT(message, thread_id, "CHAT")
+
+    # Run the value field through the processor
+    response = await run_text_through_prosessor(response_data)
     
-    # Run the assistant
-    run = client.beta.threads.runs.create(thread_id, assistant_id=my_assistant.id)
     
+    return {
+        "entities": response["entities"],
+        "selected_countries_geojson_path": response["selected_countries_geojson_path"],
+        "chat_history": formatted_messages
+    }
+
+
+
+async def requestToGPT(text: str, thread_id: str, mode: str = "CHAT"):
+    """Send messages to gpt assistant, based on mode
+
+    Arguments:
+    - text: The text to send to GPT
+    - thread_id: The threadId to use for the request
+    - mode: The mode for handeling the text. 
+      - "CHAT" answers questions and finds locations. 
+      - "READER" responds with the locations found in the text
+
+    Return:
+    - response_data: The locations from the response
+    - formatted_messages: The respons from GPT
+    """
+
+    # Checks
+    if not text: return {"", ""}
+    if not thread_id: thread_id = client.beta.threads.create().id
+    
+    # Send a message to the assistant
+    msg = client.beta.threads.messages.create(thread_id, role="user", content=text)
+    
+    # Run the assistant based on mode
+    if(mode == "CHAT"): 
+      run = client.beta.threads.runs.create(thread_id, assistant_id=chat_assistant.id)
+    elif(mode == "READER"):
+      run = client.beta.threads.runs.create(thread_id, assistant_id=reader_assistant.id)
+
+    # Display status for the request
     while run.status != "completed":
         keep_retrieving_run = client.beta.threads.runs.retrieve(
             thread_id=thread_id,
@@ -351,15 +405,9 @@ async def postMoreChat(message: str, thread_id: str):
         # Handle the error, e.g., by returning an error response or logging the issue
         return {"error": "Invalid JSON format"}
 
-    # Run the value field through the processor
-    response = await run_text_through_prosessor(response_data)
-    
-    
-    return {
-        "entities": response["entities"],
-        "selected_countries_geojson_path": response["selected_countries_geojson_path"],
-        "chat_history": formatted_messages
-    }
+    return response_data, formatted_messages
+
+
 
 
 # Text processor for extracting and finding locations from text
