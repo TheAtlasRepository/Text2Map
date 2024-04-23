@@ -278,7 +278,7 @@ async def postNewText(text: str) -> dict:
     formatted_messages = await requestToGPT(text, thread_id, "READER")
     response_data = gptResponseToJson(formatted_messages)
 
-    response = await run_locations_through_prosessor(response_data)
+    response = await run_locations_through_prosessor(response_data.get("locations"))
     
     # Return the new GeoJSON file path to the frontend
     return {
@@ -336,7 +336,7 @@ async def postMoreChat(message: str, thread_id: str) -> dict:
     response_data = gptResponseToJson(formatted_messages)
 
     # Run the value field through the processor
-    response = await run_locations_through_prosessor(response_data)
+    response = await run_locations_through_prosessor(response_data.get("locations"))
     
     return {
         "entities": response["entities"],
@@ -361,7 +361,6 @@ async def requestToGPT(text: str, thread_id: str, mode: str = "CHAT") -> list:
         list: The respons from GPT
     """
     
-
     # Send a message to the assistant
     msg = client.beta.threads.messages.create(thread_id, role="user", content=text)
     
@@ -401,7 +400,6 @@ async def requestToGPT(text: str, thread_id: str, mode: str = "CHAT") -> list:
         })
     
     print (f"Assistant response: {formatted_messages}")
-
     return formatted_messages
 
 
@@ -419,14 +417,13 @@ def gptResponseToJson(input_messages: str) -> dict:
     
     # Parse the JSON string into a Python object
     try:
-        response_data = json.loads(str(assistant_response_json))
+        response_data: dict = json.loads(str(assistant_response_json))
     except json.JSONDecodeError as e:
-        print(f"Error parsing JSON: {e}")
-        # Handle the error, e.g., by returning an error response or logging the issue
-        return (None, "Invalid JSON format")
-    
-    print("Response data: ", response_data)
-
+        
+        # Print the error response and the failed input
+        print("Error parsing JSON: ", e)
+        print("The input that failed: ", assistant_response_json)
+        
     return response_data
 
 
@@ -434,7 +431,7 @@ def gptResponseToJson(input_messages: str) -> dict:
 
 
 # Text processor for extracting and finding locations from text
-async def run_locations_through_prosessor(input_locations: dict) -> dict:
+async def run_locations_through_prosessor(locations: list) -> dict:
     """Function for prosessing the locations into coordinates and geodata, and grouping it together.
 
     Args:
@@ -448,76 +445,67 @@ async def run_locations_through_prosessor(input_locations: dict) -> dict:
     entities = []
     
     # Initialize a set to track processed countries
-    processed_countries = set()
-    processed_places = set()
-    unassociated_places = set()
+    # Storage
+    combinations_to_search_with = set()
+    all_places = []
 
     # Initialize country_geometries as an empty list
     country_geometries = []
     state_geometries = []
     city_geometries = []
-    
-    # Parse the JSON response
-    response_data = doc
-    locations = response_data.get("locations", [])
-    
-    # Keep track of ISO codes of the countries mentioned in the user's input
-    mentioned_country_iso_codes = set()
-    mentioned_places = set()
-    
-    # Run geocoding, geometry fetching, and city information fetching concurrently
-    country_tasks = []
-    state_tasks = []
-    city_tasks = []
-    places_tasks = []
-        
+
+
+    # Store the places for checking duplicates
+    for location in locations:
+        place = location.get("place")
+
+        if place != None or place != "":
+            all_places.append(place)
+
     # Extract and process each location
     for location in locations:
-        country = location.get("country")
+        country = location.get("country") # Iso3 code
         state = location.get("state")
         city = location.get("city")
         place = location.get("place")
 
-        # Combine country, state, and city into a single address string
-        address = ", ".join(filter(None, [city, state, country]))
 
-        # Check if the country is already processed
-        if country not in processed_countries:
-            processed_countries.add(country)
-            # Fetch geometry for the country
-            geometry = await get_geometry(address)
-            if geometry:
-                country_geometries.append(geometry)
+        #create searchable addresses based on logic
+        #TODO: Create some logic for 
+
+        if country is None:
+            print("Missing a country value: ", location)
+        elif state is None and city is None:
+            # singular_places.add(place)
+            print("Found a lone place: ", place)
+
+        # If things are in order, add location to search. 
+        # Prioritize City, then State, and lastly Country.
+        if country is not None:
+            # Joins the values together into one string, skipping the None values.
+            address = ", ".join(filter(None, [country, state, city]))
+
+            # Add address only if not already added
+            if address not in combinations_to_search_with:
+                print("Adding combined adress to queue: ", address)            
+                combinations_to_search_with.add(address)
+        
+        # Unsure about this logic
+        if (place != None or place == "") and place is not city and place is not state: # and city is not None:
+            numb = all_places.count(place)
+
+            # If the place belongs to a city, and is not a repeating tag added by GPT, add it to queue
+            if numb <= 1:
+                place_address = ", ".join(filter(None, [country, state, city, place]))
                 
-        # Check if the state is already processed
-        if state not in processed_places and state is not None and country is not None:
-            processed_places.add(state)
-            # Fetch geometry for the state
-            geometry = await get_geometry(address)
-            if geometry:
-                state_geometries.append(geometry)
-                
-        # Similarly, for the city
-        if city not in processed_places and city is not None and state is not None and country is not None:
-            processed_places.add(city)
-            # Fetch geometry for the city
-            geometry = await get_geometry(address)
-            if geometry:
-                city_geometries.append(geometry)
-                
-        # Check if the place is already processed
-        if place not in processed_places:
-            processed_places.add(place)
-            # Add the place to the set of unassociated places
-            unassociated_places.add(place)
-    
-    # Process the new list to add them as markers on the map
-    for place in unassociated_places:
-        try:
-            coordinates, iso3, adm_level, country_region, formatted_address = await address_to_coordinates(place)
-            places_tasks.append(geocode_with_retry(place))
-        except Exception as e:
-            print(f"Error fetching coordinates for place: {place}. Error: {e}")
+                # Add address only if not already added
+                if place_address not in combinations_to_search_with:
+                    print("Adding combined place to queue: ", place_address)
+                    combinations_to_search_with.add(place_address)
+
+
+
+  
 
     # Combine the results of country and city tasks
     country_results = await asyncio.gather(*country_tasks)
