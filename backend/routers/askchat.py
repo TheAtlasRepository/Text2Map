@@ -25,6 +25,7 @@ client = OpenAI(api_key=openai_api_key)
 
 chat_assistant = client.beta.assistants.retrieve("asst_adZiTCNOb0TH56032BKlXc5I")
 reader_assistant = client.beta.assistants.retrieve("asst_vCdrvpZmGFeNdjKv7VnPmUXc")
+bing_maps_key = "Akp4jrj9Y3XZZmmVVwpiK2Op2v7wB7xaHr4mqDWOQ8xD-ObvUUOrG_4Xae2rYiml"
 
 
 # Define a cache to store previously fetched geometries
@@ -38,20 +39,17 @@ async def fetch_geojson(session: ClientSession, url: str) -> dict:
         async with session.get(url) as response:
             return await response.json(content_type=None)
        
-async def address_to_coordinates(address, bing_maps_key = "Akp4jrj9Y3XZZmmVVwpiK2Op2v7wB7xaHr4mqDWOQ8xD-ObvUUOrG_4Xae2rYiml"):
+async def address_to_coordinates(address: str) -> dict:
     """Function for fetching data from Bing REST Api relating to inputted address
 
-    Arguments:
-    - Address: The
-    - bing_maps_key: Api key to allow requests
+    Args:
+        address (str): The location string to search after
 
     Returns:
-    - coordinates
-    - iso3
-    - adm_level
-    - country_region
-    - formatted_address
+        dict: Collection of location-data from Bing. Includes:
+            [coordinates, adm_level, country_region, formatted_address]
     """
+    
 
     print("Running address_to_coordinates using: ", address)
     encoded_address = urllib.parse.quote(address.encode('utf-8'), safe='')
@@ -260,16 +258,16 @@ async def get_geometry(address):
 
 # Function for handeling manual text input
 @router.post("/newText", response_model=dict)
-async def postNewText(text: str):
-    """
-    Send text to the assistant and have locations extracted
+async def postNewText(text: str) -> dict:
+    """Send text to the assistant and have locations extracted
 
-    Arguments:
-    - string (text): text with locations
+    Args:
+        text (str): Text with locations
 
     Returns:
-    - dictionary: Object with entities and geojson paths
+        dict: Object with entities and geojson paths
     """
+    
     
     print("Sending text: " + text)
 
@@ -291,16 +289,16 @@ async def postNewText(text: str):
 # Function for handeling start of a chat with Gpt
 # TODO: Make a pydantic model for the response schema
 @router.post("/newChat", response_model=dict)
-async def postNewChat(message: str):
-    """
-    Send a message to the assistant and return the response.
+async def postNewChat(message: str) -> dict:
+    """Send a message to the assistant and return the response.
     
-    Arguments
-    - string (message): the message to send to the assistant
-    
-    Return: 
-    - returns the response from the assistant as a dictionary which includes the entities, selected_countries_geojson_path, chat_history, and thread_id
+    Args:
+        message (str): The message to send to the assistant
+
+    Returns:
+        dict: The response from GPT, and includes entities, selected_countries_geojson_path, chat_history, and thread_id
     """
+    
     
     # Create a new thread id
     thread_id = client.beta.threads.create().id
@@ -320,17 +318,17 @@ async def postNewChat(message: str):
 # Function for handeling chat with Gpt
 # TODO: Make a pydantic model for the response schema
 @router.post("/moreChat", response_model=dict)
-async def postMoreChat(message: str, thread_id: str):
-    """
-    Send a message to the assistant and return the response.
+async def postMoreChat(message: str, thread_id: str) -> dict:
+    """Send a message to the assistant and return the response.
     
-    Arguments
-    - message the message to send to the assistant
-    - thread_id the id of the thread to send the message to
-    
-    Return: 
-    - returns the response from the assistant as a dictionary which includes the entities, selected_countries_geojson_path, chat_history, and thread_id
+    Args:
+        message (str): The message to send to the assistant
+        thread_id (str): The id of the thread to send the message to
+
+    Returns:
+        dict: The response from the assistant, and includes entities, selected_countries_geojson_path, chat_history, and thread_id
     """
+    
     print("Sending message: " + message + " to thread " + thread_id)
 
     # Send a message to the assistant
@@ -348,19 +346,21 @@ async def postMoreChat(message: str, thread_id: str):
 
 
 
-async def requestToGPT(text: str, thread_id: str, mode: str = "CHAT"):
-    """Send messages to gpt assistant, based on mode
+async def requestToGPT(text: str, thread_id: str, mode: str = "CHAT") -> list:
+    """Function for sending messages to gpt assistant, based on mode
 
-    Arguments:
-    - text: The text to send to GPT
-    - thread_id: The threadId to use for the request
-    - mode: The mode for handeling the text. 
-      - "CHAT" answers questions and finds locations. 
-      - "READER" responds with the locations found in the text
+    Args:
+        text (str): The text to send to GPT
+        thread_id (str): The threadId to use for the request
+        mode (str, optional): The mode for handeling the text. Defaults to "CHAT".
+            "CHAT" answers questions and finds locations. 
+              
+            "READER" responds with the locations found in the text
 
-    Return:
-    - formatted_messages: The respons from GPT
+    Returns:
+        list: The respons from GPT
     """
+    
 
     # Send a message to the assistant
     msg = client.beta.threads.messages.create(thread_id, role="user", content=text)
@@ -393,8 +393,8 @@ async def requestToGPT(text: str, thread_id: str, mode: str = "CHAT"):
     for msg in all_messages.data:
         # Access the text value of the message content
         message_text = msg.content[0].text.value
-        # Remove newline characters and replace them with spaces
-        cleaned_content = message_text.replace("\n", " ")
+        # Remove newline characters and large spaces
+        cleaned_content = re.sub(r'\s{2,}', ' ', message_text.replace("\n", " ").replace('" "', '", "'))
         formatted_messages.append({
             "sender": "assistant" if msg.role == "assistant" else "user",
             "message": cleaned_content
@@ -405,14 +405,14 @@ async def requestToGPT(text: str, thread_id: str, mode: str = "CHAT"):
     return formatted_messages
 
 
-def gptResponseToJson(input_messages: str):
+def gptResponseToJson(input_messages: str) -> dict:
     """Takes a formated response from GPT, presumably in a stringified Json format
-    
-    Argument: 
-    - input_messages: The formated response from GPT
 
-    Return: 
-    - response_data: The locations from the response
+    Args:
+        input_messages (str): The formated response from GPT
+
+    Returns:
+        dict: The locations from the response
     """
     # Assuming formatted_messages is a list of dictionaries
     assistant_response_json = input_messages[0]['message']
@@ -434,14 +434,14 @@ def gptResponseToJson(input_messages: str):
 
 
 # Text processor for extracting and finding locations from text
-async def run_locations_through_prosessor(input_locations: str) -> dict:
+async def run_locations_through_prosessor(input_locations: dict) -> dict:
     """Function for prosessing the locations into coordinates and geodata, and grouping it together.
 
-    Arguments:
-    - input_location: Json-formated collection of locations
+    Args:
+        input_locations (dict): Json-formated collection of locations
 
     Returns:
-    - dict: Dictionary of entity and geojason data
+        dict: Dictionary of entity and geojason data
     """
     
     # Variable to hold the collection of coordinates for locations and entities
