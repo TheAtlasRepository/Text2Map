@@ -28,7 +28,7 @@ reader_assistant = client.beta.assistants.retrieve("asst_vCdrvpZmGFeNdjKv7VnPmUX
 
 
 # Define a cache to store previously fetched geometries
-openStreetmap_cache = {}
+map_location_cache = {}
 
 # Define a semaphore to limit concurrent requests
 semaphore = asyncio.Semaphore(5)  # Adjust the limit as needed
@@ -39,6 +39,20 @@ async def fetch_geojson(session: ClientSession, url: str) -> dict:
             return await response.json(content_type=None)
        
 async def address_to_coordinates(address, bing_maps_key = "Akp4jrj9Y3XZZmmVVwpiK2Op2v7wB7xaHr4mqDWOQ8xD-ObvUUOrG_4Xae2rYiml"):
+    """Function for fetching data from Bing REST Api relating to inputted address
+
+    Arguments:
+    - Address: The
+    - bing_maps_key: Api key to allow requests
+
+    Returns:
+    - coordinates
+    - iso3
+    - adm_level
+    - country_region
+    - formatted_address
+    """
+
     print("Running address_to_coordinates using: ", address)
     encoded_address = urllib.parse.quote(address.encode('utf-8'), safe='')
     route_url = f"http://dev.virtualearth.net/REST/V1/Locations?q={encoded_address}&key={bing_maps_key}"
@@ -63,9 +77,7 @@ async def address_to_coordinates(address, bing_maps_key = "Akp4jrj9Y3XZZmmVVwpiK
     country_region = resource['address'].get('countryRegion')
     
     # Extracte formatted address
-    formatted_address = resource['address'].get('formattedAddress')
-
-    formatted_address = formatted_address.split(",")[0]
+    formatted_address = resource['address'].get('formattedAddress').split(",")[0]
     
     # Determine the ISO3 code of the country
     iso3 = address_to_iso_code(country_region)
@@ -202,13 +214,13 @@ async def geocode(address):
         print("Address is None")
         return {"error": "Address is None"}
     
-    print('Is the address for ' + address +' in cache? ', address in openStreetmap_cache)
+    print('Is the address for ' + address +' in cache? ', address in map_location_cache)
 
     # First check if data is in cache
-    if address in openStreetmap_cache:
+    if address in map_location_cache:
         print('Retrieved data from cache using address: ', address)
         
-        data = openStreetmap_cache[address]
+        data = map_location_cache[address]
         #print('Data: ', data)
         return {"latitude": data['lat'], "longitude": data['lon'], "address": data['display_name']}
 
@@ -225,7 +237,7 @@ async def geocode(address):
                 "display_name": formatted_address # This might need adjustment based on how you want to handle display names
             }
             # Save data in cache
-            openStreetmap_cache[formatted_address] = response_data
+            map_location_cache[formatted_address] = response_data
             return {"latitude": latitude, "longitude": longitude, "address": formatted_address}
         else:
             print(f"Geocoding failed for address: {formatted_address}")
@@ -265,9 +277,10 @@ async def postNewText(text: str):
     thread_id = client.beta.threads.create().id
     # print the thread_id
     print(f"Thread ID: {thread_id}")
-    response_data, formatted_messages = await requestToGPT(text, thread_id, "READER")
+    formatted_messages = await requestToGPT(text, thread_id, "READER")
+    response_data = gptResponseToJson(formatted_messages)
 
-    response = await run_text_through_prosessor(response_data)
+    response = await run_locations_through_prosessor(response_data)
     
     # Return the new GeoJSON file path to the frontend
     return {
@@ -321,11 +334,11 @@ async def postMoreChat(message: str, thread_id: str):
     print("Sending message: " + message + " to thread " + thread_id)
 
     # Send a message to the assistant
-    response_data, formatted_messages = await requestToGPT(message, thread_id, "CHAT")
+    formatted_messages = await requestToGPT(message, thread_id, "CHAT")
+    response_data = gptResponseToJson(formatted_messages)
 
     # Run the value field through the processor
-    response = await run_text_through_prosessor(response_data)
-    
+    response = await run_locations_through_prosessor(response_data)
     
     return {
         "entities": response["entities"],
@@ -346,14 +359,9 @@ async def requestToGPT(text: str, thread_id: str, mode: str = "CHAT"):
       - "READER" responds with the locations found in the text
 
     Return:
-    - response_data: The locations from the response
     - formatted_messages: The respons from GPT
     """
 
-    # Checks
-    if not text: return {"", ""}
-    if not thread_id: thread_id = client.beta.threads.create().id
-    
     # Send a message to the assistant
     msg = client.beta.threads.messages.create(thread_id, role="user", content=text)
     
@@ -393,9 +401,21 @@ async def requestToGPT(text: str, thread_id: str, mode: str = "CHAT"):
         })
     
     print (f"Assistant response: {formatted_messages}")
+
+    return formatted_messages
+
+
+def gptResponseToJson(input_messages: str):
+    """Takes a formated response from GPT, presumably in a stringified Json format
     
+    Argument: 
+    - input_messages: The formated response from GPT
+
+    Return: 
+    - response_data: The locations from the response
+    """
     # Assuming formatted_messages is a list of dictionaries
-    assistant_response_json = formatted_messages[0]['message']
+    assistant_response_json = input_messages[0]['message']
     
     # Parse the JSON string into a Python object
     try:
@@ -403,15 +423,28 @@ async def requestToGPT(text: str, thread_id: str, mode: str = "CHAT"):
     except json.JSONDecodeError as e:
         print(f"Error parsing JSON: {e}")
         # Handle the error, e.g., by returning an error response or logging the issue
-        return {"error": "Invalid JSON format"}
+        return (None, "Invalid JSON format")
+    
+    print("Response data: ", response_data)
 
-    return response_data, formatted_messages
+    return response_data
+
 
 
 
 
 # Text processor for extracting and finding locations from text
-async def run_text_through_prosessor(doc: str):
+async def run_locations_through_prosessor(input_locations: str) -> dict:
+    """Function for prosessing the locations into coordinates and geodata, and grouping it together.
+
+    Arguments:
+    - input_location: Json-formated collection of locations
+
+    Returns:
+    - dict: Dictionary of entity and geojason data
+    """
+    
+    # Variable to hold the collection of coordinates for locations and entities
     entities = []
     
     # Initialize a set to track processed countries
