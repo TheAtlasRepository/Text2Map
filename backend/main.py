@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from routers import askchat, imageSearch
@@ -28,6 +29,7 @@ app.add_middleware(
 app.include_router(askchat.router)
 app.include_router(imageSearch.router)
 
-# Run UVicorn server
+# Run uvicorn server
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000, loop="asyncio")
+    port = int(os.environ.get("PORT", 8000)) # Use the $PORT environment variable, or 8000 if not set
+    uvicorn.run(app, host="0.0.0.0", port=port, loop="asyncio")
