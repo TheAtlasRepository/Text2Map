@@ -9,5 +9,6 @@ shapely
 uvicorn[standard]
 python-dotenv
 poppler-utils
+pycountry
 
 ###### Requirements with Version Specifiers ######

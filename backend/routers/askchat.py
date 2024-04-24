@@ -6,6 +6,7 @@ import aiohttp
 from aiohttp import ClientSession
 import asyncio
 import os
+import pycountry
 import urllib
 import re
 import json
@@ -105,6 +106,22 @@ async def address_to_coordinates(address: str) -> dict:
     
     return { "coordinates": coordinates, "adm_level": adm_level, "country_region": country_region, "formatted_address": formatted_address}
 
+def address_to_iso_code(country_name):
+    # Check if country_name is None
+    if country_name is None:
+        return None
+    # Convert the country name to uppercase for case-insensitive matching
+    country_name = country_name.upper()
+
+    # Check if the country name is a valid pycountry country name
+    try:
+        country = pycountry.countries.lookup(country_name)
+        return country.alpha_3
+    except LookupError:
+        # Handle special cases where the country name is not recognized by pycountry
+        if country_name == "RUSSIA":
+            return "RUS"
+        return None
 
 def filter_by_highest_confidence(resources_list: list) -> list:
     """Looks through a list of resources to find first one of confidence "High" or "Medium"
@@ -135,8 +152,6 @@ def filter_by_highest_confidence(resources_list: list) -> list:
     return resource
 
 
-
-
 # Function to fetch geometry by ISO code from GeoBoundaries API
 async def get_geometry(iso3: str, adm_level: str, address: str = "") -> shape:
     """Function for retrieving geometry for geobounderies
@@ -150,6 +165,11 @@ async def get_geometry(iso3: str, adm_level: str, address: str = "") -> shape:
         shape: Geometry for geoboundery
     """
     print(f"Fetching geometry for {iso3} and {address} at {adm_level}")
+    
+    #Check if iso3 is None
+    if iso3 is None:
+        print("Error: iso3 is None")
+        return None
     
     # If address is empty or unused, set it as address, mainly for display in print-commands
     if address == "":
@@ -508,13 +528,13 @@ async def run_locations_through_prosessor(locations: list) -> dict:
 
         # Country level
         if adm_level == "ADM0":
-            geometry = await get_geometry(country_region[:3], adm_level)
+            geometry = await get_geometry(address_to_iso_code(country_region), adm_level)
             if geometry is not None:
                 country_geometries.append(geometry)
 
         # State or city level
         elif adm_level == "ADM1" or adm_level == "ADM2": 
-            geometry = await get_geometry(country_region[:3], adm_level, formatted_address)
+            geometry = await get_geometry(address_to_iso_code(country_region), adm_level, formatted_address)
             if geometry is not None:
                 if adm_level == "ADM1":
                     state_geometries.append(geometry)
