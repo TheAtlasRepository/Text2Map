@@ -51,7 +51,7 @@ async def address_to_coordinates(address: str) -> dict:
     """
     
 
-    print("Running address_to_coordinates using: ", address)
+    print("Running address_to_coordinates using address: ", address)
     encoded_address = urllib.parse.quote(address.encode('utf-8'), safe='')
     route_url = f"http://dev.virtualearth.net/REST/V1/Locations?q={encoded_address}&key={bing_maps_key}"
     
@@ -244,10 +244,13 @@ async def postNewText(text: str) -> dict:
     thread_id = client.beta.threads.create().id
     # print the thread_id
     print(f"Thread ID: {thread_id}")
+    
+    # Send a message to the assistant
     formatted_messages = await requestToGPT(text, thread_id, "READER")
-    response_data = gptResponseToJson(formatted_messages)
-
-    response = await run_locations_through_prosessor(response_data.get("locations"))
+    
+    # Run the value field through the processor
+    response = await run_locations_through_prosessor(formatted_messages[0].get("message").get("locations"))
+    
     
     # Return the new GeoJSON file path to the frontend
     return {
@@ -302,10 +305,9 @@ async def postMoreChat(message: str, thread_id: str) -> dict:
 
     # Send a message to the assistant
     formatted_messages = await requestToGPT(message, thread_id, "CHAT")
-    response_data = gptResponseToJson(formatted_messages)
 
     # Run the value field through the processor
-    response = await run_locations_through_prosessor(response_data.get("locations"))
+    response = await run_locations_through_prosessor(formatted_messages[0].get("message").get("locations"))
     
     return {
         "entities": response["entities"],
@@ -363,6 +365,10 @@ async def requestToGPT(text: str, thread_id: str, mode: str = "CHAT") -> list:
         message_text = msg.content[0].text.value
         # Remove newline characters and large spaces
         cleaned_content = re.sub(r'\s{2,}', ' ', message_text.replace("\n", " ").replace('" "', '", "'))
+  
+        if msg.role == "assistant":
+            cleaned_content = gptResponseToJson(cleaned_content)
+  
         formatted_messages.append({
             "sender": "assistant" if msg.role == "assistant" else "user",
             "message": cleaned_content
@@ -381,17 +387,15 @@ def gptResponseToJson(input_messages: str) -> dict:
     Returns:
         dict: The locations from the response
     """
-    # Assuming formatted_messages is a list of dictionaries
-    assistant_response_json = input_messages[0]['message']
     
     # Parse the JSON string into a Python object
     try:
-        response_data: dict = json.loads(str(assistant_response_json))
+        response_data: dict = json.loads(str(input_messages))
     except json.JSONDecodeError as e:
         
         # Print the error response and the failed input
         print("Error parsing JSON: ", e)
-        print("The input that failed: ", assistant_response_json)
+        print("The input that failed: ", input_messages)
         
     return response_data
 
