@@ -1,4 +1,4 @@
-import { CoordinateEntity } from "../types/CoordinateEntity";
+import { CoordinateEntity } from "../types/BackendResponse";
 import { MapMarker } from "../types/MapMarker";
 
 /**
@@ -6,11 +6,12 @@ import { MapMarker } from "../types/MapMarker";
  * and their own number id,
  * 
  * @param entities Array of CoordinateEntities
+ * @param existingNumberOfMarkers Number of existing markers, to tell where next id starts from
  * @returns Array of MapMarkers
  */
-export const entitiesConvertor = (entities: CoordinateEntity[]): MapMarker[] => {
+export const entitiesConvertor = (entities: CoordinateEntity[], existingNumberOfMarkers: number = 0): MapMarker[] => {
   let markers: MapMarker[] = [];
-  let x = 0;
+  let x = existingNumberOfMarkers;
 
   entities.forEach(marker => {
     markers.push({

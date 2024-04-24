@@ -1,5 +1,5 @@
 import React from 'react';
-import { JsonChatHistory } from '../types/JsonChatHistory';
+import { JsonChatHistory } from '../types/BackendResponse';
 
 type JsonRendererProps = {
   jsonChatHistory: JsonChatHistory[]; // Replace 'any' with the actual type of your jsonData
