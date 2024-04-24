@@ -370,8 +370,12 @@ def gptResponseToJson(input_messages: str) -> dict:
     
     # Parse the JSON string into a Python object
     try:
-        response_data: dict = json.loads(str(input_messages))
-    except json.JSONDecodeError as e:
+        # Use a regular expression to find the JSON part of the string
+        # This regex looks for a string that starts with '{' and ends with '}'
+        # and contains only valid JSON characters in between.
+        json_str = re.search(r'{.*?}', input_messages, re.DOTALL).group()
+        response_data: dict = json.loads(json_str)
+    except (json.JSONDecodeError, AttributeError) as e:
         
         # Print the error response and the failed input
         print("Error parsing JSON: ", e)
