@@ -2,7 +2,6 @@ from fastapi import APIRouter
 from openai import OpenAI
 from shapely.geometry import shape, mapping, MultiPolygon, Polygon
 from shapely.ops import unary_union
-import pycountry
 import aiohttp
 from aiohttp import ClientSession
 import asyncio
@@ -136,24 +135,6 @@ def filter_by_highest_confidence(resources_list: list) -> list:
     # If no resource of high enough confidence is found, resource is None
     return resource
 
-
-
-def address_to_iso_code(country_name):
-    # Check if country_name is None
-    if country_name is None:
-        return None
-    # Convert the country name to uppercase for case-insensitive matching
-    country_name = country_name.upper()
-
-    # Check if the country name is a valid pycountry country name
-    try:
-        country = pycountry.countries.lookup(country_name)
-        return country.alpha_3
-    except LookupError:
-        # Handle special cases where the country name is not recognized by pycountry
-        if country_name == "RUSSIA":
-            return "RUS"
-        return None
 
 
 
