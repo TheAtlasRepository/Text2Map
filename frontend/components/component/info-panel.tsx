@@ -16,7 +16,7 @@ const InfoPanel = (props: {
   useEffect(() => {
     // Fetch data from API
     try {
-      fetch(BASE_URL + "/imagesearch?query=" + props.marker.type)
+      fetch(BASE_URL + "/imagesearch?query=" + props.marker.display_name)
         .then(response => response.json())
         .then(data => {
           // Update the image link state variable
@@ -41,7 +41,7 @@ const InfoPanel = (props: {
       }
       <div className="p-5 flex-col items-center ">
         <a href="#">
-          <h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">{props.marker.type}</h5>
+          <h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">{props.marker.display_name}</h5>
         </a>
         <Button
           variant={"secondary"}

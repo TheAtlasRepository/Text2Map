@@ -28,9 +28,6 @@ ENV PATH="/venv/bin:$PATH"
 RUN pip install --no-cache-dir --upgrade pip 
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Download Spacy model
-RUN python -m spacy download en_core_web_trf
-
 # Copy project files
 COPY .. /app 
 
@@ -53,9 +50,6 @@ COPY --from=build /app /app
 
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt 
-
-# Download Spacy model
-RUN python -m spacy download en_core_web_trf
 
 # Copy .env file if needed
 RUN if [ ! -f /app/.env ] && [ -f .env ]; then cp .env /app/; fi

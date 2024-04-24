@@ -158,7 +158,7 @@ const InputDisplay = (props: InputDisplayProps) => {
                 }
                 {props.displayState === 1 &&
                   // Display chat always, as the user can only edit initial input
-                  <JsonRenderer jsonData={props.jsonData} />
+                  <JsonRenderer jsonChatHistory={props.jsonData?.chat_history} />
                 }
                 {props.displayState === 2 && !editTextState &&
                   // Display text when not editing, because the textarea displays the same.

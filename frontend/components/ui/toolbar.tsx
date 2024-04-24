@@ -38,7 +38,7 @@ const Toolbar = (props: toolbarProps) => {
     return markers.map(marker => ({
       type: 'Feature',
       properties: {
-        name: marker.type // Assuming 'type' is the name you want to use for the marker
+        name: marker.display_name // Assuming 'type' is the name you want to use for the marker
       },
       geometry: {
         type: 'Point',

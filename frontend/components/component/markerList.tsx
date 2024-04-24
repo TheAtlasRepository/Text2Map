@@ -21,14 +21,14 @@ const MarkerList: React.FC<MarkerListProps> = (
         className="p-2 pl-4 text-start overflow-hidden text-nowrap hover:bg-gray-200 dark:hover:bg-gray-700"
         onClick={() => props.onSelectClick(marker)}>
         <div className="marker_column">
-          {marker.type}
+          {marker.display_name}
         </div>
       </button>
 
-      <label className="toggle_switch" title={`Toggle marker for ${marker.type}`} aria-label={`Toggle marker for ${marker.type}`} >
+      <label className="toggle_switch" title={`Toggle marker for ${marker.display_name}`} aria-label={`Toggle marker for ${marker.display_name}`} >
         <Input
           type="checkbox"
-          name={marker.type}
+          name={marker.display_name}
           checked={marker.toggled}
           onChange={() => props.onToggleClick(marker.numId)} />
         <span className="toggle_switch_slider"></span>

@@ -2,19 +2,15 @@ from fastapi import APIRouter
 from openai import OpenAI
 from shapely.geometry import shape, mapping, MultiPolygon, Polygon
 from shapely.ops import unary_union
-import pycountry
-from geopy.geocoders import Nominatim
-from geopy.exc import GeocoderUnavailable
 import aiohttp
 from aiohttp import ClientSession
 import asyncio
 import os
 import urllib
-import spacy
 import re
+import json
 import urllib.parse
 import unicodedata
-from geopy.exc import GeocoderTimedOut
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -24,16 +20,14 @@ router = APIRouter()
 openai_api_key = os.getenv('OPENAI_API_KEY')
 client = OpenAI(api_key=openai_api_key)
 
-chat_history = []
 
-nlp = spacy.load("en_core_web_trf")
+chat_assistant = client.beta.assistants.retrieve("asst_adZiTCNOb0TH56032BKlXc5I")
+reader_assistant = client.beta.assistants.retrieve("asst_vCdrvpZmGFeNdjKv7VnPmUXc")
+bing_maps_key = "Akp4jrj9Y3XZZmmVVwpiK2Op2v7wB7xaHr4mqDWOQ8xD-ObvUUOrG_4Xae2rYiml"
 
-my_assistant = client.beta.assistants.retrieve("asst_eKL7g3MCeUtwaD0CjC9VBv7p")
-
-geolocator = Nominatim(user_agent="city-extractor")
 
 # Define a cache to store previously fetched geometries
-openStreetmap_cache = {}
+map_location_cache = {}
 
 # Define a semaphore to limit concurrent requests
 semaphore = asyncio.Semaphore(5)  # Adjust the limit as needed
@@ -43,7 +37,19 @@ async def fetch_geojson(session: ClientSession, url: str) -> dict:
         async with session.get(url) as response:
             return await response.json(content_type=None)
        
-async def address_to_coordinates(address, bing_maps_key = "Akp4jrj9Y3XZZmmVVwpiK2Op2v7wB7xaHr4mqDWOQ8xD-ObvUUOrG_4Xae2rYiml"):
+async def address_to_coordinates(address: str) -> dict:
+    """Function for fetching data from Bing REST Api relating to inputted address
+
+    Args:
+        address (str): The location string to search after
+
+    Returns:
+        dict: Collection of location-data from Bing. Includes:
+            [coordinates, adm_level, country_region, formatted_address]
+    """
+    
+
+    print("Running address_to_coordinates using address: ", address)
     encoded_address = urllib.parse.quote(address.encode('utf-8'), safe='')
     route_url = f"http://dev.virtualearth.net/REST/V1/Locations?q={encoded_address}&key={bing_maps_key}"
     
@@ -53,10 +59,24 @@ async def address_to_coordinates(address, bing_maps_key = "Akp4jrj9Y3XZZmmVVwpiK
     
     # Check if 'resourceSets' and 'resources' exist and are not empty
     if 'resourceSets' in data and data['resourceSets'] and 'resources' in data['resourceSets'][0] and data['resourceSets'][0]['resources']:
-        resource = data['resourceSets'][0]['resources'][0]
+        
+        # Check if "confidence" equals "High"
+        # In case the first returned value has low conidence, look further
+        resources_list = data['resourceSets'][0]['resources']
+
+        resource = filter_by_highest_confidence(resources_list)
+        if resource is None:
+            # Return None if no resources are found 
+            print("Found no high-confidence data on: ", address)
+
+            return None
+        
+        print("This is the raw resource picked out from data: ", resource)
+
     else:
+        # Return None if no resources are found
         print(f"No resources found for address: {address}")
-        return None, None, None, None, None # Return None for all values if no resources are found
+        return None
 
     
     # Extract the coordinates
@@ -66,253 +86,151 @@ async def address_to_coordinates(address, bing_maps_key = "Akp4jrj9Y3XZZmmVVwpiK
     country_region = resource['address'].get('countryRegion')
     
     # Extracte formatted address
-    formatted_address = resource['address'].get('formattedAddress')
-
-    formatted_address = formatted_address.split(",")[0]
-    
-    # Determine the ISO3 code of the country
-    iso3 = address_to_iso_code(country_region)
-    print(f"ISO3 for {country_region}: {iso3} : {formatted_address}")
+    formatted_address = resource['address'].get('formattedAddress').split(",")[0]
     
     # Determine the administrative level (ADM1 or ADM2)
     # This is a simplified approach and might need adjustment based on the actual data structure
     if 'PopulatedPlace' in resource['entityType'] or 'Neighborhood' in resource['entityType'] or 'Postcode1' in resource['entityType'] or 'AdminDivision2' in resource['entityType']:
         adm_level = "ADM2"
-        print(f"ADM2")
+        print("The location has administrative level: ADM2")
     elif 'AdminDivision1' in resource['entityType']:
         adm_level = "ADM1"
-        print(f"ADM1")
+        print("The location has administrative level: ADM1")
     elif 'CountryRegion' in resource['entityType']:
         adm_level = "ADM0"
-        print(f"ADM0")
+        print("The location has administrative level: ADM0")
     else:
         adm_level = None
         print(f"Unknown administrative level: {resource['entityType']}")
     
-    return coordinates, iso3, adm_level, country_region, formatted_address
+    return { "coordinates": coordinates, "adm_level": adm_level, "country_region": country_region, "formatted_address": formatted_address}
 
 
-def address_to_iso_code(country_name):
-    # Check if country_name is None
-    if country_name is None:
-        return None
-    # Convert the country name to uppercase for case-insensitive matching
-    country_name = country_name.upper()
+def filter_by_highest_confidence(resources_list: list) -> list:
+    """Looks through a list of resources to find first one of confidence "High" or "Medium"
+    Confidence of "Low" is not accepted.
 
-    # Check if the country name is a valid pycountry country name
-    try:
-        country = pycountry.countries.lookup(country_name)
-        return country.alpha_3
-    except LookupError:
-        # Handle special cases where the country name is not recognized by pycountry
-        if country_name == "RUSSIA":
-            return "RUS"
-        return None
+    Args:
+        resources_list (list): List of json resources from Bing
+
+    Returns:
+        list: The resource with highest confidence
+    """
+    resource = None
     
+    for res in resources_list:
+        if (res['confidence'] == "High"):
+            resource = res
+            break
+         
+    if resource is None:
+        # If no location meets confidence of high, go to medium
+        for res in resources_list:
+            if (res['confidence'] == "Medium"):
+                resource = res
+                break
+            
+    # Returne resource      
+    # If no resource of high enough confidence is found, resource is None
+    return resource
+
+
+
+
 # Function to fetch geometry by ISO code from GeoBoundaries API
-async def get_geometry_online(address: str) -> shape:
-    if address is None:
-        print("Error: Address is None")
-        return None
-    print(f"Fetching geometry for {address}")
-    coordinates, iso3, adm_level, country_region, formatted_address = await address_to_coordinates(address)
-    print(f"ISO3: {iso3})")
+async def get_geometry(iso3: str, adm_level: str, address: str = "") -> shape:
+    """Function for retrieving geometry for geobounderies
+
+    Args:
+        iso3 (str): The iso3 code for the country
+        adm_level (str): The level of geometry to retrieve
+        address (str, optional): Additional addres for use in searches in deeper adm levels. Defaults to "".
+
+    Returns:
+        shape: Geometry for geoboundery
+    """
+    print(f"Fetching geometry for {iso3} and {address} at {adm_level}")
+    
+    # If address is empty or unused, set it as address, mainly for display in print-commands
+    if address == "":
+        address = iso3
 
     if adm_level == "ADM0":
-        try:
-            url = f"https://geob-rust-api-cf77d36d0349.herokuapp.com/geojson?iso3={iso3}"
-            print(f"URL: {url}")
-                
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url) as response:
-                    data = await response.json()
+        url = f"https://geob-rust-api-cf77d36d0349.herokuapp.com/geojson?iso3={iso3}"
+        print(f"URL: {url}")
 
-                if response.status == 200 and 'geometry' in data:
-                    geometry = shape(data['geometry'])
-                    print(f"Fetched geometry for {formatted_address}")
+    elif adm_level == "ADM1" or adm_level == "ADM2":
+        # Format address to fit in url
+        url_address = urllib.parse.quote(unicodedata.normalize('NFD', address.split(",")[0]), safe='')
+        url = f"https://geob-rust-api-cf77d36d0349.herokuapp.com/geojson?iso3={iso3}&query={url_address}"
+        print(f"URL: {url}")
+    
+    else:
+        print(f"Error: Unsupported administrative level: {adm_level}")
+        return None
+    
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                data = await response.json()
+            
+            if response.status == 200 and 'geometry' in data:
+                geometry = shape(data['geometry'])
+                print(f"Fetched geometry for {address}")
 
+                # Attempt to merge polygon when at ADM0
+                if adm_level == "ADM0":
                     # If the geometry is a MultiPolygon, convert it to a Polygon
                     if isinstance(geometry, MultiPolygon):
                         # You can choose to merge all polygons into one, or handle it differently
                         # Here's an example of merging all polygons into one
                         geometry = unary_union(geometry)
                         if isinstance(geometry, Polygon):
-                            print(f"Converted MultiPolygon to Polygon for {formatted_address}")
+                            print(f"Converted MultiPolygon to Polygon for {address}")
                         else:
-                            print(f"Failed to convert MultiPolygon to Polygon for {formatted_address}")
+                            print(f"Geometry remains MultiPolygon for {address}")
 
-                    return geometry                   
-                else:
-                    print(f"Failed to fetch geometry. Status code: {response.status}")
-                    print(f"Data: {data}")
-                    print(f"URL: {url}")
-                    return None
-        except Exception as e:
-            print(f"Error fetching geometry: {e}")
-            return None       
-    elif adm_level == "ADM1" or adm_level == "ADM2":
-        try:
-            address = address.split(",")[0]
-            address = unicodedata.normalize('NFD', address)
-            address = urllib.parse.quote(address, safe='')
-            url = f"https://geob-rust-api-cf77d36d0349.herokuapp.com/geojson?iso3={iso3}&query={address}"
-            print(f"URL: {url}")
-                
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url) as response:
-                    data = await response.json()
+                return geometry
 
-                if response.status == 200 and 'geometry' in data:
-                    geometry = shape(data['geometry'])
-                    print(f"Fetched geometry for {formatted_address}")
-                    return geometry                
-                else:
-                    print(f"Failed to fetch geometry. Status code: {response.status}")
-                    print(f"Data: {data}")
-                    print(f"URL: {url}")
-                    return None
-        except Exception as e:
-            print(f"Error fetching geometry: {e}")
-            return None
-    else:
-        print(f"Error: Unsupported administrative level: {adm_level}")
+            # If the response gave an error, print response
+            else:
+                print("Failed to fetch geometry. Status code: ", response.status)
+                print("Data: ", data)
+                print("URL: ", url)
+                return None
+
+    except Exception as e:
+        print(f"Error fetching geometry: {e}")
         return None
 
-# Function to extract cities and places from the user's input using SpaCy
-def extract_cities(text):
-    doc = nlp(text)
-    cities_and_places = []
 
-    for ent in doc.ents:
-        if ent.label_ in ["GPE", "LOC", "FAC"]:
-            text = ent.text.strip()
-
-            # Check if the text starts with 'The '
-            if text.title().startswith('The '):
-                text = text[4:].strip()
-
-            # Use regular expression to remove additional characters or digits
-            cleaned_text = re.sub(r'\.\s*\d+', '', text)
-
-            # Filter out country names
-            iso_code = address_to_iso_code(cleaned_text)
-            if iso_code and pycountry.countries.get(alpha_3=iso_code):
-                continue
-
-            cities_and_places.append(cleaned_text)
-
-    return set(cities_and_places)
-
-# Extract countries from the assistant's response
-def extract_countries(text):
-    # Process the text
-    doc = nlp(text)
-    
-    # Extract entities
-    entities = [ent for ent in doc.ents if ent.label_ == "GPE"]
-    
-    # Initialize a set to store country names
-    countries = set()
-    
-    # Check if the text mentions the country "USA"
-    mentions_usa = "USA" in [ent.text.upper() for ent in entities]
-    
-    #Check if the text mentions the country "Russia"
-    mentions_russia = "Russia" in [ent.text for ent in entities]
-    
-    # Iterate over entities to filter out non-country entities
-    for ent in entities:
-        # If the text mentions "USA" and the entity is a state, skip it
-        if mentions_usa and ent.text.upper() in ["ALABAMA", "ALASKA", "ARIZONA", "ARKANSAS", "CALIFORNIA", "COLORADO", "CONNECTICUT", "DELAWARE", "FLORIDA", "GEORGIA", "HAWAII", "IDAHO", "ILLINOIS", "INDIANA", "IOWA", "KANSAS", "KENTUCKY", "LOUISIANA", "MAINE", "MARYLAND", "MASSACHUSETTS", "MICHIGAN", "MINNESOTA", "MISSISSIPPI", "MISSOURI", "MONTANA", "NEBRASKA", "NEVADA", "NEW HAMPSHIRE", "NEW JERSEY", "NEW MEXICO", "NEW YORK", "NORTH CAROLINA", "NORTH DAKOTA", "OHIO", "OKLAHOMA", "OREGON", "PENNSYLVANIA", "RHODE ISLAND", "SOUTH CAROLINA", "SOUTH DAKOTA", "TENNESSEE", "TEXAS", "UTAH", "VERMONT", "VIRGINIA", "WASHINGTON", "WEST VIRGINA", "WISCONSIN", "WYOMING"]:
-            continue # Skip this entity if it's a state and "USA" is mentioned
-        
-        # Attempt to convert the entity text to an ISO code
-        iso_code = address_to_iso_code(ent.text)
-        
-        # If an ISO code is found, it's likely a country
-        if iso_code:
-            # Convert the ISO code to a country name
-            country_name = pycountry.countries.get(alpha_3=iso_code).name
-            # Check if the entity text is a country name
-            if country_name.lower() == ent.text.lower():
-                countries.add(country_name)
-    
-    # If "USA" is mentioned, add "United States" to the set of countries
-    if mentions_usa:
-        countries.add("United States")
-        
-    # If "Russia" is mentioned, add "Russia" to the set of countries
-    if mentions_russia:
-        countries.add("Russia")
-    
-    return countries
-
-async def geocode_with_retry(address, retries=3, delay=2):
-    for i in range(retries):
-        try:
-            return await geocode(address)
-        except GeocoderUnavailable as e:
-            if i < retries - 1: # i is zero indexed
-                await asyncio.sleep(delay) # wait before retrying
-            else:
-                raise e
-
-# Function to geocode an address 
-async def geocode(address):
-    # Check if address is None and handle accordingly
-    if address is None:
-        print("Address is None")
-        return {"error": "Address is None"}
-    
-    print('Is the address for ' + address +' in cache? ', address in openStreetmap_cache)
-
-    # First check if data is in cache
-    if address in openStreetmap_cache:
-        print('Retrieved data from cache using address: ', address)
-        
-        data = openStreetmap_cache[address]
-        #print('Data: ', data)
-        return {"latitude": data['lat'], "longitude": data['lon'], "address": data['display_name']}
-
-    try:
-        # Use address_to_coordinates function to get coordinates
-        coordinates, iso3, adm_level, country_region, formatted_address = await address_to_coordinates(address)
-        if coordinates:
-            # Assuming coordinates is a tuple (latitude, longitude)
-            latitude, longitude = coordinates
-            # Construct a response similar to what you would get from the API
-            response_data = {
-                "lat": latitude,
-                "lon": longitude,
-                "display_name": formatted_address # This might need adjustment based on how you want to handle display names
-            }
-            # Save data in cache
-            openStreetmap_cache[formatted_address] = response_data
-            return {"latitude": latitude, "longitude": longitude, "address": formatted_address}
-        else:
-            print(f"Geocoding failed for address: {formatted_address}")
-            return {"error": "Geocoding failed"}
-    except Exception as e:
-        print(f"Error: {e}")
-        return {"latitude": None, "longitude": None, "address": None, "error": "Geocoding failed"}
-
-    
-# Function to fetch country geometry by ISO code from GeoBoundaries API
-async def get_geometry(address):
-    if address is not None:
-        geometry = await get_geometry_online(address)
-    else:
-        print("Error: Address is not provided")
-        geometry = None
-    
-    return geometry
 
 # Function for handeling manual text input
 @router.post("/newText", response_model=dict)
-async def postNewText(text: str):
+async def postNewText(text: str) -> dict:
+    """Send text to the assistant and have locations extracted
+
+    Args:
+        text (str): Text with locations
+
+    Returns:
+        dict: Object with entities and geojson paths
+    """
+    
+    
     print("Sending text: " + text)
 
-    response = await run_text_through_prosessor(text)
+    # Create a new thread
+    thread_id = client.beta.threads.create().id
+    # print the thread_id
+    print(f"Thread ID: {thread_id}")
+    
+    # Send a message to the assistant
+    formatted_messages = await requestToGPT(text, thread_id, "READER")
+    
+    # Run the value field through the processor
+    response = await run_locations_through_prosessor(formatted_messages[0].get("message").get("locations"))
+    
     
     # Return the new GeoJSON file path to the frontend
     return {
@@ -323,28 +241,25 @@ async def postNewText(text: str):
 # Function for handeling start of a chat with Gpt
 # TODO: Make a pydantic model for the response schema
 @router.post("/newChat", response_model=dict)
-async def postNewChat(message: str):
-    """
-    # Send a message to the assistant and return the response.
+async def postNewChat(message: str) -> dict:
+    """Send a message to the assistant and return the response.
     
-    ## Arguments
-    - message the message to send to the assistant
-    ## Return: 
-    - returns the response from the assistant as a dictionary which includes the entities, selected_countries_geojson_path, chat_history, and thread_id
+    Args:
+        message (str): The message to send to the assistant
+
+    Returns:
+        dict: The response from GPT, and includes entities, selected_countries_geojson_path, chat_history, and thread_id
     """
     
-    global chat_history
-    # Create a new thread
-    new_thread = client.beta.threads.create() 
-    chat_history = [{"role": "user", "content": message}]
-    # create a global variable to store the thread_id
-    thread_id = new_thread.id
+    
+    # Create a new thread id
+    thread_id = client.beta.threads.create().id
     # print the thread_id
     print(f"Thread ID: {thread_id}")
     # Pass the thread_id to postMoreChat
     response = await postMoreChat(message, thread_id)
-    chat_history.append({"role": "assistant", "content": response["chat_history"][-1]["message"]})
-
+    
+    
     return {
         "entities": response["entities"],
         "selected_countries_geojson_path": response["selected_countries_geojson_path"],
@@ -355,24 +270,58 @@ async def postNewChat(message: str):
 # Function for handeling chat with Gpt
 # TODO: Make a pydantic model for the response schema
 @router.post("/moreChat", response_model=dict)
-async def postMoreChat(message: str, thread_id: str):
-    """
-    # Send a message to the assistant and return the response.
+async def postMoreChat(message: str, thread_id: str) -> dict:
+    """Send a message to the assistant and return the response.
     
-    ## Arguments
-    - message the message to send to the assistant
-    - thread_id the id of the thread to send the message to
-    ## Return: 
-    - returns the response from the assistant as a dictionary which includes the entities, selected_countries_geojson_path, chat_history, and thread_id
+    Args:
+        message (str): The message to send to the assistant
+        thread_id (str): The id of the thread to send the message to
+
+    Returns:
+        dict: The response from the assistant, and includes entities, selected_countries_geojson_path, chat_history, and thread_id
     """
+    
     print("Sending message: " + message + " to thread " + thread_id)
 
     # Send a message to the assistant
-    msg = client.beta.threads.messages.create(thread_id, role="user", content=message)
+    formatted_messages = await requestToGPT(message, thread_id, "CHAT")
+
+    # Run the value field through the processor
+    response = await run_locations_through_prosessor(formatted_messages[0].get("message").get("locations"))
     
-    # Run the assistant
-    run = client.beta.threads.runs.create(thread_id, assistant_id=my_assistant.id)
+    return {
+        "entities": response["entities"],
+        "selected_countries_geojson_path": response["selected_countries_geojson_path"],
+        "chat_history": formatted_messages
+    }
+
+
+
+async def requestToGPT(text: str, thread_id: str, mode: str = "CHAT") -> list:
+    """Function for sending messages to gpt assistant, based on mode
+
+    Args:
+        text (str): The text to send to GPT
+        thread_id (str): The threadId to use for the request
+        mode (str, optional): The mode for handeling the text. Defaults to "CHAT".
+            "CHAT" answers questions and finds locations. 
+              
+            "READER" responds with the locations found in the text
+
+    Returns:
+        list: The respons from GPT
+    """
     
+    # Send a message to the assistant
+    msg = client.beta.threads.messages.create(thread_id, role="user", content=text)
+    
+    # Run the assistant based on mode
+    if(mode == "CHAT"): 
+      run = client.beta.threads.runs.create(thread_id, assistant_id=chat_assistant.id)
+    elif(mode == "READER"):
+      run = client.beta.threads.runs.create(thread_id, assistant_id=reader_assistant.id)
+
+    # Display status for the request
     while run.status != "completed":
         keep_retrieving_run = client.beta.threads.runs.retrieve(
             thread_id=thread_id,
@@ -394,197 +343,184 @@ async def postMoreChat(message: str, thread_id: str):
     for msg in all_messages.data:
         # Access the text value of the message content
         message_text = msg.content[0].text.value
-        # Remove newline characters and replace them with spaces
-        cleaned_content = message_text.replace("\n", " ")
+        # Remove newline characters and large spaces
+        cleaned_content = re.sub(r'\s{2,}', ' ', message_text.replace("\n", " ").replace('" "', '", "'))
+  
+        if msg.role == "assistant":
+            cleaned_content = gptResponseToJson(cleaned_content)
+  
         formatted_messages.append({
             "sender": "assistant" if msg.role == "assistant" else "user",
             "message": cleaned_content
         })
     
     print (f"Assistant response: {formatted_messages}")
+    return formatted_messages
 
+
+def gptResponseToJson(input_messages: str) -> dict:
+    """Takes a formated response from GPT, presumably in a stringified Json format
+
+    Args:
+        input_messages (str): The formated response from GPT
+
+    Returns:
+        dict: The locations from the response
+    """
     
-    # Run the value field through the processor
-    response = await run_text_through_prosessor(str(formatted_messages))
-    
-    
-    return {
-        "entities": response["entities"],
-        "selected_countries_geojson_path": response["selected_countries_geojson_path"],
-        "chat_history": formatted_messages
-    }
+    # Parse the JSON string into a Python object
+    try:
+        response_data: dict = json.loads(str(input_messages))
+    except json.JSONDecodeError as e:
+        
+        # Print the error response and the failed input
+        print("Error parsing JSON: ", e)
+        print("The input that failed: ", input_messages)
+        
+    return response_data
+
+
+
 
 
 # Text processor for extracting and finding locations from text
-async def run_text_through_prosessor(doc):
-    entities = []
+async def run_locations_through_prosessor(locations: list) -> dict:
+    """Function for prosessing the locations into coordinates and geodata, and grouping it together.
+
+    Args:
+        input_locations (dict): Json-formated collection of locations
+
+    Returns:
+        dict: Dictionary of entity and geojason data
+    """
     
-    # Initialize a set to track processed countries
-    processed_countries = set()
-    processed_places = set()
-    unassociated_places = set()
+    # Variable to hold the collection of coordinates for locations and entities
+    entities = []
+    added_addresses = set()
+    
+    # Storage
+    combinations_to_search_with = set()
+    all_places = []
 
     # Initialize country_geometries as an empty list
     country_geometries = []
     state_geometries = []
     city_geometries = []
-    
-    # Extract city names mentioned in the user's input
-    places_mentioned_in_doc = list(extract_cities(doc))
-    
-    # Keep track of ISO codes of the countries mentioned in the user's input
-    mentioned_country_iso_codes = set()
-    mentioned_places = set()
-    
-    print (f"Cities mentioned in the user's input: {places_mentioned_in_doc}")
 
-    # Run geocoding, geometry fetching, and city information fetching concurrently
-    country_tasks = []
-    state_tasks = []
-    city_tasks = []
-    places_tasks = []
-    
-    unique_countries = set(list(extract_countries(doc)))
-    
-    # Extract country ISO codes first
-    for country in unique_countries:
-        coordinates, iso3, adm_level, country_region, formatted_address = await address_to_coordinates(country)
-        mentioned_country_iso_codes.add(iso3)  # Track mentioned country ISO codes
-        country_tasks.append(geocode_with_retry(country_region))
-        country_tasks.append(get_geometry(formatted_address))
-    
-    # If not countries are mentioned, extract the country from the first place mentioned
-    if not unique_countries:
-        try:
-            coordinates, iso3, adm_level, country_region, formatted_address = await address_to_coordinates(list(places_mentioned_in_doc)[0])
-            mentioned_country_iso_codes.add(iso3)  # Track mentioned country ISO codes
-            unique_countries.add(country_region)
-            country_tasks.append(geocode_with_retry(country_region))
-            country_tasks.append(get_geometry(formatted_address))
-        except Exception as e:
-            print(f"Error fetching coordinates for country: {country_region}. Error: {e}")
-    
-    for place in places_mentioned_in_doc:
-        try:
-            # Call your function to get coordinates, ISO3 code, and administrative level
-            coordinates, iso3, adm_level, country_region, formatted_address = await address_to_coordinates(place)
-            if country_region in unique_countries:
+
+    # Store the places for checking duplicates
+    for location in locations:
+        place = location.get("place")
+
+        if place != None or place != "":
+            all_places.append(place)
+
+    # Extract and process each location
+    for location in locations:
+        country = location.get("country") # Iso3 code
+        state = location.get("state")
+        city = location.get("city")
+        place = location.get("place")
+
+
+        #create searchable addresses based on logic
+        #TODO: Create some logic for 
+
+        if country is None:
+            print("Missing a country value: ", location)
+        elif state is None and city is None:
+            # singular_places.add(place)
+            print("Found a lone place: ", place)
+
+        # If things are in order, add location to search. 
+        if country is not None:
+            # Joins the values together into one string, skipping the None values.
+            address = ", ".join(filter(None, [city, state, country]))
+
+            # Add address only if not already added
+            if address not in combinations_to_search_with:
+                print("Adding combined adress to queue: ", address)            
+                combinations_to_search_with.add(address)
+        
+        # Unsure about this logic
+        if (place != None or place == "") and place is not city and place is not state: # and city is not None:
+            numb = all_places.count(place)
+
+            # If the place belongs to a city, and is not a repeating tag added by GPT, add it to queue
+            if numb <= 1:
+                place_address = ", ".join(filter(None, [place]))
+                
+                # Add address only if not already added
+                if place_address not in combinations_to_search_with:
+                    print("Adding combined place to queue: ", place_address)
+                    combinations_to_search_with.add(place_address)
+
+        print(" ")
+
+    # Go over every search query added to the list and gather data
+    for search_string in combinations_to_search_with:
+
+        #TODO: Ask Geojson api for data, and store based on info from Bing respons
+
+        # First check if data is in cache
+        if search_string in map_location_cache:
+            data = map_location_cache[search_string]
+            
+            print('Retrieved data from cache using address: ', search_string)
+        else: 
+            try:
+                # Use address_to_coordinates function to get coordinates
+                data = await address_to_coordinates(search_string)
+                
+            except Exception as e:
+                print(f"Error: {e}")
+
+        # If no data is found, skip turn
+        if data is None:
+            continue
+        
+        # Save data in cache
+        map_location_cache[search_string] = data
+
+        # Get values from data
+        latitude, longitude = data["coordinates"]
+        adm_level = data["adm_level"]
+        country_region = data["country_region"]
+        formatted_address = data["formatted_address"]
+
+        # if th elocation has already been added, skip 
+        if formatted_address in added_addresses:
+            continue
+
+        # Construct a marker entity for frontend
+        entities.append({
+            "display_name": formatted_address, # This might need adjustment based on how you want to handle display names
+            "lat": latitude,
+            "lon": longitude
+        })
+
+        # Country level
+        if adm_level == "ADM0":
+            geometry = await get_geometry(country_region[:3], adm_level)
+            if geometry is not None:
+                country_geometries.append(geometry)
+
+        # State or city level
+        elif adm_level == "ADM1" or adm_level == "ADM2": 
+            geometry = await get_geometry(country_region[:3], adm_level, formatted_address)
+            if geometry is not None:
                 if adm_level == "ADM1":
-                    mentioned_places.add(formatted_address)
-                    state_tasks.append(geocode_with_retry(place))
-                    state_tasks.append(get_geometry(formatted_address))
+                    state_geometries.append(geometry)
                 elif adm_level == "ADM2":
-                    mentioned_places.add(formatted_address)
-                    city_tasks.append(geocode_with_retry(place))
-                    city_tasks.append(get_geometry(formatted_address))
-                else:
-                    print(f"Unsupported administrative level: {adm_level}")
-                    unassociated_places.add(formatted_address)
-            else:
-                unassociated_places.add(formatted_address)
-        except Exception as e:
-            print(f"Error fetching coordinates for city: {place}. Error: {e}")
-
-    print(f"Unique countries: {unique_countries}")
-    
-    # Process the new list to add them as markers on the map
-    for place in unassociated_places:
-        try:
-            coordinates, iso3, adm_level, country_region, formatted_address = await address_to_coordinates(place)
-            places_tasks.append(geocode_with_retry(place))
-        except Exception as e:
-            print(f"Error fetching coordinates for place: {place}. Error: {e}")
-
-    # Combine the results of country and city tasks
-    country_results = await asyncio.gather(*country_tasks)
-    state_results = await asyncio.gather(*state_tasks)
-    city_results = await asyncio.gather(*city_tasks)
-    places_results = await asyncio.gather(*places_tasks)
-
-    # Process the results for countries
-    for i in range(0, len(country_results), 2):
-        geocode_result = country_results[i]
-        geometry_result = country_results[i + 1]
-        if "error" not in geocode_result and geometry_result:
-            # Check if 'display_name' exists in the geocode_result
-            current_entity_name = geocode_result.get('address', 'Unknown')  # Use 'address' instead of 'display_name'
-            if current_entity_name and current_entity_name not in processed_countries:
-                coordinates, iso3, adm_level, country_region, formatted_address = await address_to_coordinates(current_entity_name)  # Use the updated function
-                if iso3:
-                    print(f"Found country: {current_entity_name}")
-                    entities.append((
-                        ("Found entities:", current_entity_name),
-                        ("Latitude:", geocode_result["latitude"]),
-                        ("Longitude:", geocode_result["longitude"])
-                    ))
-                     # Add the current country to the set of processed countries
-                    processed_countries.add(current_entity_name)
-                    country_geometries.append(geometry_result)
-                    # Complete the set of mentioned country ISO codes
-                    print(f"Finished processing country: {current_entity_name}")
-                    
-    # Process the results for states
-    for i in range(0, len(state_results), 2):
-        geocode_result = state_results[i]
-        geometry_result = state_results[i + 1]
-        if "error" not in geocode_result and geometry_result:
-            # Check if 'display_name' exists in the geocode_result
-            current_entity_name = geocode_result.get('address', 'Unknown')
-            if current_entity_name and current_entity_name not in processed_places:
-                coordinates, iso3, adm_level, country_region, formatted_address = await address_to_coordinates(current_entity_name)
-                if formatted_address:
-                    print(f"Found state: {current_entity_name}")
-                    entities.append((
-                        ("Found entities:", current_entity_name),
-                        ("Latitude:", geocode_result["latitude"]),
-                        ("Longitude:", geocode_result["longitude"])
-                    ))
-                    # Add the current state to the set of processed states
-                    processed_places.add(current_entity_name)
-                    state_geometries.append(geometry_result)
-                    print(f"Finished processing state: {current_entity_name}")
-    
-
-    # Process the results for cities
-    for i in range(0, len(city_results), 2):
-        geocode_result = city_results[i]
-        geometry_result = city_results[i + 1]
-        if "error" not in geocode_result and geometry_result:
-            # Check if 'display_name' exists in the geocode_result
-            current_entity_name = geocode_result.get('address', 'Unknown')
-            if current_entity_name and current_entity_name not in processed_places:
-                coordinates, iso3, adm_level, country_region, formatted_address = await address_to_coordinates(current_entity_name)  # Use the updated function
-                if formatted_address:
-                    print(f"Found city: {current_entity_name}")
-                    entities.append((
-                        ("Found entities:", current_entity_name),
-                        ("Latitude:", geocode_result["latitude"]),
-                        ("Longitude:", geocode_result["longitude"])
-                    ))
-                    # Add the current city to the set of processed cities
-                    processed_places.add(current_entity_name)
-                    city_geometries.append(geometry_result)
-                    print(f"Finished processing city: {current_entity_name}")
-    
-    # Process the results for places
-    for i in range(0, len(places_results), 2):
-        geocode_result = places_results[i]
-        if "error" not in geocode_result:
-            # Check if 'display_name' exists in the geocode_result
-            current_entity_name = geocode_result.get('address', 'Unknown')
-            if current_entity_name and current_entity_name not in processed_places:
-                print(f"Found place: {current_entity_name}")
-                entities.append((
-                    ("Found entities:", current_entity_name),
-                    ("Latitude:", geocode_result["latitude"]),
-                    ("Longitude:", geocode_result["longitude"])
-                ))
-                # Add the current place to the set of processed places
-                processed_places.add(current_entity_name)
-                print(f"Finished processing place: {current_entity_name}")
+                    city_geometries.append(geometry)
+ 
+        # If adm_level is None, do nothing
+        
+        print(" ")
 
 
-    iso_codes = [ent[1][1] for ent in entities if ent[0][0] == "Found entities:"]  # Filter entities for countries only
+
+    #iso_codes = [ent[1][1] for ent in entities if ent[0][0] == "Found entities:"]  # Filter entities for countries only
     country_geometries = [shape(geo) for geo in country_geometries]
     state_geometries = [shape(geo) for geo in state_geometries]
     city_geometries = [shape(geo) for geo in city_geometries]
@@ -598,7 +534,7 @@ async def run_text_through_prosessor(doc):
                 "properties": {
                     "name": "Country",
                     "fill": "#0F58FF",
-                    "iso_code": iso_codes[i],
+                    # "iso_code": iso_codes[i],
                     "style": {
                         "fillColor": "#0F58FF",
                         "strokeColor": "#000000",  # Black outline

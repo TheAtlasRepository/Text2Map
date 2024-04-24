@@ -52,7 +52,7 @@ const MapComponent: React.FC<MapComponentProps> = (
     // Update the marker title and type in the MapComponent's state
     props.setMarkers(props.markers.map(marker => {
       if (marker.numId === props.selectedMarker?.numId) {
-        return { ...marker, type: newTitle, title: newTitle }; // Assuming you want to update both title and type
+        return { ...marker, display_name: newTitle, title: newTitle }; // Assuming you want to update both title and type
       }
       return marker;
     }));
@@ -93,7 +93,7 @@ const MapComponent: React.FC<MapComponentProps> = (
 
   // Flyto location!
   useEffect(() => {
-    if(props.selectedMarker === null) { return; }
+    if (props.selectedMarker === null) { return; }
 
     if (mapRef.current) {
       // console.log('lat and lon: ', lat, lon);
@@ -110,92 +110,90 @@ const MapComponent: React.FC<MapComponentProps> = (
       ref={mapRef}
       onLoad={handleOnLoad}
     >
-      {isLoaded &&
-        <>
-          {/* Render GeoJSON */}
-          {gotGeoJson &&
-            <Source id="selectedCountries" type="geojson" data={props.geojsonData}>
-              {/* Layer for Countries */}
-              <Layer
-                id="countries-layer"
-                type="fill"
-                filter={["==", ["get", "name"], "Country"]}
-                paint={{
-                  "fill-color": '#0F58FF', // Blue color for countries
-                  "fill-opacity": 0.5,
-                  "fill-outline-color": "#000000",
-                }}
-              />
-              {/* Layer for States */}
-              <Layer
-                id="states-layer"
-                type="fill"
-                filter={["==", ["get", "name"], "State"]}
-                paint={{
-                  "fill-color": '#FFA500', // Orange color for states
-                  "fill-opacity": 0.5,
-                  "fill-outline-color": "#000000",
-                }}
-              />
-              {/* Layer for Cities */}
-              <Layer
-                id="cities-layer"
-                type="fill"
-                filter={["==", ["get", "name"], "City"]}
-                paint={{
-                  "fill-color": '#008000', // Green color for cities
-                  "fill-opacity": 0.5,
-                  "fill-outline-color": "#000000",
-                }}
-              />
-            </Source>
-          }
 
-          {/* Render markers */}
-          {props.markers.map(marker => (
-            <>
-              {marker.toggled &&
-                <Marker
-                  key={marker.numId}
+      {/* Render GeoJSON */}
+      {gotGeoJson && isLoaded &&
+        <Source id="selectedCountries" type="geojson" data={props.geojsonData}>
+          {/* Layer for Countries */}
+          <Layer
+            id="countries-layer"
+            type="fill"
+            filter={["==", ["get", "name"], "Country"]}
+            paint={{
+              "fill-color": '#0F58FF', // Blue color for countries
+              "fill-opacity": 0.5,
+              "fill-outline-color": "#000000",
+            }}
+          />
+          {/* Layer for States */}
+          <Layer
+            id="states-layer"
+            type="fill"
+            filter={["==", ["get", "name"], "State"]}
+            paint={{
+              "fill-color": '#FFA500', // Orange color for states
+              "fill-opacity": 0.5,
+              "fill-outline-color": "#000000",
+            }}
+          />
+          {/* Layer for Cities */}
+          <Layer
+            id="cities-layer"
+            type="fill"
+            filter={["==", ["get", "name"], "City"]}
+            paint={{
+              "fill-color": '#008000', // Green color for cities
+              "fill-opacity": 0.5,
+              "fill-outline-color": "#000000",
+            }}
+          />
+        </Source>
+      }
+
+      {/* Render markers */}
+      {isLoaded && props.markers.map(marker => (
+        <>
+          {marker.toggled &&
+            <Marker
+              key={marker.numId}
+              latitude={marker.latitude}
+              longitude={marker.longitude}
+              offset={[0, -25] as [number, number]}
+            >
+              <Coordinate
+                marker={marker}
+                isSelected={props.selectedMarker?.numId === marker.numId}
+                onClick={handleMarkerSelect}
+              />
+              {props.selectedMarker?.numId === marker.numId && (
+                <Popup
                   latitude={marker.latitude}
                   longitude={marker.longitude}
-                  offset={[0, -25] as [number, number]}
+                  closeButton={false}
+                  closeOnClick={false}
+                  className="custom-popup"
+                  anchor="bottom"
+                  offset={[0, -60] as [number, number]}
                 >
-                  <Coordinate
+                  <InfoPanel
                     marker={marker}
-                    isSelected={props.selectedMarker?.numId === marker.numId}
-                    onClick={handleMarkerSelect}
+                    onClosed={() => props.setSelectedMarker(null)}
+                    onHideMarker={handleHideMarker}
+                    onEditMarker={toggleEditMarkerOverlay}
+                    onMarkerTitleChange={handleMarkerTitleChange}
                   />
-                  {props.selectedMarker?.numId === marker.numId && (
-                    <Popup
-                      latitude={marker.latitude}
-                      longitude={marker.longitude}
-                      closeButton={false}
-                      closeOnClick={false}
-                      className="custom-popup"
-                      anchor="bottom"
-                      offset={[0, -60] as [number, number]}
-                    >
-                      <InfoPanel
-                        marker={marker}
-                        onClosed={() => props.setSelectedMarker(null)}
-                        onHideMarker={handleHideMarker}
-                        onEditMarker={toggleEditMarkerOverlay}
-                        onMarkerTitleChange={handleMarkerTitleChange}
-                      />
-                    </Popup>
-                  )}
-                </Marker>
-              }</>
-          ))}
-        </>
-      }
+                </Popup>
+              )}
+            </Marker>
+          }</>
+      ))}
+
       {isEditMarkerOverlayVisible && props.selectedMarker !== null && (
         <div className="editMarkerOverlay">
           <EditMarker
             onClose={toggleEditMarkerOverlay}
             onTitleChange={handleMarkerTitleChange}
-            title={props.selectedMarker?.type}
+            title={props.selectedMarker?.display_name}
           />
         </div>
       )}

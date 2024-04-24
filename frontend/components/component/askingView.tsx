@@ -68,7 +68,7 @@ export default function AskingView({
     }
 
     // If all is good, send call to handler
-    handleAddRequestToChat(request, setJsonData, setMarkers, setLoading);
+    handleAddRequestToChat(request, setJsonData, setMarkers, setLoading, jsonData.selected_countries_geojson_path, markers);
   };
 
   const handleSelectMarker = (marker: MapMarker) => {

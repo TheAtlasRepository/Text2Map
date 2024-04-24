@@ -3,13 +3,10 @@ fastapi
 mapbox
 Geocoder
 openai
-spacy
 aiohttp
 pexels-api
-pycountry
 shapely
 uvicorn[standard]
-geopy
 python-dotenv
 poppler-utils
 

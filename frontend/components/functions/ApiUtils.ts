@@ -1,19 +1,31 @@
-import { extractCoordinates } from '../functions/CoordinateExtractor'; // Adjust the import path
 import axios from 'axios';
 import { MapMarker } from '../types/MapMarker';
+import { entitiesConvertor } from './EntitiesConvertor';
+import { BackendResponse, GeoJsonData } from '../types/BackendResponse';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-// If ran locally, use the following URL
-//const BASE_URL = 'http://localhost:8000';
 
+
+/**
+ * Main handler for fetching data from backend.
+ * @param url The url to call
+ * @param payload The data to send allong with the url
+ * @param setJsonData SetStateAction for storing JsonData 
+ * @param setMarkers SetStateAction for storing MapMarkers
+ * @param setLoading SetStateAction for controlling Load visuals
+ * @param additionalGeoJsonData Optional for adding existing data with new
+ * @param additionalMapMarkers Optional for adding existing data with new
+ * @returns 
+ */
 export const handleDataFetching = async (
   url: string,
   payload: any,
   setJsonData: React.Dispatch<React.SetStateAction<any>>,
   setMarkers: React.Dispatch<React.SetStateAction<MapMarker[]>>,
   setLoading: React.Dispatch<React.SetStateAction<boolean>>,
-  additionalLogic?: (data: any) => void
+  additionalGeoJsonData?: GeoJsonData, 
+  additionalMapMarkers?: MapMarker[]
 ) => {
   setLoading(true);
 
@@ -24,52 +36,46 @@ export const handleDataFetching = async (
       },
     });
 
-    const data = response.data;
-    setJsonData(data);
-
+    const data: BackendResponse = response.data;    
     console.log('JSON data from the backend:', data);
 
-    // If a GeoJSON path is provided, fetch the GeoJSON data
-    if (data.selected_countries_geojson_path) {
-      const geoJsonData = data.selected_countries_geojson_path;
+    // If a GeoJSON and entitiy path is provided, fetch the GeoJSON data
+    if (data.selected_countries_geojson_path && data.entities) {
 
-      // Now you have the GeoJSON data
-      console.log('GeoJSON data:', geoJsonData);
-
-      // Filter out unnecessary strings and extract to coordinates. 
-      const coordinates: MapMarker[] = extractCoordinates(data.entities
-        .map((entry: any) => entry
-          .filter((item: any) => Array
-            .isArray(item) && item.length === 2))
-        .flat()
-      );
-
-      // Sort the order of locations returned.
+      // If there is data to combine, concat the features and add to data
+      if (additionalGeoJsonData) {
+        const combined_features = data.selected_countries_geojson_path.features.concat(additionalGeoJsonData.features);
+        data.selected_countries_geojson_path.features = combined_features;
+      }
+      
+      
+      // Convert coordinates to MapMarkers, and combine with existing markers if present
+      let coordinates: MapMarker[] = entitiesConvertor(data.entities, additionalMapMarkers?.length);
+      if (additionalMapMarkers && additionalMapMarkers.length > 0) {
+        coordinates = coordinates.concat(additionalMapMarkers);
+      }
+      
+      // Sort the coordinates alphabetically
       coordinates.sort((a, b) => {
-        if (a.type < b.type) { return -1; }
-        if (a.type < b.type) { return 1; }
+        if (a.display_name < b.display_name) { return -1; }
+        if (a.display_name < b.display_name) { return 1; }
         return 0;
       })
+
       // Print out locations
       console.log('Extracted Coordinates:', coordinates);
-
-      // Proceed with the rest of your logic, e.g., extracting coordinates, setting markers, etc.
-
-      setJsonData(data);
       setMarkers(coordinates);
-
-      if (additionalLogic) {
-        additionalLogic(data);
-      }
 
       setLoading(false);
     } else {
       // Handle the case where no GeoJSON path is provided in the backend response
-      console.error('No GeoJSON path provided in the backend response.');
+      console.error('No Entity or GeoJSON path provided in the backend response.');
 
       // Set loading to false
       setLoading(false);
     }
+
+    setJsonData(data);
     return data;
   }
   catch (error) {
@@ -79,74 +85,106 @@ export const handleDataFetching = async (
   }
 };
 
+/**
+ * Handler for starting chats with GPT in backend and retreaving locations from answers.
+ * @param inputText The text to start a chat with
+ * @param setJsonData SetStateAction for storing JsonData 
+ * @param setMarkers SetStateAction for storing MapMarkers
+ * @param setLoading SetStateAction for controlling Load visuals
+ * @returns Void - Just for ending loops
+ */
 export const handleSendChatRequest = async (
   inputText: string,
   setJsonData: React.Dispatch<React.SetStateAction<any>>,
   setMarkers: React.Dispatch<React.SetStateAction<MapMarker[]>>,
   setLoading: React.Dispatch<React.SetStateAction<boolean>>
 ) => {
-  if (inputText.trim() !== '') {
-    const responseData = await handleDataFetching(
-      `${BASE_URL}/newChat?message=${inputText}`,
-      { editedText: inputText },
-      setJsonData,
-      setMarkers,
-      setLoading,
-    );
+  if (inputText.trim() == '') { console.log('Input text is empty. Not sending the request.'); }
 
-    console.log('Response data:', responseData);
+  const responseData = await handleDataFetching(
+    `${BASE_URL}/newChat?message=${inputText}`,
+    { editedText: inputText },
+    setJsonData,
+    setMarkers,
+    setLoading,
+  );
+  if (!responseData) {
+    console.error("Response came back empty");
+    return;
+  }
 
-    const threadId = responseData?.thread_id;
-    if (!threadId) {
-      console.error('No threadId provided in the backend response.');
-      return;
-    } else {
-      document.cookie = `threadId=${threadId}; path=/; max-age=31536000`;
-      console.log('threadId:', threadId);
-    }
+  const threadId = responseData.thread_id;
+  if (!threadId) {
+    console.error('No threadId provided in the backend response.');
+    return;
+  } else {
+    document.cookie = `threadId=${threadId}; path=/; max-age=31536000`;
+    console.log('threadId:', threadId);
   }
 };
 
 
+/**
+ * Handler for adding additional requests to an ongoing chat
+ * @param inputText The text to add to chat
+ * @param setJsonData SetStateAction for storing JsonData 
+ * @param setMarkers SetStateAction for storing MapMarkers
+ * @param setLoading SetStateAction for controlling Load visuals
+ * @param geoJsonData Existing data to hold onto
+ * @param mapMarkers Existing data to hold onto
+ */
 export const handleAddRequestToChat = async (
   inputText: string,
   setJsonData: React.Dispatch<React.SetStateAction<any>>,
   setMarkers: React.Dispatch<React.SetStateAction<MapMarker[]>>,
-  setLoading: React.Dispatch<React.SetStateAction<boolean>>
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>,
+  geoJsonData: GeoJsonData, 
+  mapMarkers: MapMarker[]
 ) => {
-  if (inputText.trim() !== '') {
-    // Get all cookies and split them by semicolon. Find the first row starting with desired cookie-name, then ceep only value after equals-sign.
-    let thread_id = document.cookie.split('; ').find((row) => row.startsWith('threadId='))?.split('=')[1];
+  if (inputText.trim() == '') { console.log('Input text is empty. Not sending the request.'); }
 
-    await handleDataFetching(
-      `${BASE_URL}/moreChat?message=${inputText}&thread_id=${thread_id}`,
-      { inputText },
-      setJsonData,
-      setMarkers,
-      setLoading,
-    );
-  } else {
-    // Handle case where inputText is empty
-    console.log('Input text is empty. Not sending the request.');
+  // Get all cookies and split them by semicolon. Find the first row starting with desired cookie-name, then ceep only value after equals-sign.
+  let thread_id = document.cookie.split('; ').find((row) => row.startsWith('threadId='))?.split('=')[1];
+
+  const responseData = await handleDataFetching(
+    `${BASE_URL}/moreChat?message=${inputText}&thread_id=${thread_id}`,
+    { inputText },
+    setJsonData,
+    setMarkers,
+    setLoading,
+    geoJsonData, 
+    mapMarkers
+  );
+
+  if (!responseData) {
+    console.error("Response came back empty");
   }
 };
 
+/**
+ * Handler for extracting locations out from text
+ * @param inputText Text with locations to be mapped out
+ * @param setJsonData SetStateAction for storing JsonData 
+ * @param setMarkers SetStateAction for storing MapMarkers
+ * @param setLoading SetStateAction for controlling Load visuals
+ */
 export const handleSendTextInput = async (
   inputText: string,
   setJsonData: React.Dispatch<React.SetStateAction<any>>,
   setMarkers: React.Dispatch<React.SetStateAction<MapMarker[]>>,
   setLoading: React.Dispatch<React.SetStateAction<boolean>>
 ) => {
-  if (inputText.trim() !== '') {
-    await handleDataFetching(
-      `${BASE_URL}/newText?text=${inputText}`,
-      { inputText },
-      setJsonData,
-      setMarkers,
-      setLoading
-    );
-  } else {
-    // Handle case where inputText is empty
-    console.log('Input text is empty. Not sending the request.');
+  if (inputText.trim() !== '') { console.log('Input text is empty. Not sending the request.'); }
+
+  const responseData = await handleDataFetching(
+    `${BASE_URL}/newText?text=${inputText}`,
+    { inputText },
+    setJsonData,
+    setMarkers,
+    setLoading
+  );
+
+  if (!responseData) {
+    console.error("Response came back empty");
   }
 };
