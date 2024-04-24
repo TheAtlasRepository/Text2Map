@@ -17,7 +17,7 @@ const Coordinate: React.FC<CoordinateProps> = ({
       className={`custom-marker ${isSelected ? 'selected' : ''}`}
       onClick={() => onClick(marker)}
     >
-      <span>{marker.type}</span>
+      <span>{marker.display_name}</span>
     </div>
   );
 };

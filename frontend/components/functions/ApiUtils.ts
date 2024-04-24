@@ -45,8 +45,8 @@ export const handleDataFetching = async (
 
       // Sort the order of locations returned.
       coordinates.sort((a, b) => {
-        if (a.type < b.type) { return -1; }
-        if (a.type < b.type) { return 1; }
+        if (a.display_name < b.display_name) { return -1; }
+        if (a.display_name < b.display_name) { return 1; }
         return 0;
       })
       // Print out locations

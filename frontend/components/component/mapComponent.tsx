@@ -52,7 +52,7 @@ const MapComponent: React.FC<MapComponentProps> = (
     // Update the marker title and type in the MapComponent's state
     props.setMarkers(props.markers.map(marker => {
       if (marker.numId === props.selectedMarker?.numId) {
-        return { ...marker, type: newTitle, title: newTitle }; // Assuming you want to update both title and type
+        return { ...marker, display_name: newTitle, title: newTitle }; // Assuming you want to update both title and type
       }
       return marker;
     }));
@@ -193,7 +193,7 @@ const MapComponent: React.FC<MapComponentProps> = (
           <EditMarker
             onClose={toggleEditMarkerOverlay}
             onTitleChange={handleMarkerTitleChange}
-            title={props.selectedMarker?.type}
+            title={props.selectedMarker?.display_name}
           />
         </div>
       )}

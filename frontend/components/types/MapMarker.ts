@@ -1,7 +1,7 @@
 export type MapMarker = {
   latitude: number;
   longitude: number;
-  type: string;
+  display_name: string;
   numId: number;
   toggled: boolean;
 }
