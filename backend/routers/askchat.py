@@ -11,7 +11,6 @@ import re
 import json
 import urllib.parse
 import unicodedata
-from geopy.exc import GeocoderTimedOut
 from dotenv import load_dotenv
 
 load_dotenv()
