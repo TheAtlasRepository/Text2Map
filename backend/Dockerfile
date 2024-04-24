@@ -57,4 +57,4 @@ RUN if [ ! -f /app/.env ] && [ -f .env ]; then cp .env /app/; fi
 # Expose port
 EXPOSE $PORT
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0" , "--port", "$PORT"]
+CMD uvicorn main:app --host 0.0.0.0 --port $PORT
