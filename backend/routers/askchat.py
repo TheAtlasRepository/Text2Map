@@ -510,9 +510,9 @@ async def run_locations_through_prosessor(locations: list) -> dict:
 
         # Construct a marker entity for frontend
         entities.append({
+            "display_name": formatted_address, # This might need adjustment based on how you want to handle display names
             "lat": latitude,
-            "lon": longitude,
-            "display_name": formatted_address # This might need adjustment based on how you want to handle display names
+            "lon": longitude
         })
 
         # Country level
