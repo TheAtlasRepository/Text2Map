@@ -357,29 +357,32 @@ async def requestToGPT(text: str, thread_id: str, mode: str = "CHAT") -> list:
     print (f"Assistant response: {formatted_messages}")
     return formatted_messages
 
+def extract_json_from_string(input_string: str) -> str:
+    """Extracts the JSON object from a string."""
+    # Find the first occurrence of '{' and the last occurrence of '}'
+    start = input_string.find('{')
+    end = input_string.rfind('}')
+    if start != -1 and end != -1:
+        # Extract the substring from the first '{' to the last '}'
+        json_str = input_string[start:end+1]
+        return json_str
+    return ""
 
 def gptResponseToJson(input_messages: str) -> dict:
-    """Takes a formated response from GPT, presumably in a stringified Json format
-
-    Args:
-        input_messages (str): The formated response from GPT
-
-    Returns:
-        dict: The locations from the response
-    """
+    """Takes a formated response from GPT and converts to json dict """
     
     # Parse the JSON string into a Python object
     try:
-        # Use a regular expression to find the JSON part of the string
-        # This regex looks for a string that starts with '{' and ends with '}'
-        # and contains only valid JSON characters in between.
-        json_str = re.search(r'{.*?}', input_messages, re.DOTALL).group()
+        # Extract the JSON string from the input
+        print("This is the input_messages: ", input_messages)
+        json_str = extract_json_from_string(input_messages)
+        print("This is the json_str: ", json_str)
         response_data: dict = json.loads(json_str)
     except (json.JSONDecodeError, AttributeError) as e:
         
         # Print the error response and the failed input
         print("Error parsing JSON: ", e)
-        print("The input that failed: ", input_messages)
+        print("The input that failed: ", json_str)
         
     return response_data
 
