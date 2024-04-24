@@ -5,32 +5,32 @@ on:
     branches:
       - dev
 jobs:
-  #Build-and-deploy-backend-API-heroku:
-    #runs-on: ubuntu-latest
+  Build-and-deploy-backend-API-heroku:
+    runs-on: ubuntu-latest
 
-    #steps:
-      #- name: Checkout repository
-        #uses: actions/checkout@v4
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       #backend steps
-      #- name: Create backend .env file 
-        #run: |
-          #echo "HOST_PORT=8000" > backend/.env          
-          #echo "OPENAI_API_KEY=${{secrets.OPENAI_API_KEY}}" >> backend/.env
-          #echo "CORS_ORIGINS='http://localhost,${{ vars.CORS_ORIGINS }}'" >> backend/.env
+      - name: Create backend .env file 
+        run: |
+          echo "HOST_PORT=8000" > backend/.env          
+          echo "OPENAI_API_KEY=${{secrets.OPENAI_API_KEY}}" >> backend/.env
+          echo "CORS_ORIGINS='http://localhost,${{ vars.CORS_ORIGINS }}'" >> backend/.env
 
-      #- name: BackendAPI - Build, Push and Release a Docker container to Heroku.
-        #uses: gonuit/heroku-docker-deploy@v1.3.3
-       #with:
+      - name: BackendAPI - Build, Push and Release a Docker container to Heroku.
+        uses: gonuit/heroku-docker-deploy@v1.3.3
+        with:
           #Heroku configuration
-          #email: ${{ secrets.HEROKU_EMAIL }} 
-          #heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
-          #heroku_app_name: ${{ secrets.HEROKU_API_APP_NAME }}
-          #process_type: web 
+          email: ${{ secrets.HEROKU_EMAIL }} 
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_app_name: ${{ secrets.HEROKU_API_APP_NAME }}
+          process_type: web 
           #Docker configuration
-          #dockerfile_directory: ./backend 
-          #dockerfile_name: Dockerfile 
-          #docker_options: "--no-cache" 
+          dockerfile_directory: ./backend 
+          dockerfile_name: Dockerfile 
+          docker_options: "--no-cache" 
 
   Build-and-deploy-WEB-heroku:
     runs-on: ubuntu-latest
