@@ -8,6 +8,7 @@ import MapComponent from "./mapComponent";
 import { InputDisplay } from "../component/inputDisplay";
 import autosizeTextArea from '../functions/AutosizeTextArea';
 import { MapMarker } from "../types/MapMarker";
+import { BackendResponse } from "../types/BackendResponse";
 
 export default function StartDataSource() {
   const maxLengthInput = 3000; // Max length for input
@@ -19,7 +20,7 @@ export default function StartDataSource() {
   const [textareaValue, setTextareaValue] = useState("");
   const [uploadedFile, setUploadedFile] = useState(false);
 
-  const [jsonData, setJsonData] = useState<any>(null);
+  const [jsonData, setJsonData] = useState<BackendResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [markers, setMarkers] = useState<MapMarker[]>([]);
   const [selectedMarker, setSelectedMarker] = useState<MapMarker | null>(null);

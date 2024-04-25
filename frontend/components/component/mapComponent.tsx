@@ -16,7 +16,7 @@ type MapComponentProps = {
   setMarkers: React.Dispatch<React.SetStateAction<MapMarker[]>>,
   selectedMarker: MapMarker | null;
   setSelectedMarker: React.Dispatch<React.SetStateAction<MapMarker | null>>;
-  geojsonData?: any;
+  geojsonData?: any; // Setting this to our own geoJsonData type breaks some things, so keep type any
 };
 
 

@@ -6,22 +6,31 @@ import { MapMarker } from "../types/MapMarker";
  * and their own number id,
  * 
  * @param entities Array of CoordinateEntities
- * @param existingNumberOfMarkers Number of existing markers, to tell where next id starts from
+ * @param existingMarkers List of existing markers
  * @returns Array of MapMarkers
  */
-export const entitiesConvertor = (entities: CoordinateEntity[], existingNumberOfMarkers: number = 0): MapMarker[] => {
+export const entitiesConvertor = (entities: CoordinateEntity[], existingMarkers?: MapMarker[]): MapMarker[] => {
   let markers: MapMarker[] = [];
-  let x = existingNumberOfMarkers;
+  let x = 0;
 
-  entities.forEach(marker => {
-    markers.push({
-      display_name: marker.display_name, 
-      latitude: marker.lat, 
-      longitude: marker.lon, 
-      numId: x, 
-      toggled: true
-    })
-    x++;
+  if (existingMarkers != undefined && existingMarkers.length > 0) {
+    x = existingMarkers.length;
+    markers = existingMarkers;
+  }
+
+  entities.forEach(ent => {
+    //If marker displayname does not already exist, add it
+    if (markers.findIndex(mark => mark.display_name == ent.display_name) == -1) {
+      markers.push({
+        display_name: ent.display_name,
+        latitude: ent.lat,
+        longitude: ent.lon,
+        numId: x,
+        img_url: ent.img_url,
+        toggled: true
+      })
+      x++;
+    }
   })
 
   return markers

@@ -1,25 +1,26 @@
 export type BackendResponse = {
-  chat_history: JsonChatHistory[],
-  entities: CoordinateEntity[],
-  selected_countries_geojson_path: GeoJsonData,
-  thread_id: string
+  chat_history: JsonChatHistory[];
+  entities: CoordinateEntity[];
+  selected_countries_geojson_path: GeoJsonData;
+  thread_id: string;
 }
 
 export type JsonChatHistory = {
   sender: string;
   message: string | {
     Information: string;
-    locations: []
+    locations: [];
   };
 }
 
 export type CoordinateEntity = {
+  display_name: string;
+  img_url: string;
   lat: number;
   lon: number;
-  display_name: string;
 }
 
 export type GeoJsonData = {
-  type: string,
-  features: object[]
+  type: string;
+  features: object[];
 }

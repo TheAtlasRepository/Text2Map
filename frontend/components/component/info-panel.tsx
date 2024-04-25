@@ -4,39 +4,41 @@ import { MapMarker } from "../types/MapMarker";
 import { Button } from "../ui/button";
 
 const InfoPanel = (props: {
-  marker: MapMarker
+  marker: MapMarker;
   onClosed: () => void;
   onHideMarker: (id: number) => void; // Add this line
   onEditMarker: () => void;
   onMarkerTitleChange: (newTitle: string) => void;
 }) => {
-  const [imageLink, setImageLink] = useState("");
-  const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-
-  useEffect(() => {
-    // Fetch data from API
-    try {
-      fetch(BASE_URL + "/imagesearch?query=" + props.marker.display_name)
-        .then(response => response.json())
-        .then(data => {
-          // Update the image link state variable
-          setImageLink(data.url);
-        });
-    } catch (error) {
-      console.log(error);
-    }
-
-  }, []);
+  const [loadingImgState, setLoadingImgState] = useState(true)
+  const imageLoaded = () => {
+    setLoadingImgState(false);
+  }
 
   return (
     <div className="block min-w-[180px] bg-white rounded-lg shadow dark:bg-gray-800 dark:text-white">
       {
-        imageLink == "" ? (
+        props.marker.img_url == "" ? (
           <div style={{ width: "240px", height: "125px" }}>
-            <p className="rounded-t-lg flex items-center justify-center h-full font-semibold bg-gray-200 dark:bg-slate-900">Loading...</p>
+            <p className="rounded-t-lg flex items-center justify-center h-full font-semibold bg-gray-200 dark:bg-slate-900">
+              No image found sadly.
+            </p>
           </div>
         ) : (
-          <img className="rounded-t-lg" style={{ width: "240px", height: "125px" }} src={imageLink} />
+          <>
+            <div style={{ width: "240px", height: "125px", display: loadingImgState ? "block" : "none" }}>
+              <p className="rounded-t-lg flex items-center justify-center h-full font-semibold bg-gray-200 dark:bg-slate-900">
+                Loading image...
+              </p>
+            </div>
+            <div style={{ display: loadingImgState ? "none" : "block" }}>
+              <img
+                className="rounded-t-lg" style={{ width: "240px", height: "125px" }}
+                src={props.marker.img_url}
+                onLoad={imageLoaded}
+              />
+            </div>
+          </>
         )
       }
       <div className="p-5 flex-col items-center ">

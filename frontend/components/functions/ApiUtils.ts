@@ -24,7 +24,7 @@ export const handleDataFetching = async (
   setJsonData: React.Dispatch<React.SetStateAction<any>>,
   setMarkers: React.Dispatch<React.SetStateAction<MapMarker[]>>,
   setLoading: React.Dispatch<React.SetStateAction<boolean>>,
-  additionalGeoJsonData?: GeoJsonData, 
+  additionalGeoJsonData?: GeoJsonData,
   additionalMapMarkers?: MapMarker[]
 ) => {
   setLoading(true);
@@ -36,7 +36,7 @@ export const handleDataFetching = async (
       },
     });
 
-    const data: BackendResponse = response.data;    
+    const data: BackendResponse = response.data;
     console.log('JSON data from the backend:', data);
 
     // If a GeoJSON and entitiy path is provided, fetch the GeoJSON data
@@ -47,14 +47,11 @@ export const handleDataFetching = async (
         const combined_features = data.selected_countries_geojson_path.features.concat(additionalGeoJsonData.features);
         data.selected_countries_geojson_path.features = combined_features;
       }
-      
-      
+
+
       // Convert coordinates to MapMarkers, and combine with existing markers if present
-      let coordinates: MapMarker[] = entitiesConvertor(data.entities, additionalMapMarkers?.length);
-      if (additionalMapMarkers && additionalMapMarkers.length > 0) {
-        coordinates = coordinates.concat(additionalMapMarkers);
-      }
-      
+      let coordinates: MapMarker[] = entitiesConvertor(data.entities, additionalMapMarkers);
+
       // Sort the coordinates alphabetically
       coordinates.sort((a, b) => {
         if (a.display_name < b.display_name) { return -1; }
@@ -138,7 +135,7 @@ export const handleAddRequestToChat = async (
   setJsonData: React.Dispatch<React.SetStateAction<any>>,
   setMarkers: React.Dispatch<React.SetStateAction<MapMarker[]>>,
   setLoading: React.Dispatch<React.SetStateAction<boolean>>,
-  geoJsonData: GeoJsonData, 
+  geoJsonData: GeoJsonData,
   mapMarkers: MapMarker[]
 ) => {
   if (inputText.trim() == '') { console.log('Input text is empty. Not sending the request.'); }
@@ -152,7 +149,7 @@ export const handleAddRequestToChat = async (
     setJsonData,
     setMarkers,
     setLoading,
-    geoJsonData, 
+    geoJsonData,
     mapMarkers
   );
 
