@@ -97,7 +97,7 @@ const MapComponent: React.FC<MapComponentProps> = (
 
     if (mapRef.current) {
       // console.log('lat and lon: ', lat, lon);
-      mapRef.current.flyTo({ center: [props.selectedMarker.longitude, props.selectedMarker.latitude], speed: 0.6, zoom: 7 });
+      mapRef.current.flyTo({ center: [props.selectedMarker.longitude, props.selectedMarker.latitude], speed: 0.6});
     }
   }, [props.selectedMarker])
 
