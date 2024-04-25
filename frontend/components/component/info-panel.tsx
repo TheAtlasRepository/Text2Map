@@ -10,6 +10,10 @@ const InfoPanel = (props: {
   onEditMarker: () => void;
   onMarkerTitleChange: (newTitle: string) => void;
 }) => {
+  const [loadingImgState, setLoadingImgState] = useState(true)
+  const imageLoaded = () => {
+    setLoadingImgState(false);
+  }
 
   return (
     <div className="block min-w-[180px] bg-white rounded-lg shadow dark:bg-gray-800 dark:text-white">
@@ -21,7 +25,20 @@ const InfoPanel = (props: {
             </p>
           </div>
         ) : (
-          <img className="rounded-t-lg" style={{ width: "240px", height: "125px" }} src={props.marker.img_url} />
+          <>
+            <div style={{ width: "240px", height: "125px", display: loadingImgState ? "block" : "none" }}>
+              <p className="rounded-t-lg flex items-center justify-center h-full font-semibold bg-gray-200 dark:bg-slate-900">
+                Loading image...
+              </p>
+            </div>
+            <div style={{ display: loadingImgState ? "none" : "block" }}>
+              <img
+                className="rounded-t-lg" style={{ width: "240px", height: "125px" }}
+                src={props.marker.img_url}
+                onLoad={imageLoaded}
+              />
+            </div>
+          </>
         )
       }
       <div className="p-5 flex-col items-center ">
