@@ -32,4 +32,4 @@ app.include_router(imageSearch.router)
 # Run uvicorn server
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000)) # Use the $PORT environment variable, or 8000 if not set
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    uvicorn.run(app, host="0.0.0.0", port=port, loop="asyncio")
