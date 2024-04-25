@@ -84,6 +84,7 @@ export default function AskingView({
           input={inputText}
           jsonData={jsonData}
           markers={markers}
+          setSelectedMarker={setSelectedMarker}
           setMarkers={setMarkers}
           onSelectClick={handleSelectMarker}
           onSaveEditText={handleSaveEditText}

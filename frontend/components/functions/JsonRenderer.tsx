@@ -1,9 +1,12 @@
 import React from 'react';
-import { JsonChatHistory} from '../types/BackendResponse';
+import { CoordinateEntity, JsonChatHistory} from '../types/BackendResponse';
+import { MapMarker } from '../types/MapMarker';
 import { Button, } from "@/components/ui/button";
 
 type JsonRendererProps = {
   jsonChatHistory: JsonChatHistory[]; // Replace 'any' with the actual type of your jsonData
+  setSelectedMarker: React.Dispatch<React.SetStateAction<MapMarker | null>>,
+  mapMarker : MapMarker[];
   coordinates: any;
 };
 
@@ -18,7 +21,7 @@ const errorMessage = (
  * @param jsonChatHistory The chat history from the backend 
  * @returns A collection of paragraphs displaying the chat history
  */
-const JsonRenderer: React.FC<JsonRendererProps> = ({ jsonChatHistory, coordinates }) => {
+const JsonRenderer: React.FC<JsonRendererProps> = ({ jsonChatHistory, coordinates, setSelectedMarker, mapMarker }) => {
   if (!jsonChatHistory) {
     return errorMessage;
   }
@@ -37,15 +40,15 @@ const JsonRenderer: React.FC<JsonRendererProps> = ({ jsonChatHistory, coordinate
       if (typeof message_value == "object") {
         message = message_value.Information;
         if (coordinates) {
-          locations = coordinates.map((entity:any, index:any) => 
+          locations = coordinates.map((cord: CoordinateEntity, index: number) => 
             <ul key={index}>
               <li>
                 <Button 
                   variant="blue" 
                   style={{ margin: '5px', width: '100%'}} 
-                  onClick={() => window.open(`https://www.google.com/search?q=${entity.display_name}`, '_blank')}
+                  onClick={() => setSelectedMarker(mapMarker.find(mark => mark.display_name == cord.display_name)?? null)}
                 >
-                  {entity.display_name}
+                  {cord.display_name}
                 </Button>
               </li>
             </ul>

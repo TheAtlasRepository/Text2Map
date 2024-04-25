@@ -18,6 +18,7 @@ type InputDisplayProps = {
   jsonData?: any,
   entities?: any,
   markers: MapMarker[];
+  setSelectedMarker: React.Dispatch<React.SetStateAction<MapMarker | null>>,
   setMarkers: React.Dispatch<React.SetStateAction<MapMarker[]>>,
   onSelectClick: (marker: MapMarker) => void,
   onSaveEditText: (text: string) => void,
@@ -40,6 +41,7 @@ const InputDisplay = (props: InputDisplayProps) => {
   const [editText, setEditText] = useState(props.input);
   const [editTextState, setEditTextState] = useState(false);
   const [newText, setNewText] = useState('');
+  const [selectedMarker, setSelectedMarker] = useState<MapMarker | null>(null);
   const editInputRef = useRef<HTMLTextAreaElement>(null);
 
   //AutosizeTextArea
@@ -160,16 +162,8 @@ const InputDisplay = (props: InputDisplayProps) => {
                 }
                 {props.displayState === 1 &&
                   // Display chat always, as the user can only edit initial input
-                  <JsonRenderer jsonChatHistory={props.jsonData?.chat_history} coordinates={
-                    props.jsonData?.entities?.map((entity: any) => {
-                      return {
-                        display_name: entity.display_name,
-                        lat: entity.lat,
-                        lon: entity.lon
-                      }
-                    })
-                  
-                  } />
+                  <JsonRenderer jsonChatHistory={props.jsonData?.chat_history} coordinates={props.jsonData?.entities}
+                  setSelectedMarker={props.setSelectedMarker} mapMarker={props.markers}/>
                 }
                 {props.displayState === 2 && !editTextState &&
                   // Display text when not editing, because the textarea displays the same.
