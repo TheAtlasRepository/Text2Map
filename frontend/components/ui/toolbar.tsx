@@ -28,7 +28,7 @@ type toolbarProps = {
 
 const Toolbar = (props: toolbarProps) => {
   const router = useRouter();
-  const [mapName, setMapName] = useState('Unsaved map'); // State to hold the map name
+  const [mapName, setMapName] = useState(""); // State to hold the map name
   const [dropdownVisible, setDropdownVisible] = useState(false); // State to hold the dropdown visibility
   const [isFormModalOpen, setFormModalOpen] = useState(false);
 
