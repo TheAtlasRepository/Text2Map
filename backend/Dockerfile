@@ -49,6 +49,8 @@ ENV PATH="/venv/bin:$PATH"
 COPY --from=build /app /app 
 
 # Install dependencies
+RUN pip install --no-cache-dir gunicorn
+
 RUN pip install --no-cache-dir -r requirements.txt 
 
 # Copy .env file if needed
@@ -57,4 +59,4 @@ RUN if [ ! -f /app/.env ] && [ -f .env ]; then cp .env /app/; fi
 # Expose port
 EXPOSE $PORT
 
-CMD uvicorn main:app --host 0.0.0.0 --port $PORT
+CMD gunicorn main:app --workers 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:$PORT
