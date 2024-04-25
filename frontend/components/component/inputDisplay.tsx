@@ -16,6 +16,7 @@ type InputDisplayProps = {
   loading: boolean,
   input: any,
   jsonData?: any,
+  entities?: any,
   markers: MapMarker[];
   setMarkers: React.Dispatch<React.SetStateAction<MapMarker[]>>,
   onSelectClick: (marker: MapMarker) => void,
@@ -28,6 +29,7 @@ type InputDisplayProps = {
  * @param loading Loading state value
  * @param input Input text
  * @param JsonData Input jsonData
+ * @param entities Input entities
  * @param markers List of markers to display related info
  * @param {function} onSaveEditText Save event for when text is saved
  * @returns 
@@ -158,7 +160,16 @@ const InputDisplay = (props: InputDisplayProps) => {
                 }
                 {props.displayState === 1 &&
                   // Display chat always, as the user can only edit initial input
-                  <JsonRenderer jsonChatHistory={props.jsonData?.chat_history} />
+                  <JsonRenderer jsonChatHistory={props.jsonData?.chat_history} coordinates={
+                    props.jsonData?.entities?.map((entity: any) => {
+                      return {
+                        display_name: entity.display_name,
+                        lat: entity.lat,
+                        lon: entity.lon
+                      }
+                    })
+                  
+                  } />
                 }
                 {props.displayState === 2 && !editTextState &&
                   // Display text when not editing, because the textarea displays the same.

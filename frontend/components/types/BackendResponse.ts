@@ -5,12 +5,23 @@ export type BackendResponse = {
   thread_id: string
 }
 
+type Location = {
+  country: string;
+  state: string;
+  city: string;
+  place: string;
+  lat: number;
+  lon: number;
+};
+
+type Message = {
+  Information: string;
+  locations: Location[];
+} | string;
+
 export type JsonChatHistory = {
   sender: string;
-  message: string | {
-    Information: string;
-    locations: []
-  };
+  message: Message;
 }
 
 export type CoordinateEntity = {
