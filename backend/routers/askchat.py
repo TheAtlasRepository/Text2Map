@@ -12,6 +12,7 @@ import json
 import urllib.parse
 import unicodedata
 from dotenv import load_dotenv
+from routers.imageSearch import getImageSearch
 
 load_dotenv()
 
@@ -503,7 +504,8 @@ async def run_locations_through_prosessor(locations: list) -> dict:
         entities.append({
             "display_name": formatted_address, # This might need adjustment based on how you want to handle display names
             "lat": latitude,
-            "lon": longitude
+            "lon": longitude,
+            "img_url": getImageSearch(formatted_address)
         })
 
         # Country level

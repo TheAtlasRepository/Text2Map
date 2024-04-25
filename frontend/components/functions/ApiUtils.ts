@@ -51,9 +51,6 @@ export const handleDataFetching = async (
 
       // Convert coordinates to MapMarkers, and combine with existing markers if present
       let coordinates: MapMarker[] = entitiesConvertor(data.entities, additionalMapMarkers);
-      if (additionalMapMarkers && additionalMapMarkers.length > 0) {
-        coordinates = coordinates.concat(additionalMapMarkers);
-      }
 
       // Sort the coordinates alphabetically
       coordinates.sort((a, b) => {
