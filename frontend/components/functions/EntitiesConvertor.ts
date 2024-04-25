@@ -18,18 +18,19 @@ export const entitiesConvertor = (entities: CoordinateEntity[], existingMarkers?
     markers = existingMarkers;
   }
 
-  entities.forEach(marker => {
-    // TODO: If marker displayname exists, skip
-
-    markers.push({
-      display_name: marker.display_name,
-      latitude: marker.lat,
-      longitude: marker.lon,
-      numId: x,
-      img_url: marker.img_url,
-      toggled: true
-    })
-    x++;
+  entities.forEach(ent => {
+    //If marker displayname does not already exist, add it
+    if (markers.findIndex(mark => mark.display_name == ent.display_name) == -1) {
+      markers.push({
+        display_name: ent.display_name,
+        latitude: ent.lat,
+        longitude: ent.lon,
+        numId: x,
+        img_url: ent.img_url,
+        toggled: true
+      })
+      x++;
+    }
   })
 
   return markers

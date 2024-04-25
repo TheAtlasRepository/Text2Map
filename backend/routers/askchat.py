@@ -496,9 +496,10 @@ async def run_locations_through_prosessor(locations: list) -> dict:
         country_region = data["country_region"]
         formatted_address = data["formatted_address"]
 
-        # if th elocation has already been added, skip 
+        # if the location has already been added, skip 
         if formatted_address in added_addresses:
             continue
+        else: added_addresses.add(formatted_address)
 
         # Construct a marker entity for frontend
         entities.append({
@@ -507,6 +508,7 @@ async def run_locations_through_prosessor(locations: list) -> dict:
             "lon": longitude,
             "img_url": getImageSearch(formatted_address)
         })
+        
 
         # Country level
         if adm_level == "ADM0":
