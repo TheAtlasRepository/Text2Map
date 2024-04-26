@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { CloseIcon, EyeSlashIcon } from "../ui/icons";
 import { MapMarker } from "../types/MapMarker";
 import { Button } from "../ui/button";

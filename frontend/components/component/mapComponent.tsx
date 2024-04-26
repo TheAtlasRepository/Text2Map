@@ -3,8 +3,8 @@ import ReactMapGL, { Marker, Popup, Source, Layer } from 'react-map-gl';
 import type { MapRef } from 'react-map-gl';
 import Coordinate from '../functions/Coordinates';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import InfoPanel from '../component/info-panel';
-import { EditMarker } from '../component/edit-marker';
+import InfoPanel from './infoPanel';
+import { MarkerEditor } from './markerEditor';
 import { MapMarker } from '../types/MapMarker';
 import markerToggle from '../functions/markerToggle';
 
@@ -25,7 +25,7 @@ type MapComponentProps = {
  * 
  * @param markers Array of markers to display
  * @param setMarkers 
- * @param selectMarker
+ * @param selectedMarker
  * @param setSelectedMarker
  * @param geojsonData 
  * @returns 
@@ -190,7 +190,7 @@ const MapComponent: React.FC<MapComponentProps> = (
 
       {isEditMarkerOverlayVisible && props.selectedMarker !== null && (
         <div className="editMarkerOverlay">
-          <EditMarker
+          <MarkerEditor
             onClose={toggleEditMarkerOverlay}
             onTitleChange={handleMarkerTitleChange}
             title={props.selectedMarker?.display_name}
