@@ -68,7 +68,6 @@ const InfoPanel = (props: {
         }
       </div>
 
-
       <div className="absolute top-0 left-0 mt-2 ml-2">
         <button
           className="bg-gray-100 hover:bg-white/90 dark:bg-gray-800 dark:hover:bg-gray-700 rounded-full p-2 focus:outline-none"
