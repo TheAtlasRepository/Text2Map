@@ -105,7 +105,6 @@ export const MarkerEditor = (props: MarkerEditorType) => {
             </label>
             <Textarea
               id="DescriptionInput"
-              rows={3}
               className="mt-1 border-underline-grey"
               placeholder="Add details and information about this location..."
               value={markerDescription}
