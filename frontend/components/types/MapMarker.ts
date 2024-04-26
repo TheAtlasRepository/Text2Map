@@ -3,6 +3,8 @@ export type MapMarker = {
   latitude: number;
   longitude: number;
   numId: number;
-  img_url: string;
+  imgUrl: string;
   toggled: boolean;
+  infoUrl: string;
+  pinDiscription: string;
 }

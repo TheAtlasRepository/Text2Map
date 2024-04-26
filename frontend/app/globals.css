@@ -159,6 +159,14 @@ body {
   box-shadow: 0 2px 0 0 rgb(59, 130, 246);
 }
 
+.border-underline-grey {
+  box-shadow: 0 3px 0 0 rgb(229 231 235);
+
+  @media (prefers-color-scheme: dark) {
+    box-shadow: 0 3px 0 0 rgb(75, 85, 99);
+  }
+}
+
 .editMarkerOverlay {
   z-index: 1000; /* Adjust the z-index as needed */
   position: fixed; /* Ensure it's positioned relative to the viewport */

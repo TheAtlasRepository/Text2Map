@@ -8,7 +8,6 @@ const InfoPanel = (props: {
   onClosed: () => void;
   onHideMarker: (id: number) => void; // Add this line
   onEditMarker: () => void;
-  onMarkerTitleChange: (newTitle: string) => void;
 }) => {
   const [loadingImgState, setLoadingImgState] = useState(true)
   const imageLoaded = () => {
@@ -18,7 +17,7 @@ const InfoPanel = (props: {
   return (
     <div className="block min-w-[180px] bg-white rounded-lg shadow dark:bg-gray-800 dark:text-white">
       {
-        props.marker.img_url == "" ? (
+        props.marker.imgUrl == "" ? (
           <div style={{ width: "240px", height: "125px" }}>
             <p className="rounded-t-lg flex items-center justify-center h-full font-semibold bg-gray-200 dark:bg-slate-900">
               No image found sadly.
@@ -34,7 +33,7 @@ const InfoPanel = (props: {
             <div style={{ display: loadingImgState ? "none" : "block" }}>
               <img
                 className="rounded-t-lg" style={{ width: "240px", height: "125px" }}
-                src={props.marker.img_url}
+                src={props.marker.imgUrl}
                 onLoad={imageLoaded}
               />
             </div>

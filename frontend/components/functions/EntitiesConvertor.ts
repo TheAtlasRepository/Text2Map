@@ -26,8 +26,10 @@ export const entitiesConvertor = (entities: CoordinateEntity[], existingMarkers?
         latitude: ent.lat,
         longitude: ent.lon,
         numId: x,
-        img_url: ent.img_url,
-        toggled: true
+        imgUrl: ent.img_url,
+        toggled: true,
+        infoUrl: "",
+        pinDiscription: ""
       })
       x++;
     }
