@@ -1,6 +1,7 @@
 import React from 'react';
 import { CoordinateEntity, JsonChatHistory } from '../types/BackendResponse';
 import { MapMarker } from '../types/MapMarker';
+import { Button } from '../ui/button';
 
 type JsonRendererProps = {
   jsonChatHistory: JsonChatHistory[]; // Replace 'any' with the actual type of your jsonData
@@ -45,30 +46,39 @@ const JsonRenderer: React.FC<JsonRendererProps> = ({ jsonChatHistory, onSelectCl
       let message = "";
       let locations = null;
 
-
       // Determine if the message is a string or an object
       if (typeof message_value == "object") {
         message = message_value.Information;
 
         // Directly use mapMarker to create buttons
         locations = markerHistory[historyIndex].map((marker, index_h) =>
-          <button
+          <Button
             key={index_h}
-            className="w-full bg-blue-500 hover:bg-blue-600 rounded-md"
+            variant="blue"
+            style={{ width: '100%'}} 
             onClick={() => handleMarkerSelect(marker.display_name)}
           >
             {marker.display_name}
-          </button>
+          </Button>
         );
+
+        const numColumns = locations && locations.length > 5 ? 2 : 1;
+
+        locations = (
+          <div className={`grid grid-cols-${numColumns} gap-2 pt-3`}>
+            {locations}
+          </div>
+        );
+
         historyIndex++;
       } else if (typeof message_value == 'string') {
         message = message_value;
       }
-
+      
       return (
         <div key={index} className="pb-3">
           <p><strong>{role}:</strong> {message}</p>
-          {locations && <p className="mb-10">{locations}</p>}
+          {locations}
         </div>
       );
     }).reverse();
