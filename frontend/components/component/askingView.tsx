@@ -4,6 +4,7 @@ import MapComponent from "./mapComponent";
 import { handleSendChatRequest, handleAddRequestToChat } from '../functions/ApiUtils';
 import { InputDisplay } from './inputDisplay';
 import { MapMarker } from '../types/MapMarker';
+import { BackendResponse, GeoJsonData } from '../types/BackendResponse';
 
 export default function AskingView({
   inputText,
@@ -13,11 +14,11 @@ export default function AskingView({
 }: {
   inputText: string,
   onSaveEditText: (text: string) => void,
-  setGeoJsonPath: React.Dispatch<React.SetStateAction<string | null>>,
+  setGeoJsonPath: React.Dispatch<React.SetStateAction<GeoJsonData | null>>,
   setMarkersToolbar: React.Dispatch<React.SetStateAction<MapMarker[]>>
 }) {
   const [loading, setLoading] = useState(true);
-  const [jsonData, setJsonData] = useState<any>(null);
+  const [jsonData, setJsonData] = useState<BackendResponse | null>(null);
   const [markers, setMarkers] = useState<MapMarker[]>([]);
   const [selectedMarker, setSelectedMarker] = useState<MapMarker | null>(null);
   const isInitialRender = useRef(true);
@@ -68,7 +69,8 @@ export default function AskingView({
     }
 
     // If all is good, send call to handler
-    handleAddRequestToChat(request, setJsonData, setMarkers, setLoading, jsonData.selected_countries_geojson_path, markers);
+    if (jsonData)
+      handleAddRequestToChat(request, setJsonData, setMarkers, setLoading, jsonData.selected_countries_geojson_path, markers);
   };
 
   const handleSelectMarker = (marker: MapMarker) => {

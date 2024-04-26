@@ -13,6 +13,7 @@ import json
 import urllib.parse
 import unicodedata
 from dotenv import load_dotenv
+from routers.imageSearch import getImageSearch
 
 load_dotenv()
 
@@ -248,8 +249,10 @@ async def postNewText(text: str) -> dict:
     # Send a message to the assistant
     formatted_messages = await requestToGPT(text, thread_id, "READER")
     
-    # Run the value field through the processor
-    response = await run_locations_through_prosessor(formatted_messages[0].get("message").get("locations"))
+    # Check if message is dict or single string
+    if (isinstance(formatted_messages, list) and isinstance(formatted_messages[0].get("message"), dict)):
+        # Run the value field through the processor
+        response = await run_locations_through_prosessor(formatted_messages[0].get("message").get("locations"))
     
     
     # Return the new GeoJSON file path to the frontend
@@ -305,9 +308,11 @@ async def postMoreChat(message: str, thread_id: str) -> dict:
 
     # Send a message to the assistant
     formatted_messages = await requestToGPT(message, thread_id, "CHAT")
-
-    # Run the value field through the processor
-    response = await run_locations_through_prosessor(formatted_messages[0].get("message").get("locations"))
+    
+    # Check if message is dict or single string
+    if (isinstance(formatted_messages, list) and isinstance(formatted_messages[0].get("message"), dict)):
+        # Run the value field through the processor
+        response = await run_locations_through_prosessor(formatted_messages[0].get("message").get("locations"))
     
     return {
         "entities": response["entities"],
@@ -389,7 +394,8 @@ def extract_json_from_string(input_string: str) -> str:
     return ""
 
 def gptResponseToJson(input_messages: str) -> dict:
-    """Takes a formated response from GPT and converts to json dict """
+    """Takes a formated response from GPT and converts to json dict if possible. 
+    If data contains no json, return the unhandled input message."""
     
     # Parse the JSON string into a Python object
     try:
@@ -397,7 +403,12 @@ def gptResponseToJson(input_messages: str) -> dict:
         print("This is the input_messages: ", input_messages)
         json_str = extract_json_from_string(input_messages)
         print("This is the json_str: ", json_str)
-        response_data: dict = json.loads(json_str)
+
+        if json_str != "":
+          response_data: dict = json.loads(json_str)
+        else:
+          response_data: dict = input_messages
+
     except (json.JSONDecodeError, AttributeError) as e:
         
         # Print the error response and the failed input
@@ -515,16 +526,19 @@ async def run_locations_through_prosessor(locations: list) -> dict:
         country_region = data["country_region"]
         formatted_address = data["formatted_address"]
 
-        # if th elocation has already been added, skip 
+        # if the location has already been added, skip 
         if formatted_address in added_addresses:
             continue
+        else: added_addresses.add(formatted_address)
 
         # Construct a marker entity for frontend
         entities.append({
             "display_name": formatted_address, # This might need adjustment based on how you want to handle display names
             "lat": latitude,
-            "lon": longitude
+            "lon": longitude,
+            "img_url": getImageSearch(formatted_address)
         })
+        
 
         # Country level
         if adm_level == "ADM0":

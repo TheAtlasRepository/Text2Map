@@ -5,11 +5,12 @@ import { Toolbar } from "../ui/toolbar";
 import { Textarea } from "../ui/textarea";
 import autosizeTextArea from "../functions/AutosizeTextArea";
 import { MapMarker } from "../types/MapMarker";
+import { GeoJsonData } from "../types/BackendResponse";
 
 
 // Define the StartChatGPt component
 export default function StartChatGPt() {
-  const [geoJsonPath, setGeoJsonPath] = useState<string | null>(null);
+  const [geoJsonPath, setGeoJsonPath] = useState<GeoJsonData | null>(null);
   const [markers, setMarkersToolbar] = useState<MapMarker[]>([]);
   const [textareaValue, setTextareaValue] = useState("");
   const [inputText, setInputText] = useState("");
@@ -22,9 +23,9 @@ export default function StartChatGPt() {
   // Handler for the onEditSave prop
   const saveEditText = (text: string) => {
     console.log("SaveEditText called. text:", text);
-    
+
     // Do nothing if new text is same as old
-    if(text == inputText) {
+    if (text == inputText) {
       console.log("New text was same as old one. No need to repeat request.");
       return;
     }

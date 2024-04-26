@@ -13,7 +13,7 @@ type JsonRendererProps = {
 
 const errorMessage = (
   <div className="border rounded-lg border-red-500 p-3 text-red-500">
-    Something wrong happened. <br />No text was found.
+    No text was found.
   </div>
 )
 

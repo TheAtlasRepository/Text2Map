@@ -1,7 +1,10 @@
 export type MapMarker = {
+  display_name: string;
   latitude: number;
   longitude: number;
-  display_name: string;
   numId: number;
+  imgUrl: string;
   toggled: boolean;
+  infoUrl: string;
+  pinDiscription: string;
 }

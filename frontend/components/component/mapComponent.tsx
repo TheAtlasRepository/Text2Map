@@ -3,10 +3,11 @@ import ReactMapGL, { Marker, Popup, Source, Layer } from 'react-map-gl';
 import type { MapRef } from 'react-map-gl';
 import Coordinate from '../functions/Coordinates';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import InfoPanel from '../component/info-panel';
-import { EditMarker } from '../component/edit-marker';
+import InfoPanel from './infoPanel';
+import { MarkerEditor } from './markerEditor';
 import { MapMarker } from '../types/MapMarker';
 import markerToggle from '../functions/markerToggle';
+import updateMarker from '../functions/markerEditUpdater';
 
 /**
  * Input props for the map component
@@ -16,7 +17,7 @@ type MapComponentProps = {
   setMarkers: React.Dispatch<React.SetStateAction<MapMarker[]>>,
   selectedMarker: MapMarker | null;
   setSelectedMarker: React.Dispatch<React.SetStateAction<MapMarker | null>>;
-  geojsonData?: any;
+  geojsonData?: any; // Setting this to our own geoJsonData type breaks some things, so keep type any
 };
 
 
@@ -25,7 +26,7 @@ type MapComponentProps = {
  * 
  * @param markers Array of markers to display
  * @param setMarkers 
- * @param selectMarker
+ * @param selectedMarker
  * @param setSelectedMarker
  * @param geojsonData 
  * @returns 
@@ -48,14 +49,9 @@ const MapComponent: React.FC<MapComponentProps> = (
     props.setSelectedMarker(marker);
   }
 
-  const handleMarkerTitleChange = (newTitle: string) => {
-    // Update the marker title and type in the MapComponent's state
-    props.setMarkers(props.markers.map(marker => {
-      if (marker.numId === props.selectedMarker?.numId) {
-        return { ...marker, display_name: newTitle, title: newTitle }; // Assuming you want to update both title and type
-      }
-      return marker;
-    }));
+  const handleMarkerEditSave = (newMarker: MapMarker) => {
+    // Update the marker
+    props.setMarkers(updateMarker(newMarker, props.markers));
   };
 
   const toggleEditMarkerOverlay = () => {
@@ -97,7 +93,7 @@ const MapComponent: React.FC<MapComponentProps> = (
 
     if (mapRef.current) {
       // console.log('lat and lon: ', lat, lon);
-      mapRef.current.flyTo({ center: [props.selectedMarker.longitude, props.selectedMarker.latitude], speed: 0.6, zoom: 7 });
+      mapRef.current.flyTo({ center: [props.selectedMarker.longitude, props.selectedMarker.latitude], speed: 0.6});
     }
   }, [props.selectedMarker])
 
@@ -180,7 +176,6 @@ const MapComponent: React.FC<MapComponentProps> = (
                     onClosed={() => props.setSelectedMarker(null)}
                     onHideMarker={handleHideMarker}
                     onEditMarker={toggleEditMarkerOverlay}
-                    onMarkerTitleChange={handleMarkerTitleChange}
                   />
                 </Popup>
               )}
@@ -190,10 +185,10 @@ const MapComponent: React.FC<MapComponentProps> = (
 
       {isEditMarkerOverlayVisible && props.selectedMarker !== null && (
         <div className="editMarkerOverlay">
-          <EditMarker
+          <MarkerEditor
             onClose={toggleEditMarkerOverlay}
-            onTitleChange={handleMarkerTitleChange}
-            title={props.selectedMarker?.display_name}
+            onEditSave={handleMarkerEditSave}
+            marker={props.markers.find(mark => mark.numId == props.selectedMarker?.numId) ?? null}
           />
         </div>
       )}

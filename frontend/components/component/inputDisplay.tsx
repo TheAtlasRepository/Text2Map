@@ -156,7 +156,7 @@ const InputDisplay = (props: InputDisplayProps) => {
               }
               <div className={`p-3 mb-4 whitespace-pre-wrap ${markerListDisplayState ? "blur-sm" : ""}`}>
                 {props.jsonData == undefined && 
-                  <div className="border rounded-lg border-red-500 p-3 text-red-500">
+                  <div className="border rounded-lg border-red-500 mb-3 p-3 text-red-500">
                     Something wrong happened.<br />Try asking again.
                   </div>
                 }
