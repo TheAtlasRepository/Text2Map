@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CloseIcon, EyeSlashIcon } from "../ui/icons";
+import { CloseIcon, EyeSlashIcon, InternetGlobeIcon, PencilIcon } from "../ui/icons";
 import { MapMarker } from "../types/MapMarker";
 import { Button } from "../ui/button";
 
@@ -32,7 +32,7 @@ const InfoPanel = (props: {
             </div>
             <div style={{ display: loadingImgState ? "none" : "block" }}>
               <img
-                className="rounded-t-lg" style={{ width: "240px", height: "125px" }}
+                className="rounded-t-lg object-cover" style={{ width: "240px", height: "125px" }}
                 src={props.marker.imgUrl}
                 onLoad={imageLoaded}
               />
@@ -40,17 +40,35 @@ const InfoPanel = (props: {
           </>
         )
       }
-      <div className="p-5 flex-col items-center ">
-        <a href="#">
-          <h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">{props.marker.display_name}</h5>
-        </a>
-        <Button
-          variant={"secondary"}
-          onClick={props.onEditMarker}>
+      <div className="text-sm flex border-b dark:border-b dark:border-gray-600">
+        <div className="w-1/2">
+          <a href={props.marker.infoUrl != "" ? props.marker.infoUrl : "#"}>
+            <div className="flex text-nowrap p-2 hover:bg-white/90 dark:hover:bg-gray-700">
+              <InternetGlobeIcon className="mr-2" />Learn more
+            </div>
+          </a>
+        </div>
+        <div className="w-1/2 flex justify-end">
+          <button className="hover:bg-white/90 dark:hover:bg-gray-700 p-2 px-3"
+            onClick={props.onEditMarker}
+          >
+            <PencilIcon className="mr-2 " />Edit pin
+          </button>
+        </div>
 
-          Edit Marker
-        </Button>
       </div>
+      <div id="pinDescription" className="p-2 px-3">
+        {/* {(props.marker.pinDiscription == "")} */}
+
+        {(props.marker.pinDiscription == "") ? (
+          <div className="text-gray-400 dark:text-gray-500">
+            No description added yet...
+          </div>
+        ) : (<>{props.marker.pinDiscription}</>)
+        }
+      </div>
+
+
       <div className="absolute top-0 left-0 mt-2 ml-2">
         <button
           className="bg-gray-100 hover:bg-white/90 dark:bg-gray-800 dark:hover:bg-gray-700 rounded-full p-2 focus:outline-none"

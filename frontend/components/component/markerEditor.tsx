@@ -100,19 +100,19 @@ export const MarkerEditor = (props: MarkerEditorType) => {
             />
           </div>
           <div>
-              <label htmlFor="DescriptionInput" className="text-sm flex items-center">
-                <TextBarsIcon className="h-6 w-6 mr-2" /> Pin description
-              </label>
-              <Textarea
-                id="DescriptionInput"
-                rows={3}
-                className="mt-1 border-underline-grey"
-                placeholder="Add details and information about this location..."
-                value={markerDescription}
-                onChange={handleDescriptionChange}
-                ref={pinDescriptionRef}
-              />
-            </div>
+            <label htmlFor="DescriptionInput" className="text-sm flex items-center">
+              <TextBarsIcon className="h-6 w-6 mr-2" /> Pin description
+            </label>
+            <Textarea
+              id="DescriptionInput"
+              rows={3}
+              className="mt-1 border-underline-grey"
+              placeholder="Add details and information about this location..."
+              value={markerDescription}
+              onChange={handleDescriptionChange}
+              ref={pinDescriptionRef}
+            />
+          </div>
         </div>
 
         <div className="flex gap-5">
