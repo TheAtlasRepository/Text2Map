@@ -68,7 +68,7 @@ const JsonRenderer: React.FC<JsonRendererProps> = ({ jsonChatHistory, onSelectCl
       return (
         <div key={index} className="pb-3">
           <p><strong>{role}:</strong> {message}</p>
-          {locations && <p>{locations}</p>}
+          {locations && <p className="mb-10">{locations}</p>}
         </div>
       );
     }).reverse();
