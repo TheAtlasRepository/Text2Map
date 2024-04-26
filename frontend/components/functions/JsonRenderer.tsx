@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { CoordinateEntity, JsonChatHistory} from '../types/BackendResponse';
 import { MapMarker } from '../types/MapMarker';
 import { Button, } from "@/components/ui/button";
@@ -8,6 +8,7 @@ type JsonRendererProps = {
   setSelectedMarker: React.Dispatch<React.SetStateAction<MapMarker | null>>,
   mapMarker : MapMarker[];
   coordinates: any;
+  
 };
 
 const errorMessage = (
@@ -22,12 +23,12 @@ const errorMessage = (
  * @returns A collection of paragraphs displaying the chat history
  */
 const JsonRenderer: React.FC<JsonRendererProps> = ({ jsonChatHistory, coordinates, setSelectedMarker, mapMarker }) => {
+
   if (!jsonChatHistory) {
     return errorMessage;
   }
 
   console.log('Chat history:', jsonChatHistory);
-  console.log('Coordinates:', coordinates);
 
   if (Array.isArray(jsonChatHistory) && jsonChatHistory.length > 0) {
     const formattedContent = jsonChatHistory.map((item, index) => {
@@ -39,21 +40,27 @@ const JsonRenderer: React.FC<JsonRendererProps> = ({ jsonChatHistory, coordinate
       // Determine if the message is a string or an object
       if (typeof message_value == "object") {
         message = message_value.Information;
-        if (coordinates) {
-          locations = coordinates.map((cord: CoordinateEntity, index: number) => 
-            <ul key={index}>
-              <li>
-                <Button 
-                  variant="blue" 
-                  style={{ margin: '5px', width: '100%'}} 
-                  onClick={() => setSelectedMarker(mapMarker.find(mark => mark.display_name == cord.display_name)?? null)}
-                >
-                  {cord.display_name}
-                </Button>
-              </li>
-            </ul>
-          );
-        }
+        // Remove duplicates from mapMarker
+        mapMarker = mapMarker.filter((marker, index, self) =>
+          index === self.findIndex((t) => (
+            t.latitude === marker.latitude && t.longitude === marker.longitude
+          ))
+        );
+
+        // Directly use mapMarker to create buttons
+        locations = mapMarker.map((marker, index) => 
+          <ul key={index}>
+            <li>
+              <Button 
+                variant="blue" 
+                style={{ margin: '5px', width: '100%'}} 
+                onClick={() => setSelectedMarker(marker)}
+              >
+                {marker.display_name}
+              </Button>
+            </li>
+          </ul>
+        );
       } else if (typeof message_value == 'string') {
         message = message_value;
       }
@@ -72,4 +79,4 @@ const JsonRenderer: React.FC<JsonRendererProps> = ({ jsonChatHistory, coordinate
   return errorMessage;
 };
 
-export default JsonRenderer;
+export default React.memo(JsonRenderer);
