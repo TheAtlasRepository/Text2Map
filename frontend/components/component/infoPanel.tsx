@@ -13,6 +13,15 @@ const InfoPanel = (props: {
   const imageLoaded = () => {
     setLoadingImgState(false);
   }
+  const LearnMoreLink = (url: string, targetBlank: boolean) => {
+    return (
+      <a href={url} target={targetBlank ? "_blank" : ""}>
+        <div className="flex text-nowrap p-2 hover:bg-white/90 dark:hover:bg-gray-700">
+          <InternetGlobeIcon className="mr-2" />Learn more
+        </div>
+      </a>
+    )
+  }
 
   return (
     <div className="block min-w-[180px] bg-white rounded-lg shadow dark:bg-gray-800 dark:text-white">
@@ -42,11 +51,10 @@ const InfoPanel = (props: {
       }
       <div className="text-sm flex border-b dark:border-b dark:border-gray-600">
         <div className="w-1/2">
-          <a href={props.marker.infoUrl != "" ? props.marker.infoUrl : "#"}>
-            <div className="flex text-nowrap p-2 hover:bg-white/90 dark:hover:bg-gray-700">
-              <InternetGlobeIcon className="mr-2" />Learn more
-            </div>
-          </a>
+          {(props.marker.infoUrl != "") 
+            ?(<>{LearnMoreLink(props.marker.infoUrl, true)}</>)
+            :(<>{LearnMoreLink("#", false)}</>)
+          }
         </div>
         <div className="w-1/2 flex justify-end">
           <button className="hover:bg-white/90 dark:hover:bg-gray-700 p-2 px-3"
