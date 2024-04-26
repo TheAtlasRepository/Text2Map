@@ -1,14 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { CoordinateEntity, JsonChatHistory} from '../types/BackendResponse';
+import React from 'react';
+import { CoordinateEntity, JsonChatHistory } from '../types/BackendResponse';
 import { MapMarker } from '../types/MapMarker';
-import { Button, } from "@/components/ui/button";
 
 type JsonRendererProps = {
   jsonChatHistory: JsonChatHistory[]; // Replace 'any' with the actual type of your jsonData
-  setSelectedMarker: React.Dispatch<React.SetStateAction<MapMarker | null>>,
-  mapMarker : MapMarker[];
-  coordinates: any;
-  
+  onSelectClick: (marker: MapMarker) => void;
+  markerHistory: CoordinateEntity[][];
+  mapMarkers: MapMarker[];
+
 };
 
 const errorMessage = (
@@ -20,47 +19,48 @@ const errorMessage = (
 /**
  * Renders the respons retrieved from backend
  * @param jsonChatHistory The chat history from the backend 
+ * @param onSelectClick Event for when a marker is selected
+ * @param markerHistory A historylist of markers retrieved from backend
+ * @param mapMarkers A list of markers
  * @returns A collection of paragraphs displaying the chat history
  */
-const JsonRenderer: React.FC<JsonRendererProps> = ({ jsonChatHistory, coordinates, setSelectedMarker, mapMarker }) => {
+const JsonRenderer: React.FC<JsonRendererProps> = ({ jsonChatHistory, onSelectClick, markerHistory, mapMarkers }) => {
 
   if (!jsonChatHistory) {
     return errorMessage;
   }
 
-  console.log('Chat history:', jsonChatHistory);
+  const handleMarkerSelect = (name: string) => {
+    const mapMarker = mapMarkers.find(mark => mark.display_name == name);
+    if (mapMarker)
+      onSelectClick(mapMarker);
+  }
+
 
   if (Array.isArray(jsonChatHistory) && jsonChatHistory.length > 0) {
+    let historyIndex = 0;
     const formattedContent = jsonChatHistory.map((item, index) => {
       const role = item.sender === 'user' ? 'User' : 'Assistant';
       const message_value = item.message;
       let message = "";
       let locations = null;
 
+
       // Determine if the message is a string or an object
       if (typeof message_value == "object") {
         message = message_value.Information;
-        // Remove duplicates from mapMarker
-        mapMarker = mapMarker.filter((marker, index, self) =>
-          index === self.findIndex((t) => (
-            t.latitude === marker.latitude && t.longitude === marker.longitude
-          ))
-        );
 
         // Directly use mapMarker to create buttons
-        locations = mapMarker.map((marker, index) => 
-          <ul key={index}>
-            <li>
-              <Button 
-                variant="blue" 
-                style={{ margin: '5px', width: '100%'}} 
-                onClick={() => setSelectedMarker(marker)}
-              >
-                {marker.display_name}
-              </Button>
-            </li>
-          </ul>
+        locations = markerHistory[historyIndex].map((marker, index_h) =>
+          <button
+            key={index_h}
+            className="w-full bg-blue-500 hover:bg-blue-600 rounded-md"
+            onClick={() => handleMarkerSelect(marker.display_name)}
+          >
+            {marker.display_name}
+          </button>
         );
+        historyIndex++;
       } else if (typeof message_value == 'string') {
         message = message_value;
       }
@@ -68,7 +68,7 @@ const JsonRenderer: React.FC<JsonRendererProps> = ({ jsonChatHistory, coordinate
       return (
         <div key={index} className="pb-3">
           <p><strong>{role}:</strong> {message}</p>
-          {locations && <p style={{ margin: '10px' }}><strong>Locations:</strong>{locations}</p>}
+          {locations && <p>{locations}</p>}
         </div>
       );
     }).reverse();
@@ -79,4 +79,4 @@ const JsonRenderer: React.FC<JsonRendererProps> = ({ jsonChatHistory, coordinate
   return errorMessage;
 };
 
-export default React.memo(JsonRenderer);
+export default JsonRenderer;

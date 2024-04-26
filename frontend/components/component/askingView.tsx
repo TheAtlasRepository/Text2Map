@@ -4,7 +4,7 @@ import MapComponent from "./mapComponent";
 import { handleSendChatRequest, handleAddRequestToChat } from '../functions/ApiUtils';
 import { InputDisplay } from './inputDisplay';
 import { MapMarker } from '../types/MapMarker';
-import { BackendResponse, GeoJsonData } from '../types/BackendResponse';
+import { BackendResponse, CoordinateEntity, GeoJsonData } from '../types/BackendResponse';
 
 export default function AskingView({
   inputText,
@@ -20,6 +20,7 @@ export default function AskingView({
   const [loading, setLoading] = useState(true);
   const [jsonData, setJsonData] = useState<BackendResponse | null>(null);
   const [markers, setMarkers] = useState<MapMarker[]>([]);
+  const [markerHistoryList, setMarkerHistoryList] = useState<CoordinateEntity[][]>([])
   const [selectedMarker, setSelectedMarker] = useState<MapMarker | null>(null);
   const isInitialRender = useRef(true);
 
@@ -50,14 +51,14 @@ export default function AskingView({
     // Set state so call is made only once if run in local dev outside docker
     isInitialRender.current = false;
 
-    handleSendChatRequest(inputText, setJsonData, setMarkers, setLoading);
+    handleSendChatRequest(inputText, setJsonData, setMarkers, setLoading, setMarkerHistoryList);
   }, [inputText]);
 
   const handleSaveEditText = (editText: string) => {
     onSaveEditText(editText); // Pass value upwards
     
     // Ensure request is resendt
-    handleSendChatRequest(editText, setJsonData, setMarkers, setLoading);
+    handleSendChatRequest(editText, setJsonData, setMarkers, setLoading, setMarkerHistoryList);
   }
 
   // Handler for sending additional chat requests to the backend
@@ -70,7 +71,7 @@ export default function AskingView({
 
     // If all is good, send call to handler
     if (jsonData)
-      handleAddRequestToChat(request, setJsonData, setMarkers, setLoading, jsonData.selected_countries_geojson_path, markers);
+      handleAddRequestToChat(request, setJsonData, setMarkers, setLoading, setMarkerHistoryList, jsonData.selected_countries_geojson_path, markers, markerHistoryList);
   };
 
   const handleSelectMarker = (marker: MapMarker) => {
@@ -86,7 +87,7 @@ export default function AskingView({
           input={inputText}
           jsonData={jsonData}
           markers={markers}
-          setSelectedMarker={setSelectedMarker}
+          markerHistory={markerHistoryList}
           setMarkers={setMarkers}
           onSelectClick={handleSelectMarker}
           onSaveEditText={handleSaveEditText}
