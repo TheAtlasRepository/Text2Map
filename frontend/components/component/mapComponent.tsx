@@ -7,6 +7,7 @@ import InfoPanel from './infoPanel';
 import { MarkerEditor } from './markerEditor';
 import { MapMarker } from '../types/MapMarker';
 import markerToggle from '../functions/markerToggle';
+import updateMarker from '../functions/markerEditUpdater';
 
 /**
  * Input props for the map component
@@ -48,14 +49,9 @@ const MapComponent: React.FC<MapComponentProps> = (
     props.setSelectedMarker(marker);
   }
 
-  const handleMarkerTitleChange = (newTitle: string) => {
-    // Update the marker title and type in the MapComponent's state
-    props.setMarkers(props.markers.map(marker => {
-      if (marker.numId === props.selectedMarker?.numId) {
-        return { ...marker, display_name: newTitle, title: newTitle }; // Assuming you want to update both title and type
-      }
-      return marker;
-    }));
+  const handleMarkerEditSave = (newMarker: MapMarker) => {
+    // Update the marker
+    props.setMarkers(updateMarker(newMarker, props.markers));
   };
 
   const toggleEditMarkerOverlay = () => {
@@ -180,7 +176,6 @@ const MapComponent: React.FC<MapComponentProps> = (
                     onClosed={() => props.setSelectedMarker(null)}
                     onHideMarker={handleHideMarker}
                     onEditMarker={toggleEditMarkerOverlay}
-                    onMarkerTitleChange={handleMarkerTitleChange}
                   />
                 </Popup>
               )}
@@ -192,8 +187,8 @@ const MapComponent: React.FC<MapComponentProps> = (
         <div className="editMarkerOverlay">
           <MarkerEditor
             onClose={toggleEditMarkerOverlay}
-            onTitleChange={handleMarkerTitleChange}
-            title={props.selectedMarker?.display_name}
+            onEditSave={handleMarkerEditSave}
+            marker={props.markers.find(mark => mark.numId == props.selectedMarker?.numId) ?? null}
           />
         </div>
       )}
