@@ -35,7 +35,6 @@ type InputDisplayProps = {
  * @returns 
  */
 const InputDisplay = (props: InputDisplayProps) => {
-  const [numberOfLocations, setNumberOfLocations] = useState(0);
   const [markerListDisplayState, setMarkerListDisplayState] = useState(false);
   const [editText, setEditText] = useState(props.input);
   const [editTextState, setEditTextState] = useState(false);
@@ -44,10 +43,6 @@ const InputDisplay = (props: InputDisplayProps) => {
 
   //AutosizeTextArea
   autosizeTextArea(editInputRef.current, editText);
-
-  useEffect(() => {
-    setNumberOfLocations(props.markers.length);
-  }, [props.markers]);
 
   // Handlers for updating inputs
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => { setEditText(e.target.value) }
@@ -98,7 +93,7 @@ const InputDisplay = (props: InputDisplayProps) => {
           onClick={() => setMarkerListDisplayState(!markerListDisplayState)}
         >
           <span className="mr-2">
-            {numberOfLocations} Locations
+            {props.markers.length} Locations
           </span>
           {!markerListDisplayState ? <ChevronDownArrowIcon /> : <ChevronUpArrowIcon />}
         </button>
