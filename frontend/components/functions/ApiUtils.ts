@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { MapMarker } from '../types/MapMarker';
 import { entitiesConvertor } from './EntitiesConvertor';
-import { BackendResponse, GeoJsonData } from '../types/BackendResponse';
+import { BackendResponse, CoordinateEntity, GeoJsonData } from '../types/BackendResponse';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
@@ -14,8 +14,10 @@ const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
  * @param setJsonData SetStateAction for storing JsonData 
  * @param setMarkers SetStateAction for storing MapMarkers
  * @param setLoading SetStateAction for controlling Load visuals
+ * @param setMarkerHistoryList SetStateAction for storing new history
  * @param additionalGeoJsonData Optional for adding existing data with new
  * @param additionalMapMarkers Optional for adding existing data with new
+ * @param markerHistoryList List of markerhistory
  * @returns 
  */
 export const handleDataFetching = async (
@@ -24,8 +26,10 @@ export const handleDataFetching = async (
   setJsonData: React.Dispatch<React.SetStateAction<any>>,
   setMarkers: React.Dispatch<React.SetStateAction<MapMarker[]>>,
   setLoading: React.Dispatch<React.SetStateAction<boolean>>,
+  setMarkerHistoryList?: React.Dispatch<React.SetStateAction<CoordinateEntity[][]>>,
   additionalGeoJsonData?: GeoJsonData,
-  additionalMapMarkers?: MapMarker[]
+  additionalMapMarkers?: MapMarker[],
+  markerHistoryList?: CoordinateEntity[][]
 ) => {
   setLoading(true);
 
@@ -48,6 +52,16 @@ export const handleDataFetching = async (
         data.selected_countries_geojson_path.features = combined_features;
       }
 
+
+      // Adding entities to history
+      if (markerHistoryList && setMarkerHistoryList) {
+        markerHistoryList.unshift(data.entities);
+        setMarkerHistoryList(markerHistoryList);
+      } else if (setMarkerHistoryList) {
+        const markerlist: CoordinateEntity[][] = [];
+        markerlist.push(data.entities);
+        setMarkerHistoryList(markerlist);
+      }
 
       // Convert coordinates to MapMarkers, and combine with existing markers if present
       let coordinates: MapMarker[] = entitiesConvertor(data.entities, additionalMapMarkers);
@@ -88,13 +102,15 @@ export const handleDataFetching = async (
  * @param setJsonData SetStateAction for storing JsonData 
  * @param setMarkers SetStateAction for storing MapMarkers
  * @param setLoading SetStateAction for controlling Load visuals
+ * @param setMarkerHistoryList SetStateAction for storing new history
  * @returns Void - Just for ending loops
  */
 export const handleSendChatRequest = async (
   inputText: string,
   setJsonData: React.Dispatch<React.SetStateAction<any>>,
   setMarkers: React.Dispatch<React.SetStateAction<MapMarker[]>>,
-  setLoading: React.Dispatch<React.SetStateAction<boolean>>
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>,
+  setMarkerHistoryList: React.Dispatch<React.SetStateAction<CoordinateEntity[][]>>,
 ) => {
   if (inputText.trim() == '') { console.log('Input text is empty. Not sending the request.'); }
 
@@ -104,6 +120,7 @@ export const handleSendChatRequest = async (
     setJsonData,
     setMarkers,
     setLoading,
+    setMarkerHistoryList,
   );
   if (!responseData) {
     console.error("Response came back empty");
@@ -127,16 +144,20 @@ export const handleSendChatRequest = async (
  * @param setJsonData SetStateAction for storing JsonData 
  * @param setMarkers SetStateAction for storing MapMarkers
  * @param setLoading SetStateAction for controlling Load visuals
+ * @param setMarkerHistoryList SetStateAction for storing new history
  * @param geoJsonData Existing data to hold onto
  * @param mapMarkers Existing data to hold onto
+ * @param markerHistoryList List of markerhistory
  */
 export const handleAddRequestToChat = async (
   inputText: string,
   setJsonData: React.Dispatch<React.SetStateAction<any>>,
   setMarkers: React.Dispatch<React.SetStateAction<MapMarker[]>>,
   setLoading: React.Dispatch<React.SetStateAction<boolean>>,
+  setMarkerHistoryList: React.Dispatch<React.SetStateAction<CoordinateEntity[][]>>,
   geoJsonData: GeoJsonData,
-  mapMarkers: MapMarker[]
+  mapMarkers: MapMarker[],
+  markerHistoryList: CoordinateEntity[][]
 ) => {
   if (inputText.trim() == '') { console.log('Input text is empty. Not sending the request.'); }
 
@@ -149,8 +170,10 @@ export const handleAddRequestToChat = async (
     setJsonData,
     setMarkers,
     setLoading,
+    setMarkerHistoryList,
     geoJsonData,
-    mapMarkers
+    mapMarkers,
+    markerHistoryList,
   );
 
   if (!responseData) {

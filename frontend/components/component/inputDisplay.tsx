@@ -9,6 +9,7 @@ import autosizeTextArea from '../functions/AutosizeTextArea';
 import { MapMarker } from '../types/MapMarker';
 import MarkerList from './markerList';
 import markerToggle from '../functions/markerToggle';
+import { CoordinateEntity } from '../types/BackendResponse';
 
 // Type for defining input params for the 
 type InputDisplayProps = {
@@ -17,6 +18,7 @@ type InputDisplayProps = {
   input: any,
   jsonData?: any,
   markers: MapMarker[];
+  markerHistory: CoordinateEntity[][];
   setMarkers: React.Dispatch<React.SetStateAction<MapMarker[]>>,
   onSelectClick: (marker: MapMarker) => void,
   onSaveEditText: (text: string) => void,
@@ -33,7 +35,6 @@ type InputDisplayProps = {
  * @returns 
  */
 const InputDisplay = (props: InputDisplayProps) => {
-  const [numberOfLocations, setNumberOfLocations] = useState(0);
   const [markerListDisplayState, setMarkerListDisplayState] = useState(false);
   const [editText, setEditText] = useState(props.input);
   const [editTextState, setEditTextState] = useState(false);
@@ -42,10 +43,6 @@ const InputDisplay = (props: InputDisplayProps) => {
 
   //AutosizeTextArea
   autosizeTextArea(editInputRef.current, editText);
-
-  useEffect(() => {
-    setNumberOfLocations(props.markers.length);
-  }, [props.markers]);
 
   // Handlers for updating inputs
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => { setEditText(e.target.value) }
@@ -96,7 +93,7 @@ const InputDisplay = (props: InputDisplayProps) => {
           onClick={() => setMarkerListDisplayState(!markerListDisplayState)}
         >
           <span className="mr-2">
-            {numberOfLocations} Locations
+            {props.markers.length} Locations
           </span>
           {!markerListDisplayState ? <ChevronDownArrowIcon /> : <ChevronUpArrowIcon />}
         </button>
@@ -158,7 +155,11 @@ const InputDisplay = (props: InputDisplayProps) => {
                 }
                 {props.displayState === 1 &&
                   // Display chat always, as the user can only edit initial input
-                  <JsonRenderer jsonChatHistory={props.jsonData?.chat_history} />
+                  <JsonRenderer 
+                    jsonChatHistory={props.jsonData?.chat_history} 
+                    onSelectClick={props.onSelectClick} 
+                    markerHistory={props.markerHistory}
+                    mapMarkers={props.markers}/>
                 }
                 {props.displayState === 2 && !editTextState &&
                   // Display text when not editing, because the textarea displays the same.
