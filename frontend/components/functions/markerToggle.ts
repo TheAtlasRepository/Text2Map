@@ -9,7 +9,7 @@ const toggleMarker = (
   const todoMarkerIndex = markers.findIndex((marker) => marker.numId === id);
 
   // Create a new marker identical to old one, but with changed state
-  const updatedMarker = { ...markers[todoMarkerIndex], toggled: !markers[todoMarkerIndex].toggled };
+  const updatedMarker = { ...markers[todoMarkerIndex], toggled: !markers[todoMarkerIndex].isToggled };
 
   // Create a copy of the entire list, and insert the updated marker at the same position, then update the state.
   // Object.values() is called to convert resulting object back to a usable array. 

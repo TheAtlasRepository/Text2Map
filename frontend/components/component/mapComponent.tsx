@@ -149,7 +149,7 @@ const MapComponent: React.FC<MapComponentProps> = (
       {/* Render markers */}
       {isLoaded && props.markers.map(marker => (
         <>
-          {marker.toggled &&
+          {marker.isToggled &&
             <Marker
               key={marker.numId}
               latitude={marker.latitude}

@@ -20,16 +20,16 @@ export const entitiesConvertor = (entities: CoordinateEntity[], existingMarkers?
 
   entities.forEach(ent => {
     //If marker displayname does not already exist, add it
-    if (markers.findIndex(mark => mark.display_name == ent.display_name) == -1) {
+    if (markers.findIndex(mark => mark.displayName == ent.display_name) == -1) {
       markers.push({
-        display_name: ent.display_name,
+        displayName: ent.display_name,
         latitude: ent.lat,
         longitude: ent.lon,
         numId: x,
         imgUrl: ent.img_url,
-        toggled: true,
+        isToggled: true,
         infoUrl: "",
-        pinDiscription: ""
+        discription: ""
       })
       x++;
     }

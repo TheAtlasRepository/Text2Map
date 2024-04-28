@@ -32,7 +32,7 @@ const JsonRenderer: React.FC<JsonRendererProps> = ({ jsonChatHistory, onSelectCl
   }
 
   const handleMarkerSelect = (name: string) => {
-    const mapMarker = mapMarkers.find(mark => mark.display_name == name);
+    const mapMarker = mapMarkers.find(mark => mark.displayName == name);
     if (mapMarker)
       onSelectClick(mapMarker);
   }

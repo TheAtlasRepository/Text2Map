@@ -68,8 +68,8 @@ export const handleDataFetching = async (
 
       // Sort the coordinates alphabetically
       coordinates.sort((a, b) => {
-        if (a.display_name < b.display_name) { return -1; }
-        if (a.display_name < b.display_name) { return 1; }
+        if (a.displayName < b.displayName) { return -1; }
+        if (a.displayName < b.displayName) { return 1; }
         return 0;
       })
 

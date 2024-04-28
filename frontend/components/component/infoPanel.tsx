@@ -68,11 +68,11 @@ const InfoPanel = (props: {
       <div id="pinDescription" className="p-2 px-3">
         {/* {(props.marker.pinDiscription == "")} */}
 
-        {(props.marker.pinDiscription == "") ? (
+        {(props.marker.discription == "") ? (
           <div className="text-gray-400 dark:text-gray-500">
             No description added yet...
           </div>
-        ) : (<>{props.marker.pinDiscription}</>)
+        ) : (<>{props.marker.discription}</>)
         }
       </div>
 
