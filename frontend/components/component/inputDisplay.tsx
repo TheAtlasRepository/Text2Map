@@ -18,7 +18,7 @@ type InputDisplayProps = {
   input: any,
   jsonData?: any,
   markers: MapMarker[];
-  markerHistory: CoordinateEntity[][];
+  markerHistory?: CoordinateEntity[][];
   setMarkers: React.Dispatch<React.SetStateAction<MapMarker[]>>,
   onSelectClick: (marker: MapMarker) => void,
   onSaveEditText: (text: string) => void,
@@ -154,7 +154,7 @@ const InputDisplay = (props: InputDisplayProps) => {
                     Something wrong happened.<br />Try asking again.
                   </div>
                 }
-                {props.displayState === 1 &&
+                {props.displayState === 1 && props.markerHistory &&
                   // Display chat always, as the user can only edit initial input
                   <JsonRenderer 
                     jsonChatHistory={props.jsonData?.chat_history} 
