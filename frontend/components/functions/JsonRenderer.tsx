@@ -11,6 +11,9 @@ type JsonRendererProps = {
 
 };
 
+/**
+ * An error message to be displayed if no text is able to be displayed.
+ */
 const errorMessage = (
   <div className="border rounded-lg border-red-500 p-3 text-red-500">
     No text was found.

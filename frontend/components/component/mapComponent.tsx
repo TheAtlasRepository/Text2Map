@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import ReactMapGL, { Marker, Popup, Source, Layer } from 'react-map-gl';
 import type { MapRef } from 'react-map-gl';
-import Coordinate from '../functions/Coordinates';
+import MapPinMarker from './mapPinMarker';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import InfoPanel from './infoPanel';
 import { MarkerEditor } from './markerEditor';
@@ -25,11 +25,11 @@ type MapComponentProps = {
  * Map Component for displaying map with added formatting
  * 
  * @param markers Array of markers to display
- * @param setMarkers 
- * @param selectedMarker
- * @param setSelectedMarker
- * @param geojsonData 
- * @returns 
+ * @param setMarkers Displatch for setting and updating the array of markers
+ * @param selectedMarker A marker that has been selected, or null for when none is selected
+ * @param setSelectedMarker Dispatch for setting and updating the selected marker
+ * @param geojsonData GeoJson data for display
+ * @returns JSX element for the map
  */
 const MapComponent: React.FC<MapComponentProps> = (
   props: MapComponentProps
@@ -156,9 +156,8 @@ const MapComponent: React.FC<MapComponentProps> = (
               longitude={marker.longitude}
               offset={[0, -25] as [number, number]}
             >
-              <Coordinate
+              <MapPinMarker
                 marker={marker}
-                isSelected={props.selectedMarker?.numId === marker.numId}
                 onClick={handleMarkerSelect}
               />
               {props.selectedMarker?.numId === marker.numId && (

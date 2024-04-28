@@ -12,6 +12,14 @@ type MarkerEditorType = {
   marker: MapMarker | null,
 }
 
+/**
+ * Editor-window for editing the information of a marker
+ * 
+ * @param marker The marker to edit
+ * @param onClose Event activated when editor is closed
+ * @param onEditSave Event activated when the marker is saved. Returns a new marker object
+ * @returns JSX element of the editor
+ */
 export const MarkerEditor = (props: MarkerEditorType) => {
   const [markerTitle, setMarkerTitle] = useState<string>(props.marker?.displayName ?? "");
   const [markerImageURL, setMarkerImageURL] = useState<string>(props.marker?.imgUrl ?? "");

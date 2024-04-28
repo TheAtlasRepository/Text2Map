@@ -8,6 +8,13 @@ interface MarkerListProps {
   onToggleClick: (id: number) => void
 }
 
+/**
+ * MarkerList for displaying an overview of all markers, with the option to toggle display, and to select markers to fly to on the map.
+ * @param markers Array of markers to be displayed
+ * @param onSelectClick Event activated when a marker is selected/clicked on. Gives the selected marker
+ * @param onToggleClick Event activated when a marker is toggled. Gives the id of the toggled marker
+ * @returns JSX element for the markerlist
+ */
 const MarkerList: React.FC<MarkerListProps> = (
   props: MarkerListProps
 ) => {

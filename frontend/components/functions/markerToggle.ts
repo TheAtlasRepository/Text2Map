@@ -1,6 +1,11 @@
 import { MapMarker } from "../types/MapMarker";
 
-// Changes the toggle state on a given marker by id
+/**
+ * Changes the toggle state on a given marker by id
+ * @param id ID of the marker to be toggled 
+ * @param markers List of markers to update
+ * @returns Returns updated list of markers
+ */
 const toggleMarker = (
   id: number,
   markers: MapMarker[]

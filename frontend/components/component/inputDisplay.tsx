@@ -26,6 +26,7 @@ type InputDisplayProps = {
 }
 
 /**
+ * The display to the left of the page. Holds assistant response, buttons for editing text, and list of markers being displayed.
  * @param displayState Display for Chat = 1, text = 2 or CSV = [not implemented]
  * @param loading Loading state value
  * @param input Input text

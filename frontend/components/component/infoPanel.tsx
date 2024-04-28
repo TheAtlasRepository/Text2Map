@@ -1,8 +1,16 @@
 import { useState } from "react";
 import { CloseIcon, EyeSlashIcon, InternetGlobeIcon, PencilIcon } from "../ui/icons";
 import { MapMarker } from "../types/MapMarker";
-import { Button } from "../ui/button";
 
+/**
+ * Info panel displayed over a selected marker on the map.
+ * 
+ * @param marker The marker object to display
+ * @param onClosed Event activated when closing the panel
+ * @param onHideMarker Event for when hide is clicked. Sends the id of the marker
+ * @param onEditMarker Event for when edit is clicked
+ * @returns The JSX element
+ */
 const InfoPanel = (props: {
   marker: MapMarker;
   onClosed: () => void;
