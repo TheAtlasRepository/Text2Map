@@ -4,7 +4,7 @@ import MapComponent from "./mapComponent";
 import { handleSendChatRequest, handleAddRequestToChat } from '../functions/ApiUtils';
 import { InputDisplay } from './inputDisplay';
 import { MapMarker } from '../types/MapMarker';
-import { BackendResponse, CoordinateEntity, GeoJsonData } from '../types/BackendResponse';
+import { BackendResponse, GeoJsonData } from '../types/BackendResponse';
 
 export default function AskingView({
   inputText,
@@ -20,7 +20,7 @@ export default function AskingView({
   const [loading, setLoading] = useState(true);
   const [jsonData, setJsonData] = useState<BackendResponse | null>(null);
   const [markers, setMarkers] = useState<MapMarker[]>([]);
-  const [markerHistoryList, setMarkerHistoryList] = useState<CoordinateEntity[][]>([])
+  const [markerHistoryList, setMarkerHistoryList] = useState<string[][]>([])
   const [selectedMarker, setSelectedMarker] = useState<MapMarker | null>(null);
   const isInitialRender = useRef(true);
 

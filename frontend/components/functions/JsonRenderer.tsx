@@ -1,12 +1,12 @@
 import React from 'react';
-import { CoordinateEntity, JsonChatHistory } from '../types/BackendResponse';
+import { JsonChatHistory } from '../types/BackendResponse';
 import { MapMarker } from '../types/MapMarker';
 import { Button } from '../ui/button';
 
 type JsonRendererProps = {
   jsonChatHistory: JsonChatHistory[]; // Replace 'any' with the actual type of your jsonData
   onSelectClick: (marker: MapMarker) => void;
-  markerHistory: CoordinateEntity[][];
+  markerHistory: string[][];
   mapMarkers: MapMarker[];
 
 };
@@ -54,14 +54,14 @@ const JsonRenderer: React.FC<JsonRendererProps> = ({ jsonChatHistory, onSelectCl
         message = message_value.Information;
 
         // Directly use mapMarker to create buttons
-        locations = markerHistory[historyIndex].map((marker, index_h) =>
+        locations = markerHistory[historyIndex].map((markerName, index_h) =>
           <Button
             key={index_h}
             variant="blue"
             style={{ width: '100%'}} 
-            onClick={() => handleMarkerSelect(marker.display_name)}
+            onClick={() => handleMarkerSelect(markerName)}
           >
-            {marker.display_name}
+            {markerName}
           </Button>
         );
 

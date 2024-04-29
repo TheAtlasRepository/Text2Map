@@ -9,7 +9,6 @@ import autosizeTextArea from '../functions/AutosizeTextArea';
 import { MapMarker } from '../types/MapMarker';
 import MarkerList from './markerList';
 import markerToggle from '../functions/markerToggle';
-import { CoordinateEntity } from '../types/BackendResponse';
 
 // Type for defining input params for the 
 type InputDisplayProps = {
@@ -18,7 +17,7 @@ type InputDisplayProps = {
   input: any,
   jsonData?: any,
   markers: MapMarker[];
-  markerHistory?: CoordinateEntity[][];
+  markerHistory?: string[][];
   setMarkers: React.Dispatch<React.SetStateAction<MapMarker[]>>,
   onSelectClick: (marker: MapMarker) => void,
   onSaveEditText: (text: string) => void,
