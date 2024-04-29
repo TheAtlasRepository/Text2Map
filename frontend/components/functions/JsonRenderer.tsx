@@ -57,7 +57,7 @@ const JsonRenderer: React.FC<JsonRendererProps> = ({ jsonChatHistory, onSelectCl
         locations = markerHistory[historyIndex].map((markerName, index_h) =>
           <Button
             key={index_h}
-            variant="blue"
+            variant="secondary"
             style={{ width: '100%'}} 
             onClick={() => handleMarkerSelect(markerName)}
           >
