@@ -93,7 +93,7 @@ const MapComponent: React.FC<MapComponentProps> = (
 
     if (mapRef.current) {
       // console.log('lat and lon: ', lat, lon);
-      mapRef.current.flyTo({ center: [props.selectedMarker.longitude, props.selectedMarker.latitude], speed: 0.6});
+      mapRef.current.flyTo({ center: [props.selectedMarker.longitude, props.selectedMarker.latitude], speed: 0.6 });
     }
   }, [props.selectedMarker])
 
@@ -147,11 +147,11 @@ const MapComponent: React.FC<MapComponentProps> = (
       }
 
       {/* Render markers */}
-      {isLoaded && props.markers.map(marker => (
-        <>
-          {marker.isToggled &&
+      {isLoaded && props.markers.map(marker => {
+        if (marker.isToggled) {
+          return (
             <Marker
-              key={marker.numId}
+              key={"Marker" + marker.numId}
               latitude={marker.latitude}
               longitude={marker.longitude}
               offset={[0, -25] as [number, number]}
@@ -179,8 +179,9 @@ const MapComponent: React.FC<MapComponentProps> = (
                 </Popup>
               )}
             </Marker>
-          }</>
-      ))}
+          )
+        }
+      })}
 
       {isEditMarkerOverlayVisible && props.selectedMarker !== null && (
         <div className="editMarkerOverlay">
