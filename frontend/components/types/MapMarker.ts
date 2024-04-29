@@ -1,10 +1,13 @@
+/**
+ * For use in marker-related logic, as it has marker-related information
+ */
 export type MapMarker = {
-  display_name: string;
+  displayName: string;
   latitude: number;
   longitude: number;
   numId: number;
   imgUrl: string;
-  toggled: boolean;
   infoUrl: string;
-  pinDiscription: string;
+  discription: string;
+  isToggled: boolean;
 }

@@ -9,7 +9,6 @@ import autosizeTextArea from '../functions/AutosizeTextArea';
 import { MapMarker } from '../types/MapMarker';
 import MarkerList from './markerList';
 import markerToggle from '../functions/markerToggle';
-import { CoordinateEntity } from '../types/BackendResponse';
 
 // Type for defining input params for the 
 type InputDisplayProps = {
@@ -18,7 +17,7 @@ type InputDisplayProps = {
   input: any,
   jsonData?: any,
   markers: MapMarker[];
-  markerHistory: CoordinateEntity[][];
+  markerHistory?: string[][];
   setMarkers: React.Dispatch<React.SetStateAction<MapMarker[]>>,
   onSelectClick: (marker: MapMarker) => void,
   onSaveEditText: (text: string) => void,
@@ -26,6 +25,7 @@ type InputDisplayProps = {
 }
 
 /**
+ * The display to the left of the page. Holds assistant response, buttons for editing text, and list of markers being displayed.
  * @param displayState Display for Chat = 1, text = 2 or CSV = [not implemented]
  * @param loading Loading state value
  * @param input Input text
@@ -153,7 +153,7 @@ const InputDisplay = (props: InputDisplayProps) => {
                     Something wrong happened.<br />Try asking again.
                   </div>
                 }
-                {props.displayState === 1 &&
+                {props.displayState === 1 && props.markerHistory &&
                   // Display chat always, as the user can only edit initial input
                   <JsonRenderer 
                     jsonChatHistory={props.jsonData?.chat_history} 

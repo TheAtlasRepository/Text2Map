@@ -1,3 +1,6 @@
+/**
+ * Used for data recieved from backend.
+ */
 export type BackendResponse = {
   chat_history: JsonChatHistory[];
   entities: CoordinateEntity[];
@@ -5,6 +8,9 @@ export type BackendResponse = {
   thread_id: string;
 }
 
+/**
+ * Datatype for chat history contained in the response from backend
+ */
 export type JsonChatHistory = {
   sender: string;
   message: string | {
@@ -13,6 +19,9 @@ export type JsonChatHistory = {
   };
 }
 
+/**
+ * Datatype for coordinate entities contained in the response from backend
+ */
 export type CoordinateEntity = {
   display_name: string;
   img_url: string;
@@ -20,6 +29,9 @@ export type CoordinateEntity = {
   lon: number;
 }
 
+/**
+ * Datatype for geojson data contained in the response from backend
+ */
 export type GeoJsonData = {
   type: string;
   features: object[];

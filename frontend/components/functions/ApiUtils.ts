@@ -1,7 +1,9 @@
 import axios from 'axios';
 import { MapMarker } from '../types/MapMarker';
 import { entitiesConvertor } from './EntitiesConvertor';
-import { BackendResponse, CoordinateEntity, GeoJsonData } from '../types/BackendResponse';
+import { BackendResponse, GeoJsonData } from '../types/BackendResponse';
+import { entiyNameListExtractor } from './entityNameListExtractor';
+
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
@@ -17,7 +19,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
  * @param setMarkerHistoryList SetStateAction for storing new history
  * @param additionalGeoJsonData Optional for adding existing data with new
  * @param additionalMapMarkers Optional for adding existing data with new
- * @param markerHistoryList List of markerhistory
+ * @param markerHistoryList Array with multiple marker-lists 
  * @returns 
  */
 export const handleDataFetching = async (
@@ -26,10 +28,10 @@ export const handleDataFetching = async (
   setJsonData: React.Dispatch<React.SetStateAction<any>>,
   setMarkers: React.Dispatch<React.SetStateAction<MapMarker[]>>,
   setLoading: React.Dispatch<React.SetStateAction<boolean>>,
-  setMarkerHistoryList?: React.Dispatch<React.SetStateAction<CoordinateEntity[][]>>,
+  setMarkerHistoryList?: React.Dispatch<React.SetStateAction<string[][]>>,
   additionalGeoJsonData?: GeoJsonData,
   additionalMapMarkers?: MapMarker[],
-  markerHistoryList?: CoordinateEntity[][]
+  markerHistoryList?: string[][]
 ) => {
   setLoading(true);
 
@@ -55,11 +57,11 @@ export const handleDataFetching = async (
 
       // Adding entities to history
       if (markerHistoryList && setMarkerHistoryList) {
-        markerHistoryList.unshift(data.entities);
+        markerHistoryList.unshift(entiyNameListExtractor(data.entities));
         setMarkerHistoryList(markerHistoryList);
       } else if (setMarkerHistoryList) {
-        const markerlist: CoordinateEntity[][] = [];
-        markerlist.push(data.entities);
+        const markerlist: string[][] = [];
+        markerlist.push(entiyNameListExtractor(data.entities));
         setMarkerHistoryList(markerlist);
       }
 
@@ -68,8 +70,8 @@ export const handleDataFetching = async (
 
       // Sort the coordinates alphabetically
       coordinates.sort((a, b) => {
-        if (a.display_name < b.display_name) { return -1; }
-        if (a.display_name < b.display_name) { return 1; }
+        if (a.displayName < b.displayName) { return -1; }
+        if (a.displayName < b.displayName) { return 1; }
         return 0;
       })
 
@@ -110,7 +112,7 @@ export const handleSendChatRequest = async (
   setJsonData: React.Dispatch<React.SetStateAction<any>>,
   setMarkers: React.Dispatch<React.SetStateAction<MapMarker[]>>,
   setLoading: React.Dispatch<React.SetStateAction<boolean>>,
-  setMarkerHistoryList: React.Dispatch<React.SetStateAction<CoordinateEntity[][]>>,
+  setMarkerHistoryList: React.Dispatch<React.SetStateAction<string[][]>>,
 ) => {
   if (inputText.trim() == '') { console.log('Input text is empty. Not sending the request.'); }
 
@@ -147,17 +149,17 @@ export const handleSendChatRequest = async (
  * @param setMarkerHistoryList SetStateAction for storing new history
  * @param geoJsonData Existing data to hold onto
  * @param mapMarkers Existing data to hold onto
- * @param markerHistoryList List of markerhistory
+ * @param markerHistoryList List with lists of marker display-names
  */
 export const handleAddRequestToChat = async (
   inputText: string,
   setJsonData: React.Dispatch<React.SetStateAction<any>>,
   setMarkers: React.Dispatch<React.SetStateAction<MapMarker[]>>,
   setLoading: React.Dispatch<React.SetStateAction<boolean>>,
-  setMarkerHistoryList: React.Dispatch<React.SetStateAction<CoordinateEntity[][]>>,
+  setMarkerHistoryList: React.Dispatch<React.SetStateAction<string[][]>>,
   geoJsonData: GeoJsonData,
   mapMarkers: MapMarker[],
-  markerHistoryList: CoordinateEntity[][]
+  markerHistoryList: string[][]
 ) => {
   if (inputText.trim() == '') { console.log('Input text is empty. Not sending the request.'); }
 

@@ -12,11 +12,19 @@ type MarkerEditorType = {
   marker: MapMarker | null,
 }
 
+/**
+ * Editor-window for editing the information of a marker
+ * 
+ * @param marker The marker to edit
+ * @param onClose Event activated when editor is closed
+ * @param onEditSave Event activated when the marker is saved. Returns a new marker object
+ * @returns JSX element of the editor
+ */
 export const MarkerEditor = (props: MarkerEditorType) => {
-  const [markerTitle, setMarkerTitle] = useState<string>(props.marker?.display_name ?? "");
+  const [markerTitle, setMarkerTitle] = useState<string>(props.marker?.displayName ?? "");
   const [markerImageURL, setMarkerImageURL] = useState<string>(props.marker?.imgUrl ?? "");
   const [markerInfoLink, setMarkerInfoLink] = useState<string>(props.marker?.infoUrl ?? "");
-  const [markerDescription, setMarkerDescription] = useState<string>(props.marker?.pinDiscription ?? "");
+  const [markerDescription, setMarkerDescription] = useState<string>(props.marker?.discription ?? "");
   const pinDescriptionRef = useRef<HTMLTextAreaElement>(null);
 
   autosizeTextArea(pinDescriptionRef.current, markerDescription);
@@ -25,14 +33,14 @@ export const MarkerEditor = (props: MarkerEditorType) => {
     if (props.marker == null) return;
 
     const newMarker: MapMarker = {
-      display_name: markerTitle,
+      displayName: markerTitle,
       latitude: props.marker.latitude,
       longitude: props.marker.longitude,
       numId: props.marker.numId,
       imgUrl: markerImageURL,
-      toggled: props.marker.toggled,
+      isToggled: props.marker.isToggled,
       infoUrl: markerInfoLink,
-      pinDiscription: markerDescription,
+      discription: markerDescription,
     };
     props.onEditSave(newMarker);
     props.onClose();

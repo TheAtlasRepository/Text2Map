@@ -8,7 +8,7 @@ import MapComponent from "./mapComponent";
 import { InputDisplay } from "../component/inputDisplay";
 import autosizeTextArea from '../functions/AutosizeTextArea';
 import { MapMarker } from "../types/MapMarker";
-import { BackendResponse, CoordinateEntity } from "../types/BackendResponse";
+import { BackendResponse } from "../types/BackendResponse";
 
 export default function StartDataSource() {
   const maxLengthInput = 3000; // Max length for input
@@ -23,7 +23,6 @@ export default function StartDataSource() {
   const [jsonData, setJsonData] = useState<BackendResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [markers, setMarkers] = useState<MapMarker[]>([]);
-  const [markerHistoryList, setMarkerHistoryList] = useState<CoordinateEntity[][]>([])
   const [selectedMarker, setSelectedMarker] = useState<MapMarker | null>(null);
 
   //AutosizeTextArea
@@ -249,7 +248,6 @@ export default function StartDataSource() {
               input={inputText}
               jsonData={jsonData} // Should probably shorten to just jsonData.chat-history
               markers={markers}
-              markerHistory={markerHistoryList}
               setMarkers={setMarkers}
               onSelectClick={handleSelectMarker}
               onSaveEditText={handleInputButtonClick}
