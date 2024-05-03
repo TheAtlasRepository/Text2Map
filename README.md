@@ -87,9 +87,6 @@ You need to locate the `startup.sh` script in the root directory of your project
 
    pip install -r requirements.txt
 
-   Install Spacy
-   python -m spacy download en_core_web_trf
-
    uvicorn main:app --reload
    ```
 
@@ -100,6 +97,7 @@ You need to locate the `startup.sh` script in the root directory of your project
    Add and modify the following line:
    ```bash
    NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN='Your Mapbox Default public token'
+   NEXT_PUBLIC_BACKEND_URL='Your Backend Url. http://localhost:8000 for example'
    ```
 
 5. **To Run Frontend**
