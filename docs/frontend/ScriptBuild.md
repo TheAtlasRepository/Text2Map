@@ -9,5 +9,6 @@ If a `.env.local` file is present in the frontend directory, the application wil
 
 The content of `.env.local` should look something like this:
 ```
-NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=YourKeyHere NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
+NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=YourKeyHere
+NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
 ```
