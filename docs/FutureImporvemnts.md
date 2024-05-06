@@ -11,6 +11,7 @@ As this software heavily relies on Generative AI and this always is changing and
 | OpenAI | Decent answers and cheap to run. Has no limits on how many times you can requests a day | Can be unreliable answers, especially in formatting the JSON right. The assistant has less features then gemini |
 | Meta Llama| Open Source and can be ran locally. | While it can be ran locally and is pretty quick. It give more unreliable answers then OpenIA. And fails most of the time to get the JSON structure right. Which is crucial to the app. |
 | Grok | Open Source and can be ran locally | Isn't meant for this kind of use case. Can be very political. Not Suitable for the app. |
+| Mixtral-8x7B | Open Source and can be ran locally. Has technically no limits if ran locally other then costs of runnning such a thing. Really good answer from testing. | Might be expensive to run if done locally. Haven't done to much research into it but doesn't seem to have an Assistant like OpenAI has |
 
 
     
